@@ -80,7 +80,7 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
         <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
         <p class="calc__incomplete" data-out="incomplete">Enter your own dollar amounts to see results.</p>
         <p class="vh" data-out="status" role="status" aria-live="polite"></p>
-        <ShareExport idPrefix="ci" />
+        <ShareExport idPrefix="ci" dayLimit />
         <p class="small muted">A hypothetical projection, not a prediction. Real rates change. <a href={href('disclaimer/')}>Disclaimer</a>.</p>
       </section>
     </div>

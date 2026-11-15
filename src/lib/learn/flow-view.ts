@@ -56,6 +56,12 @@ export function flowView(tx: Transaction | null): FlowView {
   pair((i) => i === 'security', 'security', 'Treasury', (up) => (up ? 'new security' : 'security redeemed'));
   for (const c of tx.claims) {
     if (!LENDING.has(c.instrument)) continue;
+    // A write-off is not a repayment: nothing moves from the borrower. In this model the
+    // bank gives up its claim (the loss goes to its equity and the borrower's equity rises).
+    if (tx.kind === 'write-off') {
+      arrows.push({ from: c.holder, to: c.issuer, label: `writes off ${money(-c.change)}` });
+      continue;
+    }
     arrows.push(c.change > 0 ? { from: c.holder, to: c.issuer, label: `lends ${money(c.change)}` } : { from: c.issuer, to: c.holder, label: `repays ${money(-c.change)}` });
   }
   return { changed, arrows };

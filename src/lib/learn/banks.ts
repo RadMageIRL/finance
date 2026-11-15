@@ -70,7 +70,7 @@ export const BANK_STEPS: readonly GuidedStep[] = [
   {
     id: 'default',
     title: 'The borrower defaults',
-    text: 'Household 1 loses its income and cannot pay the rest. Bank A writes off the remaining loan: the asset disappears and the loss comes out of Bank A\'s equity. Deposits are untouched, so the money supply does not change, but the bank is weaker. This is credit risk.',
+    text: 'Household 1 loses its income and cannot pay the rest. Bank A writes off the remaining loan: the asset disappears and the loss comes out of Bank A\'s equity. Deposits are untouched, so the money supply does not change, but the bank is weaker. This is credit risk. The simulation also takes the loan off Household 1\'s balance sheet, as if forgiven; in real life a charge-off does not cancel the debt, and the borrower still owes it.',
     make: (s) => [writeOff('H1', claimAmount(s, { instrument: 'loan', holder: 'BankA', issuer: 'H1' }))],
   },
   {
@@ -82,7 +82,7 @@ export const BANK_STEPS: readonly GuidedStep[] = [
   {
     id: 'capital',
     title: 'A capital rule stops a loan',
-    text: 'Now suppose banks must keep equity of at least 5 percent of their assets (a simplified rule; the real ones are described below). Bank A, its equity reduced by the default, tries to lend another $10,000. A loan adds to assets but not to equity, and this one would take Bank A below the rule, so it is refused. This is the capital constraint.',
+    text: 'Now suppose banks must keep equity of at least 5 percent of their assets. This is a hypothetical rule for teaching, not a regulatory minimum; the real minimums are described below. Bank A, its equity reduced by the default, tries to lend another $10,000. A loan adds to assets but not to equity, and this one would take Bank A below the rule, so it is refused. This is the capital constraint.',
     make: () => [bankLends('H1', 1_000_000)],
     options: { minCapitalRatio: LESSON_CAPITAL_RATIO },
     refused: true,

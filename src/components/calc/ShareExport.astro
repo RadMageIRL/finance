@@ -5,11 +5,19 @@
 // amount the visitor entered. The share link carries the scenario in the URL fragment
 // (after #); the visitor chooses whether dollar amounts go into it exactly, rounded, or not
 // at all, and the panel says plainly what a link can and cannot keep private.
+import { formatInteger } from '../../lib/calc/format';
+import { REPORT_ROW_LIMIT } from '../../lib/report/report';
+
 interface Props {
   idPrefix: string;
+  /** What the exports follow, for example "the balance illustration below". */
+  subject?: string;
+  /** The calculator offers a view by day, which a report shows by month when it is too long. */
+  dayLimit?: boolean;
 }
 
-const { idPrefix } = Astro.props;
+const { idPrefix, subject = 'the schedule below', dayLimit = false } = Astro.props;
+const dayNote = ` Grouped by day, anything longer than ${formatInteger(REPORT_ROW_LIMIT)} rows (about 10 years) appears by month in the report and the printout; the CSV always has every day.`;
 const modes = [
   { value: 'exact', label: 'Exact amounts' },
   { value: 'rounded', label: 'Rounded amounts' },
@@ -23,7 +31,7 @@ const modes = [
     <button class="button button--secondary" type="button" data-action="summary">Download summary</button>
     <button class="button button--secondary" type="button" data-action="print">Print or save as PDF</button>
   </div>
-  <p class="small muted" data-out="export-note">The report and the CSV follow the schedule below, grouped by <span data-out="export-grouping">year</span>. Files are made in your browser and never uploaded, and their names leave out your amounts.</p>
+  <p class="small muted" data-out="export-note">The report and the CSV follow {subject}, grouped by <span data-out="export-grouping">year</span>.{dayLimit && dayNote} Files are made in your browser and never uploaded, and their names leave out your amounts.</p>
   <p class="small" data-out="export-status" role="status" aria-live="polite"></p>
   <div class="button-row">
     <button class="button button--secondary" type="button" data-action="share" aria-expanded="false" aria-controls={`${idPrefix}-share`}>Share link</button>

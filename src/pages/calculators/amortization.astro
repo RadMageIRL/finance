@@ -95,8 +95,12 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       <p>
         Each month the loan charges interest on the balance still owed. The payment covers that
         interest first, and the rest repays principal. Early on the balance is large, so most of
-        the payment is interest; as the balance falls, more and more goes to principal. The
-        payment stays the same, which is what makes the loan "amortizing."
+        the payment is interest; as the balance falls, more and more goes to principal, until
+        the last payment clears the balance. Paying a loan down to zero this way, with every
+        payment repaying some principal, is what makes it "amortizing": the CFPB calls the
+        process amortization, with a payment set "to pay off the loan precisely at the end of
+        the term." <span class="cite">CFPB</span> On a fixed-rate loan like this one the payment
+        also stays the same each month, apart from a slightly different last payment.
       </p>
       <p>
         On a mortgage, the total monthly payment usually includes more than principal and

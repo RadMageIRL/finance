@@ -151,7 +151,7 @@ export function issueText(issue: LedgerIssue): string {
     case 'exceeds-balance':
       return `That is more than ${who} owes.`;
     case 'capital-constraint':
-      return `${who} would fall below the capital rule: its equity would be too small a share of its assets.`;
+      return `${who} would fall below the lesson's hypothetical capital rule: its equity would be too small a share of its assets.`;
     case 'invalid-amount':
       return 'Enter an amount of at least one cent.';
     default:

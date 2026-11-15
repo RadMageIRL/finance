@@ -128,7 +128,9 @@ test.describe('mortgage payoff calculator', () => {
     const html = readFileSync((await download.path())!, 'utf8');
     expect(html).toContain('<h1>Mortgage payoff calculator</h1>');
     expect(html).toContain('<h2>With and without the extra payments</h2>');
-    expect(html).toContain('Total monthly payment');
+    expect(html).toContain('Estimated total monthly housing cost');
+    expect(html).toContain('HOA dues (not part of the mortgage payment)');
+    expect(html).not.toContain('Total monthly payment');
     expect(html).not.toMatch(/<script/);
   });
 

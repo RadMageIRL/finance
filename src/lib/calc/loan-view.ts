@@ -75,6 +75,7 @@ export const PAYOFF_ASSUMPTIONS: readonly string[] = [
 
 export const LOAN_SOURCES: readonly string[] = [
   'Consumer Financial Protection Bureau, "On a mortgage, what\'s the difference between my principal and interest payment and my total monthly payment?" (last reviewed August 28, 2023), consumerfinance.gov/ask-cfpb/what-is-piti-en-1941/.',
+  'Consumer Financial Protection Bureau, "How does paying down a mortgage work?" (last reviewed May 28, 2024), consumerfinance.gov/ask-cfpb/how-does-paying-down-a-mortgage-work-en-1943/.',
   '12 CFR part 1026 (Regulation Z, Truth in Lending), section 1026.22 and appendix J, on the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
 ];
 
@@ -130,6 +131,9 @@ export function payoffView(c: PayoffComparison): PayoffView {
     summary,
   };
 }
+
+/** The HOA dues row in `breakdownRows`: not part of the mortgage payment, usually paid to the association. */
+export const HOA_ROW = 4;
 
 export function breakdownRows(b: PaymentBreakdown): { label: string; value: string }[] {
   return [
@@ -404,10 +408,10 @@ export function payoffReport(input: LoanInput, first: PaymentDate, costs: Housin
     rows: v.rows.map((r) => ({ head: r.label, cells: [r.baseline, r.accelerated] })),
   });
   const monthly = staticTable({
-    caption: 'The first month\'s payment: principal and interest, and the other housing costs kept apart',
+    caption: 'The first month\'s housing costs: principal and interest, the other housing costs kept apart, and HOA dues, which are not part of the mortgage payment',
     columns: [{ label: 'Part', numeric: false }, { label: 'Per month', numeric: true }],
-    rows: breakdownRows(breakdown).map((r) => ({ head: r.label, cells: [r.value] })),
-    footer: { head: 'Total monthly payment', cells: [formatUSD(breakdown.total)] },
+    rows: breakdownRows(breakdown).map((r, i) => ({ head: i === HOA_ROW ? `${r.label} (not part of the mortgage payment)` : r.label, cells: [r.value] })),
+    footer: { head: 'Estimated total monthly housing cost', cells: [formatUSD(breakdown.total)] },
   });
   return {
     calculator: PAYOFF_CALCULATOR,
@@ -417,7 +421,7 @@ export function payoffReport(input: LoanInput, first: PaymentDate, costs: Housin
       { label: 'Paid off', value: `${dateLabel(c.accelerated.payoff)} (instead of ${dateLabel(c.baseline.payoff)})` },
       { label: 'Time saved', value: durationText(c.monthsSaved) },
       { label: 'Monthly principal and interest', value: formatUSD(c.accelerated.schedule.payment) },
-      { label: 'Total monthly payment', value: formatUSD(breakdown.total) },
+      { label: 'Estimated total monthly housing cost (HOA dues included)', value: formatUSD(breakdown.total) },
     ],
     sentence: v.summary,
     inputs: [...termInputs(input, first), ...extras],
@@ -425,7 +429,7 @@ export function payoffReport(input: LoanInput, first: PaymentDate, costs: Housin
     rateChanges: null,
     tables: [
       { heading: 'With and without the extra payments', table: comparison },
-      { heading: 'Monthly payment', table: monthly },
+      { heading: 'Monthly housing costs', table: monthly },
     ],
     chart: {
       heading: `Balance left by ${grouping}`,

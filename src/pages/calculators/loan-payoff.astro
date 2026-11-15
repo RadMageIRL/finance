@@ -7,7 +7,7 @@ import CalcSelect from '../../components/calc/CalcSelect.astro';
 import ScheduleView from '../../components/calc/ScheduleView.astro';
 import ShareExport from '../../components/calc/ShareExport.astro';
 import { paymentBreakdown, payoffComparison } from '../../lib/engines/loan-report';
-import { LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownRows, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
+import { HOA_ROW, LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownRows, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
 import { formatUSD } from '../../lib/calc/format';
 import { MONTH_NAMES } from '../../lib/calc/schedule-view';
 import { calculatorSchema } from '../../lib/site';
@@ -103,15 +103,22 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
               </tbody>
             </table>
           </div>
-          <h3 class="calc__subheading">Monthly payment</h3>
+          <h3 class="calc__subheading">Monthly housing costs</h3>
           <dl class="breakdown">
             <div><dt>{parts[0]!.label}</dt><dd data-out="part-0">{parts[0]!.value}</dd></div>
           </dl>
           <p class="breakdown__group">Other housing costs, kept apart from the loan</p>
           <dl class="breakdown">
-            {parts.slice(1).map((p, i) => <div><dt>{p.label}</dt><dd data-out={`part-${i + 1}`}>{p.value}</dd></div>)}
-            <div class="breakdown__total"><dt>Total monthly payment</dt><dd data-out="total-monthly">{formatUSD(brk.value.total)}</dd></div>
+            {parts.slice(1, HOA_ROW).map((p, i) => <div><dt>{p.label}</dt><dd data-out={`part-${i + 1}`}>{p.value}</dd></div>)}
           </dl>
+          <p class="breakdown__group">Not part of the mortgage payment: usually paid to the association</p>
+          <dl class="breakdown">
+            <div><dt>{parts[HOA_ROW]!.label}</dt><dd data-out={`part-${HOA_ROW}`}>{parts[HOA_ROW]!.value}</dd></div>
+          </dl>
+          <dl class="breakdown">
+            <div class="breakdown__total"><dt>Estimated total monthly housing cost</dt><dd data-out="total-monthly">{formatUSD(brk.value.total)}</dd></div>
+          </dl>
+          <p class="small muted">An estimate of what the home costs each month. It includes HOA dues, which are not part of the mortgage payment, so it can be more than what you pay your lender.</p>
           <p class="calc__summary" data-out="summary">{view.summary}</p>
         </div>
         <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
@@ -141,7 +148,11 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       <p>
         On a mortgage, the total monthly payment usually includes "additional costs like
         homeowners insurance, taxes, and possibly mortgage insurance." <span class="cite">CFPB</span> Those
-        are shown apart here because extra payments do not change them.
+        are shown apart here because extra payments do not change them. Many lenders collect
+        the taxes and insurance through an escrow account with each payment. HOA dues are
+        different: for a condo, co-op or a neighborhood with a homeowners' association they are
+        "usually paid separately," <span class="cite">CFPB</span> so they are listed outside the
+        mortgage payment and appear only in the estimated total housing cost.
       </p>
 
       <h2>Assumptions</h2>

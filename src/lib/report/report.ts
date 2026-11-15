@@ -34,6 +34,12 @@ export interface ReportSchedule {
   table: TableSource;
   /** What the rows mean, for example how interest is accrued and credited. */
   notes: readonly string[];
+  /**
+   * Set when the visitor chose a schedule too long for a readable report (a daily one over
+   * REPORT_ROW_LIMIT rows) and the report shows the schedule by month instead: the chosen
+   * schedule's heading and row count. The CSV still has every row of the chosen schedule.
+   */
+  fallbackFrom?: { heading: string; rows: number };
 }
 
 export interface Report {
@@ -75,7 +81,10 @@ export const BRAND_MARK =
  */
 export const REPORT_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'";
 
-/** Rows above which a report shows a long schedule only as CSV (about ten years of days). */
+/**
+ * Rows above which a report and its printout show a long daily schedule by month instead
+ * (about ten years of days); the CSV always keeps every row.
+ */
 export const REPORT_ROW_LIMIT = 3_660;
 
 const HTML_ESCAPES: Readonly<Record<string, string>> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -197,6 +206,7 @@ export function reportSchedule(schedule: ReportSchedule, fallback: ReportSchedul
   if (schedule.table.count <= REPORT_ROW_LIMIT || !fallback) return schedule;
   return {
     ...fallback,
+    fallbackFrom: { heading: schedule.heading, rows: schedule.table.count },
     notes: [
       `The ${schedule.heading.toLowerCase()} has ${schedule.table.count.toLocaleString('en-US')} rows, too many for a readable report, so this report shows the schedule by month. Download the CSV for every row.`,
       ...fallback.notes,
@@ -257,7 +267,12 @@ export function reportText(report: Report): string {
   if (report.schedule) {
     heading('Schedule');
     const rows = report.schedule.table.count;
-    out.push(...wrap(`The ${report.schedule.heading.toLowerCase()} has ${rows.toLocaleString('en-US')} ${rows === 1 ? 'row' : 'rows'}${pageCount(report.schedule.table) > 1 ? `, in ${pageCount(report.schedule.table).toLocaleString('en-US')} pages on the calculator page` : ''}. Download the CSV or the HTML report to see every row.`));
+    const chosen = report.schedule.fallbackFrom;
+    if (chosen) {
+      out.push(...wrap(`You chose the ${chosen.heading.toLowerCase()}, which has ${chosen.rows.toLocaleString('en-US')} rows: too many for a readable report, so the HTML report and the printout show the ${report.schedule.heading.toLowerCase()} instead (${rows.toLocaleString('en-US')} ${rows === 1 ? 'row' : 'rows'}). Download the CSV to get every row of the ${chosen.heading.toLowerCase()}.`));
+    } else {
+      out.push(...wrap(`The ${report.schedule.heading.toLowerCase()} has ${rows.toLocaleString('en-US')} ${rows === 1 ? 'row' : 'rows'}${pageCount(report.schedule.table) > 1 ? `, in ${pageCount(report.schedule.table).toLocaleString('en-US')} pages on the calculator page` : ''}. Download the CSV or the HTML report to see every row.`));
+    }
   }
   if (report.sources.length) {
     heading('Sources');

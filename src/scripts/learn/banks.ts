@@ -20,7 +20,7 @@ if (root) {
       { id: 'pay', label: 'A customer pays the other', parties: CUSTOMERS, counterparties: CUSTOMERS, make: (p, c, a) => payment(p as Nonbank, c as Nonbank, a) },
       { id: 'repay', label: 'Repay loan principal', parties: CUSTOMERS, make: (p, _c, a) => repayPrincipal(p as Nonbank, a) },
       { id: 'interest', label: 'Pay loan interest', parties: CUSTOMERS, make: (p, _c, a) => payInterest(p as Nonbank, a) },
-      { id: 'write-off', label: 'The bank writes off a loan', parties: CUSTOMERS, make: (p, _c, a) => writeOff(p as Nonbank, a) },
+      { id: 'write-off', label: 'The bank writes off and forgives a loan', parties: CUSTOMERS, make: (p, _c, a) => writeOff(p as Nonbank, a) },
     ],
     capitalRatio: LESSON_CAPITAL_RATIO,
   });

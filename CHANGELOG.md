@@ -33,6 +33,16 @@ All notable changes to RadMage Finance are recorded here.
 - A strict Content Security Policy on every page, no third-party requests and no cookies.
 - Local checks: house-style text scan, type check, unit tests, build output checks (links, origins, metadata, sitemap, page weight, words run into links), and browser tests for the theme, accessibility in every theme, layout at 320 px, privacy, and the reports (offline viewing, print layout, CSV values).
 
+### Changed
+
+- How Banks Create Money and How Money Flows: the simulator's 5 percent capital rule is labeled a hypothetical rule for teaching, not a regulatory minimum, in the lesson text, the step, the free-mode switch and its refusal message, and in each lesson's list of simplifications.
+- Write-offs: the lessons now say that a charge-off is the bank's accounting entry and does not cancel the borrower's debt (citing the OCC), that the simulation also removes the loan from the borrower's balance sheet as if forgiven, and the free-mode action is named "writes off and forgives a loan". The flow view draws a write-off as the bank writing off the loan instead of as a repayment.
+- The money multiplier quote is attributed to its authors at the Federal Reserve Board and the St. Louis Fed instead of to St. Louis Fed economists.
+- What Is Money?: the GENIUS Act wording says it takes effect on January 18, 2027 and lists the rules issued so far (the OCC final rule and the Treasury interim final rule, now cited); the other agencies' rules are proposals.
+- Loan amortization: amortizing is defined as paying the loan down to zero with every payment repaying some principal (citing the CFPB), not as a level payment.
+- Mortgage payoff: HOA dues are listed apart from the mortgage payment, and the total is labeled an estimated total monthly housing cost, on the page and in the report.
+- Compound interest, APR and APY, and savings: the export note says a daily view longer than 3,660 rows appears by month in the report and printout while the CSV keeps every day, and the plain-text summary says so when it happens instead of pointing to the HTML report for every row.
+
 ### Fixed
 
 - Missing spaces where a link or citation ended a line in the page source ("calculatorfor", "(c)Behind").

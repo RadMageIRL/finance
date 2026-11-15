@@ -50,7 +50,7 @@ test.describe('How Banks Create Money', () => {
     await expect(page.locator('.taccount[data-entity="Fed"]')).toContainText('Loans to banks');
     await expect(page.locator('.sim-choice')).toHaveCount(0);
     await next(page);
-    await expect(page.locator('[data-sim="message"]')).toContainText('Refused: Bank A would fall below the capital rule');
+    await expect(page.locator('[data-sim="message"]')).toContainText("Refused: Bank A would fall below the lesson's hypothetical capital rule");
     await expect(page.locator('[data-sim="next"]')).toBeDisabled();
   });
 
@@ -96,6 +96,21 @@ test.describe('How Money Flows', () => {
     await page.click('.sim-free button[type="submit"]');
     await expect(page.locator('[data-sim="moves"]')).toContainText('Reverse repo with the Fed held by Money market fund, owed by Federal Reserve: $50.00 created.');
     await expect(counter(page, 'Bank reserves')).toHaveText('$450.00');
+  });
+
+  test('free mode: a write-off is drawn as the bank writing off the loan, never as a repayment', async ({ page }) => {
+    await page.goto(FLOWS);
+    await page.selectOption('#sim-flows-action', 'lend');
+    await page.selectOption('#sim-flows-party', 'H1');
+    await page.fill('#sim-flows-amount', '100');
+    await page.click('.sim-free button[type="submit"]');
+    await page.selectOption('#sim-flows-action', 'write-off');
+    await page.selectOption('#sim-flows-party', 'H1');
+    await page.fill('#sim-flows-amount', '40');
+    await page.click('.sim-free button[type="submit"]');
+    const title = page.locator('[data-sim="flow"] svg title');
+    await expect(title).toHaveText('Flows: Bank A to Household 1, writes off $40.00');
+    await expect(title).not.toContainText('repays');
   });
 });
 

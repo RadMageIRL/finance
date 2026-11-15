@@ -246,7 +246,7 @@ export function wireSimulator(root: HTMLElement, cfg: SimConfig): void {
       const ruleOn = capital?.checked ?? false;
       apply([a.make(p, c, parsed.value)], ruleOn ? { minCapitalRatio: cfg.capitalRatio } : {}, {
         title: `Your transaction: ${a.label}`,
-        text: `${ENTITY_INFO[p].name}${c ? ` and ${ENTITY_INFO[c].name}` : ''}, ${formatUSD(parsed.value)}${ruleOn ? `, with the ${Math.round(cfg.capitalRatio * 100)} percent capital rule on` : ''}.`,
+        text: `${ENTITY_INFO[p].name}${c ? ` and ${ENTITY_INFO[c].name}` : ''}, ${formatUSD(parsed.value)}${ruleOn ? `, with the hypothetical ${Math.round(cfg.capitalRatio * 100)} percent capital rule on` : ''}.`,
         guided: frames[index]!.guided,
       });
       render(true);

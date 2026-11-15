@@ -6,6 +6,7 @@ import { FLOW_CATALOG, FLOW_STEPS, flowsOpening } from '../../../src/lib/learn/f
 import { flowSvg, flowView } from '../../../src/lib/learn/flow-view';
 import { counters, runTransactions } from '../../../src/lib/learn/sim';
 import { ENTITIES, ENTITY_INFO, balanceSheet, type EntityId, type LedgerState } from '../../../src/lib/engines/ledger/model';
+import { writeOff } from '../../../src/lib/engines/ledger/catalog';
 
 const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) as Record<EntityId, string>;
 
@@ -74,6 +75,14 @@ describe('How Money Flows', () => {
     expect(svg.match(/class="flow__node is-changed"/g)).toHaveLength(5);
     expect(svg.match(/<line class="flow__arrow"/g)).toHaveLength(2);
     expect(svg).not.toMatch(/NaN|undefined/);
+  });
+
+  it('labels a write-off as the bank writing off the loan, never as a repayment', () => {
+    const view = flowView(writeOff('H1', 2_500));
+    expect(view.arrows).toEqual([{ from: 'BankA', to: 'H1', label: 'writes off $25.00' }]);
+    const svg = flowSvg(view, names, 'wo');
+    expect(svg).toContain('<title id="wo-title">Flows: Bank A to Household 1, writes off $25.00</title>');
+    expect(svg).not.toContain('repays');
   });
 
   it('offers the whole catalog, and every action posts or is refused for a stated reason', () => {

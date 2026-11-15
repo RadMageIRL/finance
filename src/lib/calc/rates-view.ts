@@ -352,6 +352,9 @@ export function ratesInputs(input: RatesInput, result: RateComparison): { label:
   return out;
 }
 
+/** "Balance illustration by day" and so on, the report heading for a grouping. */
+const illustrationHeading = (g: Grouping) => `Balance illustration ${groupingOption(g).heading.replace('Schedule ', '')}`;
+
 /**
  * The report: the comparison, then the balance illustration at the chosen grouping (by
  * month instead when a daily illustration is too long to print). `rowsFor` gives the
@@ -382,7 +385,12 @@ export function ratesReport(input: RatesInput, result: RateComparison, rowsFor: 
       legend: result.accounts.map((a) => ACCOUNT_NAMES[a.index]!),
       summary: `Interest earned to date on a single deposit of ${formatUSD(result.balance)} in each account over ${input.years} ${input.years === 1 ? 'year' : 'years'}. Each line is labeled at its end; the table below has every figure.`,
     },
-    schedule: { heading: `Balance illustration ${groupingOption(grouping).heading.replace('Schedule ', '')}`, table: illustrationTable(result, rows, grouping), notes },
+    schedule: {
+      heading: illustrationHeading(grouping),
+      table: illustrationTable(result, rows, grouping),
+      notes,
+      ...(long ? { fallbackFrom: { heading: illustrationHeading('day'), rows: rowsFor('day').length } } : {}),
+    },
     assumptions: RATES_ASSUMPTIONS,
     sources: RATES_SOURCES,
   };

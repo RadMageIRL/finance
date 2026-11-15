@@ -80,7 +80,7 @@ describe('loan view', () => {
     if (!brk.ok) throw new Error('invalid');
     const payoff = reportBody(payoffReport(loan, FIRST, { propertyTaxAnnual: 360_000, insuranceAnnual: 150_000, mortgageInsuranceMonthly: 0, hoaMonthly: 0 }, c, brk.value, 'year', WHEN));
     expect(payoff).toContain('<h2>With and without the extra payments</h2>');
-    expect(payoff).toContain('<h2>Monthly payment</h2>');
+    expect(payoff).toContain('<h2>Monthly housing costs</h2>');
     expect(payoff).toContain('One-time payment 1');
     const plan = loanPlan({ principal: 3_000_000, annualRate: 0.07, termMonths: 60 }, FIRST);
     if (!plan.ok) throw new Error('invalid');
@@ -88,6 +88,19 @@ describe('loan view', () => {
     expect(amort).toContain('<h2>Principal versus interest</h2>');
     expect(amort).toContain('Share of all payments');
     expect(amort.match(/<tr><th scope="row">[A-Z][a-z]{2} \d{4} \(#\d+\)/g)).toHaveLength(60);
+  });
+
+  it('keeps HOA dues out of the mortgage payment and labels the total as a housing-cost estimate', () => {
+    const { loan, c } = mortgage();
+    const costs = { propertyTaxAnnual: 360_000, insuranceAnnual: 150_000, mortgageInsuranceMonthly: 0, hoaMonthly: 25_000 };
+    const brk = paymentBreakdown(c.accelerated.schedule.payment, costs);
+    if (!brk.ok) throw new Error('invalid');
+    const report = payoffReport(loan, FIRST, costs, c, brk.value, 'year', WHEN);
+    const body = reportBody(report);
+    expect(body).toContain('HOA dues (not part of the mortgage payment)');
+    expect(body).toContain('Estimated total monthly housing cost');
+    expect(body).not.toContain('Total monthly payment');
+    expect(report.summary).toContainEqual({ label: 'Estimated total monthly housing cost (HOA dues included)', value: formatUSD(brk.value.total) });
   });
 
   it('shares only the amounts that are set, and maps engine problems to their fields', () => {

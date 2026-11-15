@@ -223,6 +223,18 @@ describe('long schedules', () => {
     const report = ratesReport({ ...DEFAULT_RATES, years: 30 }, c.value, rowsFor, 'day', WHEN);
     expect(report.schedule!.table.count).toBe(360);
     expect(report.schedule!.notes[0]).toContain('10,950 rows');
+    expect(report.schedule!.fallbackFrom).toEqual({ heading: 'Balance illustration by day', rows: 10_950 });
+  });
+});
+
+describe('the plain-text summary of a long daily schedule', () => {
+  it('says the report and printout show it by month and only the CSV has every day', () => {
+    const c = compound({ years: 100, periodsPerYear: 365 });
+    const text = reportText(compoundReport(c.input, c.result, c.schedule, 'day', WHEN)).replace(/\s+/g, ' ');
+    expect(text).toContain('You chose the schedule by day, which has 36,500 rows: too many for a readable report, so the HTML report and the printout show the schedule by month instead (1,200 rows). Download the CSV to get every row of the schedule by day.');
+    expect(text).not.toContain('Download the CSV or the HTML report to see every row.');
+    const short = compound({ years: 2, periodsPerYear: 365 });
+    expect(reportText(compoundReport(short.input, short.result, short.schedule, 'day', WHEN)).replace(/\s+/g, ' ')).toContain('Download the CSV or the HTML report to see every row.');
   });
 });
 

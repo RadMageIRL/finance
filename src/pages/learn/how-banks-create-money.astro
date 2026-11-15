@@ -18,7 +18,7 @@ const actions = [
   { id: 'pay', label: 'A customer pays the other' },
   { id: 'repay', label: 'Repay loan principal' },
   { id: 'interest', label: 'Pay loan interest' },
-  { id: 'write-off', label: 'The bank writes off a loan' },
+  { id: 'write-off', label: 'The bank writes off and forgives a loan' },
 ];
 ---
 <LessonLayout
@@ -75,8 +75,14 @@ const actions = [
       "a common equity tier 1 capital ratio of 4.5 percent," "a tier 1 capital ratio of 6
       percent," "a total capital ratio of 8 percent" and "a leverage ratio of 4 percent," among
       other rules.<Cite ids={['cfr-217-10']} number={n} /> Most of these ratios weigh assets by
-      their risk. The simulation's rule (equity at least 5 percent of assets) is a simplified
-      stand-in for them.
+      their risk.
+    </p>
+    <p class="claim-line"><ClaimLabel kind="model" /> <span class="small muted">A hypothetical rule for teaching</span></p>
+    <p>
+      The simulation uses its own rule instead: equity of at least 5 percent of total assets.
+      That number is a hypothetical constraint chosen for teaching, not a regulatory minimum.
+      Real minimums are set on regulatory capital rather than plain equity, and three of the
+      four above weigh assets by their risk.
     </p>
     <h3>Liquidity</h3>
     <p class="claim-line"><ClaimLabel kind="fact" /></p>
@@ -104,6 +110,13 @@ const actions = [
       loss reduces the bank's equity, which is all the simulation shows: it takes the loss
       straight to equity, one of the simplifications listed below.
     </p>
+    <p>
+      A charge-off is the bank's accounting entry, not a release of the debt. "It does not
+      eliminate your obligation to the bank": unless the bank forgives or cancels the debt, the
+      borrower still owes it, and the bank may try to collect it or sell it to a collection
+      agency.<Cite ids={['occ-charge-off']} number={n} /> The simulation is simpler here too: it
+      also takes the loan off the borrower's balance sheet, as if the bank had forgiven it.
+    </p>
   </section>
 
   <section class="sidebar-model" aria-labelledby="multiplier">
@@ -120,8 +133,10 @@ const actions = [
     <p>
       The Bank of England calls the money multiplier "a useful way of introducing money and
       banking in economic textbooks" that "is not an accurate description of how money is
-      created in reality."<Cite ids={['boe-2014']} number={n} /> Economists at the Federal Reserve
-      Bank of St. Louis call it "an outdated concept."<Cite ids={['stlfed-2021']} number={n} />
+      created in reality."<Cite ids={['boe-2014']} number={n} /> A 2021 article published by the
+      Federal Reserve Bank of St. Louis, written by Jane Ihrig and Gretchen Weinbach of the
+      Federal Reserve Board and Scott Wolla of the St. Louis Fed's economic education staff,
+      calls it "an outdated concept."<Cite ids={['stlfed-2021']} number={n} />
     </p>
   </section>
 
@@ -130,7 +145,8 @@ const actions = [
     <ul>
       <li>Two small banks and a handful of customers stand in for the whole system. The amounts are illustrative.</li>
       <li>Interest and losses go straight to equity: there is no income statement, no loss allowance and no tax.</li>
-      <li>The capital rule is equity over total assets, not the risk-weighted ratios real banks report.</li>
+      <li>A write-off also cancels the borrower's debt. In reality a charged-off loan is still owed unless the bank forgives it.</li>
+      <li>The capital rule (equity of at least 5 percent of total assets) is a hypothetical one for teaching, not a regulatory minimum.</li>
       <li>Payments settle at once; there is no intraday credit, and no clearing banks or dealers.</li>
       <li>Banks here hold only reserves, Treasury securities and loans, and no cash in the vault.</li>
     </ul>

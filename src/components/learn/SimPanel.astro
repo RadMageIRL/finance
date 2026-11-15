@@ -83,7 +83,7 @@ const sheets = entities.map((e) => taccountHtml(sheetView(opening, e))).join('')
       </div>
     </div>
     {capitalRatio !== undefined && (
-      <label class="choice sim-free__rule"><input type="checkbox" name="capital" /> Apply the simplified capital rule (equity at least {Math.round(capitalRatio * 100)} percent of assets)</label>
+      <label class="choice sim-free__rule"><input type="checkbox" name="capital" /> Apply the lesson's hypothetical capital rule (equity at least {Math.round(capitalRatio * 100)} percent of assets; not a regulatory minimum)</label>
     )}
     <div class="button-row"><button class="button" type="submit">Add this transaction</button></div>
   </form>
