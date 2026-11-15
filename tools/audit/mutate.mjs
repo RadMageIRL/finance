@@ -7,14 +7,18 @@
 // files that fail exactly the same set of tests are reported for review, since that can
 // mean the tests are not telling the mutations apart.
 //
-// Safety: the source file is restored in a finally block, also on Ctrl+C; each test run
-// has a hard timeout and runs its workers as threads in one process, so a mutant that
-// loops forever is killed with that process and counted as detected (with a warning).
+// Safety: all mutation happens in a private copy under local/mutation-work. The live
+// source files are only read, and are hashed before and after: if anything in them changed
+// during the run, the pass fails. (An earlier version mutated the live files in place and
+// restored them afterwards; a commit made while such a run was in progress captured a
+// mutant.) Each test run has a hard timeout and runs its workers as threads in one process,
+// so a mutant that loops forever is killed and reported.
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const E = 'src/lib/engines/';
 const RUN_TIMEOUT_MS = 180_000;
@@ -63,12 +67,34 @@ const MUTANTS = [
 //   the payment exactly, the regular branch posts principal = balance, extra = min(due, 0)
 //   = 0 and a zero balance, which is the same row the final-payment branch posts.
 
-const VITEST = join('node_modules', 'vitest', 'vitest.mjs');
+const VITEST = resolve('node_modules', 'vitest', 'vitest.mjs');
+const WORK = resolve('local', 'mutation-work');
+// Everything the unit tests read, copied into the work tree.
+const COPY = ['src/lib', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
+
+function hashTree(dir) {
+  const out = {};
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const path = join(d, e.name);
+      if (e.isDirectory()) walk(path);
+      else out[path] = createHash('sha256').update(readFileSync(path)).digest('hex');
+    }
+  };
+  walk(dir);
+  return out;
+}
+
+const liveBefore = hashTree('src/lib');
+rmSync(WORK, { recursive: true, force: true });
+mkdirSync(WORK, { recursive: true });
+for (const path of COPY) cpSync(path, join(WORK, path), { recursive: true });
 
 function runTests() {
   const dir = mkdtempSync(join(tmpdir(), 'rmf-mutate-'));
   const report = join(dir, 'report.json');
   const run = spawnSync(process.execPath, [VITEST, 'run', 'tests/unit', '--pool=threads', '--reporter=json', `--outputFile=${report}`], {
+    cwd: WORK,
     encoding: 'utf8',
     timeout: RUN_TIMEOUT_MS,
     killSignal: 'SIGKILL',
@@ -104,7 +130,8 @@ process.on('SIGINT', () => {
 });
 
 const results = [];
-for (const [id, file, find, replace] of MUTANTS) {
+for (const [id, liveFile, find, replace] of MUTANTS) {
+  const file = join(WORK, liveFile);
   const original = readFileSync(file, 'utf8');
   const occurrences = original.split(find).length - 1;
   if (occurrences !== 1) {
@@ -115,13 +142,23 @@ for (const [id, file, find, replace] of MUTANTS) {
   try {
     writeFileSync(file, original.replace(find, replace));
     const { failed, timedOut } = runTests();
-    results.push({ id, file, failed, timedOut });
+    results.push({ id, file: liveFile, failed, timedOut });
     const label = timedOut ? 'TIMEOUT ' : failed.length ? 'killed  ' : 'SURVIVED';
     console.log(`${label} ${id.padEnd(30)} ${timedOut ? 'run did not finish' : `${String(failed.length).padStart(3)} failing test(s)`}`);
   } finally {
     restore();
     restore = null;
   }
+}
+
+rmSync(WORK, { recursive: true, force: true });
+
+// The live sources must be exactly as they were: this pass never writes to them.
+const liveAfter = hashTree('src/lib');
+const changed = Object.keys({ ...liveBefore, ...liveAfter }).filter((f) => liveBefore[f] !== liveAfter[f]);
+if (changed.length) {
+  console.log(`mutation pass: live source files changed during the run (${changed.join(', ')}); do not commit until this is understood`);
+  process.exit(1);
 }
 
 const survivors = results.filter((r) => r.failed.length === 0);

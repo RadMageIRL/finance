@@ -33,7 +33,7 @@ export function apyFromNominal(annualRate: number, periodsPerYear: CompoundingFr
 export function nominalFromApy(apy: number, periodsPerYear: CompoundingFrequency): number {
   requireRate('apy', apy);
   requireFrequency(periodsPerYear);
-  return (periodsPerYear - 1) * Math.expm1(Math.log1p(apy) / periodsPerYear);
+  return periodsPerYear * Math.expm1(Math.log1p(apy) / periodsPerYear);
 }
 
 /**

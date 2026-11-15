@@ -5,8 +5,29 @@
 // Output is shown and also saved under local/checks/ (local only, never committed).
 
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+// One check at a time: overlapping runs share the build output, the preview port and the
+// mutation work tree, and their results are easy to confuse.
+const LOCK = join('local', 'checks', '.running');
+mkdirSync(join('local', 'checks'), { recursive: true });
+if (existsSync(LOCK)) {
+  const pid = Number(readFileSync(LOCK, 'utf8'));
+  let alive = false;
+  try {
+    process.kill(pid, 0);
+    alive = true;
+  } catch {
+    alive = false;
+  }
+  if (alive) {
+    console.log(`check: another check is already running (process ${pid}); wait for it to finish`);
+    process.exit(1);
+  }
+}
+writeFileSync(LOCK, String(process.pid));
+process.on('exit', () => rmSync(LOCK, { force: true }));
 
 const STEPS = [
   ['Text scan (dashes, attribution)', 'node', ['tools/text-scan.mjs']],
