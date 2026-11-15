@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { href } from '../lib/url';
+---
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for is not on RadMage Finance."
+  noindex
+>
+  <div class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Error 404</p>
+      <h1>Page not found</h1>
+      <p class="lead">That page is not here. It may have moved, or the address may be mistyped.</p>
+    </div>
+  </div>
+  <div class="wrap page-body">
+    <div class="button-row">
+      <a class="button" href={href()}>Go to the home page</a>
+      <a class="button button--secondary" href={href('learn/')}>Browse lessons</a>
+      <a class="button button--secondary" href={href('calculators/')}>Browse calculators</a>
+    </div>
+  </div>
+</BaseLayout>

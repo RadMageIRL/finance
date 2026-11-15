@@ -1,0 +1,88 @@
+---
+import Icon from './Icon.astro';
+import ThemeControl from './ThemeControl.astro';
+import { PRIMARY_NAV, SITE } from '../lib/site';
+import { href, isWithin } from '../lib/url';
+
+const pathname = Astro.url.pathname;
+const nav = PRIMARY_NAV.map((item) => ({
+  ...item,
+  url: href(item.path),
+  current: isWithin(pathname, item.path),
+  exact: pathname === href(item.path),
+}));
+---
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href={href()}>
+      <img src={href('favicon.svg')} width="28" height="28" alt="" />
+      <span>RadMage <span class="brand__accent">Finance</span></span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.url}
+              aria-current={item.exact ? 'page' : item.current ? 'true' : undefined}
+            >{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-tools">
+      <ThemeControl id="header" compact />
+      <a class="labs-link" href={SITE.publisherUrl}>RadMage Labs</a>
+      <button
+        class="menu-button"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="site-menu"
+        data-menu-open
+      >
+        <Icon name="menu" />
+        <span>Menu</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog id="site-menu" class="menu-dialog" aria-labelledby="site-menu-title">
+  <div class="menu-dialog__inner">
+    <div class="menu-dialog__head">
+      <h2 class="menu-dialog__title" id="site-menu-title">Menu</h2>
+      <button class="icon-button" type="button" data-menu-close aria-label="Close menu">
+        <Icon name="close" />
+      </button>
+    </div>
+
+    <nav class="menu-nav" aria-label="Primary">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.url}
+              aria-current={item.exact ? 'page' : item.current ? 'true' : undefined}
+            >{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div>
+      <p class="menu-section-title" aria-hidden="true">Theme</p>
+      <ThemeControl id="menu" />
+    </div>
+
+    <div class="menu-dialog__foot">
+      <a href={SITE.publisherUrl}>RadMage Labs home</a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import '../scripts/menu';
+</script>

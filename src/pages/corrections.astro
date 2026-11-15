@@ -1,0 +1,30 @@
+---
+import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { SITE } from '../lib/site';
+---
+<ReferenceLayout
+  title="Corrections"
+  description="How to report an error on RadMage Finance, how corrections are handled, and the log of published corrections."
+  lead="Accuracy matters more than speed. When something on RadMage Finance is wrong, it is corrected openly and the correction is recorded here."
+  updated="2026-11-15"
+>
+  <h2>Report an error</h2>
+  <p>
+    Email <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a> with the address of
+    the page and what you believe is wrong. A link to a source helps. For a calculator, include
+    the inputs you used and the result you expected.
+  </p>
+
+  <h2>How corrections are handled</h2>
+  <ol>
+    <li>The report is checked against primary sources, or, for a calculator, against the independent reference implementation.</li>
+    <li>If the page is wrong, it is fixed and a dated correction note is added to it, saying what changed.</li>
+    <li>Corrections that change a fact, a figure or a calculator result are listed below.</li>
+  </ol>
+  <p>
+    Small edits that do not change meaning, such as fixing a typo, are made without a note.
+  </p>
+
+  <h2>Corrections log</h2>
+  <p>No corrections have been published.</p>
+</ReferenceLayout>

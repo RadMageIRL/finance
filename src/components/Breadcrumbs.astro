@@ -1,0 +1,26 @@
+---
+import { href } from '../lib/url';
+
+export interface Crumb {
+  label: string;
+  path?: string;
+}
+
+interface Props {
+  /** Ancestors of the current page, Home first. The current page is the last item. */
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+---
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    {items.map((item, index) => (
+      <li>
+        {index === items.length - 1 || item.path === undefined
+          ? <span aria-current={index === items.length - 1 ? 'page' : undefined}>{item.label}</span>
+          : <a href={href(item.path)}>{item.label}</a>}
+      </li>
+    ))}
+  </ol>
+</nav>

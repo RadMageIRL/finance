@@ -1,0 +1,69 @@
+---
+import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import { href } from '../lib/url';
+---
+<ReferenceLayout
+  title="Methodology"
+  description="How RadMage Finance labels claims, chooses and cites sources, and builds and checks its calculators and balance-sheet simulations."
+  lead="How RadMage Finance decides what to say, how it labels each kind of claim, and how its calculators and simulations are built and checked."
+  updated="2026-11-15"
+>
+  <h2>Five kinds of statement</h2>
+  <p>
+    Financial writing often blends facts, definitions, theories and predictions in a single
+    paragraph. This site keeps them apart and labels them.
+  </p>
+  <dl class="kinds">
+    <div>
+      <dt><ClaimLabel kind="fact" /></dt>
+      <dd>A verifiable statement about the world, true as of a date. This includes historical observations. Facts link to a source, and time-sensitive facts show when they were last verified.</dd>
+    </div>
+    <div>
+      <dt><ClaimLabel kind="identity" /></dt>
+      <dd>True by the definition of the accounts. For example, when a bank makes a loan, its loan assets and its deposit liabilities rise by the same amount. Every simulation checks its identities after every step.</dd>
+    </div>
+    <div>
+      <dt><ClaimLabel kind="model" /></dt>
+      <dd>A deliberate simplification for teaching, such as a world with only two banks. The assumptions are listed next to the model.</dd>
+    </div>
+    <div>
+      <dt><ClaimLabel kind="interpretation" /></dt>
+      <dd>A reasoned view that economists may dispute. Interpretations are attributed and never presented as settled.</dd>
+    </div>
+    <div>
+      <dt><ClaimLabel kind="forecast" /></dt>
+      <dd>Any statement about the future, including a projection from a calculator. Forecasts are labeled hypothetical, show their inputs, and are not predictions.</dd>
+    </div>
+  </dl>
+
+  <h2>Sources</h2>
+  <p>
+    Primary sources come first: laws, regulations, and the publications and data of the
+    agencies that produce them. Each citation names the publisher, the title, the date, and a
+    link. Where credible sources disagree, the page says so instead of silently choosing
+    one. The full policy is on the <a href={href('sources/')}>Sources</a> page.
+  </p>
+
+  <h2>Calculators</h2>
+  <ul>
+    <li>Balances are kept to the cent. Interest is calculated at full precision and rounded to the cent when it is posted, as it would be on a real account or loan, and each calculator states its rounding rule. Totals are sums of the posted amounts, so tables always add up.</li>
+    <li>Compounding frequency, deposit and payment timing, and rate conventions are either inputs you control or assumptions stated on the page.</li>
+    <li>Results are checked against worked examples published by regulators, such as the annual percentage yield examples in Regulation DD, and against a separate reference implementation written independently in Python.</li>
+    <li>Results are estimates. Your bank or lender's disclosures and agreements govern your actual account or loan.</li>
+  </ul>
+
+  <h2>Simulations</h2>
+  <ul>
+    <li>Every transaction posts to both sides of each affected balance sheet, and the books are checked after every step.</li>
+    <li>Simplified models say what they leave out.</li>
+    <li>Scenarios the model cannot represent are reported as unsupported rather than computed anyway.</li>
+    <li>Outputs illustrate mechanisms. They are not predictions about the economy.</li>
+  </ul>
+
+  <h2>Review and corrections</h2>
+  <p>
+    Pages are reviewed before publication and show when they were last updated. Errors are
+    corrected openly and recorded on the <a href={href('corrections/')}>Corrections</a> page.
+  </p>
+</ReferenceLayout>

@@ -1,0 +1,42 @@
+---
+import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { href } from '../lib/url';
+---
+<ReferenceLayout
+  title="Sources"
+  description="Which sources RadMage Finance relies on, in what order of preference, and how citations and verification dates are shown."
+  lead="Every factual statement on RadMage Finance links to its source. This page explains which sources are used and how they are cited."
+  updated="2026-11-15"
+>
+  <h2>Order of preference</h2>
+  <ol>
+    <li><strong>Primary legal texts.</strong> Statutes, regulations and official rulemaking documents.</li>
+    <li><strong>Official publications and data.</strong> Material from the government agencies and central banks responsible for the subject.</li>
+    <li><strong>Research and reporting.</strong> Peer-reviewed research and established news organizations, for context and always attributed.</li>
+  </ol>
+  <p>
+    Promotional, anonymous or unverifiable material is not used to support a fact.
+  </p>
+
+  <h2>How citations work</h2>
+  <ul>
+    <li>Each citation names the publisher, the title of the document, its date, and a link to the original.</li>
+    <li>Facts that can change, such as limits, rates or legal status, also show the date they were last verified.</li>
+    <li>Quotations are exact and link to where they appear.</li>
+  </ul>
+
+  <h2>Data and reuse</h2>
+  <p>
+    Data and material from other publishers are used only where their terms allow it, with
+    the attribution they require.
+  </p>
+
+  <h2>Sources by page</h2>
+  <p>
+    Each lesson and calculator lists its own sources at the end of the page. A combined list
+    will appear here as lessons and calculators are published.
+  </p>
+  <p>
+    Spotted a source that is wrong or out of date? See <a href={href('corrections/')}>Corrections</a>.
+  </p>
+</ReferenceLayout>

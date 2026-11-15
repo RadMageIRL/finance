@@ -1,0 +1,47 @@
+---
+import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { href } from '../lib/url';
+---
+<ReferenceLayout
+  title="Disclaimer"
+  description="RadMage Finance provides general educational information, not financial, investment, tax or legal advice. Calculator results are estimates and simulations are teaching models."
+  lead="RadMage Finance provides general educational information. It is not financial, investment, tax, legal or accounting advice."
+  updated="2026-11-15"
+>
+  <h2>Education, not advice</h2>
+  <p>
+    Nothing on this site is a recommendation to buy, sell or hold any financial product or
+    asset, or to choose any bank, lender or provider. The information is general and does not
+    account for your circumstances. For decisions about your own finances, consider speaking
+    with a qualified professional.
+  </p>
+
+  <h2>Calculator results are estimates</h2>
+  <p>
+    Results depend on the numbers you enter and on the assumptions each calculator states.
+    Actual amounts from a bank or lender can differ because of rounding, timing, fees, rate
+    changes and the terms of your agreement. Your institution's disclosures and agreements
+    govern your actual account or loan.
+  </p>
+
+  <h2>Simulations are models</h2>
+  <p>
+    Lessons use simplified models to show how financial mechanisms work. They are not
+    predictions about the economy, markets, interest rates or prices.
+  </p>
+
+  <h2>Accuracy</h2>
+  <p>
+    Facts are checked against their sources and dated, but errors are possible and
+    information can go out of date. If you find a mistake, please report it on the
+    <a href={href('corrections/')}>Corrections</a> page.
+  </p>
+
+  <h2>Independence and links</h2>
+  <p>
+    RadMage Finance is not affiliated with the Federal Reserve, any government agency, or any
+    bank or financial institution. Mentioning a company, product or source is not an
+    endorsement. Links to other websites are provided for reference, and those sites are
+    responsible for their own content.
+  </p>
+</ReferenceLayout>

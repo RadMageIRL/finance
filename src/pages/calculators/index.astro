@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CatalogCard from '../../components/CatalogCard.astro';
+import { CALCULATORS } from '../../lib/site';
+import { href } from '../../lib/url';
+---
+<BaseLayout
+  title="Calculators"
+  description="Free calculators for compound interest, APR and APY, high-yield savings, loan amortization and mortgage payoff, with formulas and assumptions shown."
+  schemaType="CollectionPage"
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators' }]} />
+      <h1>Calculators that show their work</h1>
+      <p class="lead">
+        Each calculator explains its formula, states its assumptions, and breaks results down
+        so the parts add up exactly. Everything is calculated on your device.
+      </p>
+    </div>
+  </div>
+  <div class="wrap page-body">
+    <ul class="card-grid">
+      {CALCULATORS.map((item) => (
+        <li><CatalogCard item={item} headingLevel="h2" /></li>
+      ))}
+    </ul>
+    <p class="small muted">
+      Results are estimates for learning and comparison. Your bank or lender's disclosures
+      govern your actual account or loan. <a href={href('disclaimer/')}>Disclaimer</a>.
+    </p>
+  </div>
+</BaseLayout>

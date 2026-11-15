@@ -1,0 +1,107 @@
+/* Design tokens.
+   Dark is the default and lives on :root, so a page that paints before the theme script
+   runs, or without JavaScript, is already dark. Light overrides the same names. */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces, from the RadMage Labs palette */
+  --bg: #10151f;
+  --bg-sunk: #0c1119;
+  --surface: #151d2a;
+  --surface-raised: #1b2636;
+  --header-bg: rgb(16 21 31 / 0.86);
+  --overlay: rgb(5 8 13 / 0.72);
+
+  /* Lines */
+  --line: #273548;
+  --line-strong: #3d5878;
+
+  /* Text */
+  --text: #e8eef6;
+  --text-muted: #aab7c8;
+  --text-faint: #8c99ae;
+
+  /* Accent */
+  --accent: #7dd3e8;
+  --accent-strong: #a9e8f5;
+  --accent-ink: #072029;
+  --accent-soft: rgb(125 211 232 / 0.12);
+  --focus: #7dd3e8;
+
+  /* Claim kinds. Each label also carries its name as text, never color alone. */
+  --kind-fact: #8ec5ff;
+  --kind-identity: #8ee0b4;
+  --kind-model: #f0c46a;
+  --kind-interpretation: #d3a6f5;
+  --kind-forecast: #f4aca4;
+
+  /* States */
+  --positive: #8ee0b4;
+  --caution: #f0c46a;
+  --negative: #f4aca4;
+
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 10px 30px rgb(0 0 0 / 0.28);
+
+  /* Type */
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem);
+  --step-3: clamp(1.75rem, 1.4rem + 1.3vw, 2.25rem);
+  --step-4: clamp(2.125rem, 1.5rem + 2.6vw, 3.25rem);
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --header-h: 64px;
+  --measure: 68ch;
+  --content-max: 1120px;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f7f9;
+  --bg-sunk: #eceff3;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --header-bg: rgb(246 247 249 / 0.88);
+  --overlay: rgb(18 26 38 / 0.45);
+
+  --line: #d9dfe7;
+  --line-strong: #a7b4c4;
+
+  --text: #121a26;
+  --text-muted: #435167;
+  --text-faint: #56637a;
+
+  --accent: #0a6a80;
+  --accent-strong: #07505f;
+  --accent-ink: #ffffff;
+  --accent-soft: rgb(10 106 128 / 0.09);
+  --focus: #0a6a80;
+
+  --kind-fact: #1d5fa8;
+  --kind-identity: #17704a;
+  --kind-model: #855600;
+  --kind-interpretation: #7442a6;
+  --kind-forecast: #a3392f;
+
+  --positive: #17704a;
+  --caution: #855600;
+  --negative: #a3392f;
+
+  --shadow: 0 1px 2px rgb(18 26 38 / 0.06), 0 8px 24px rgb(18 26 38 / 0.06);
+}

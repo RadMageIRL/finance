@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CatalogCard from '../../components/CatalogCard.astro';
+import { MODULES } from '../../lib/site';
+---
+<BaseLayout
+  title="Learn"
+  description="Interactive lessons on what money is, how it moves through the economy, and how banks create it, with balance sheets that always balance."
+  schemaType="CollectionPage"
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Learn' }]} />
+      <h1>Learn how the financial system works</h1>
+      <p class="lead">
+        Each lesson starts with a plain explanation, then lets you run the mechanism yourself.
+        The balance sheets follow real accounting rules, and every simplification is labeled.
+      </p>
+    </div>
+  </div>
+  <div class="wrap page-body">
+    <ul class="card-grid card-grid--wide">
+      {MODULES.map((item, index) => (
+        <li><CatalogCard item={item} index={index + 1} feature headingLevel="h2" /></li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

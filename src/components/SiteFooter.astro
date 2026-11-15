@@ -1,0 +1,30 @@
+---
+import { FOOTER_GROUPS, SITE } from '../lib/site';
+import { href } from '../lib/url';
+---
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-about">
+      <a class="brand" href={href()}>
+        <img src={href('favicon.svg')} width="28" height="28" alt="" />
+        <span>RadMage <span class="brand__accent">Finance</span></span>
+      </a>
+      <p>Free lessons and calculators that show how money, banking and interest work. Sources linked, formulas shown, calculations done in your browser.</p>
+      <p>Educational information, not financial advice. <a href={href('disclaimer/')}>Read the disclaimer</a>.</p>
+    </div>
+    {FOOTER_GROUPS.map((group, index) => (
+      <nav aria-labelledby={`footer-group-${index}`}>
+        <h2 class="footer-title" id={`footer-group-${index}`}>{group.title}</h2>
+        <ul>
+          {group.items.map((item) => (
+            <li><a href={href(item.path)}>{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    ))}
+  </div>
+  <div class="wrap footer-base">
+    <p>Published by <a href={SITE.publisherUrl}>{SITE.publisher}</a>.</p>
+    <p>Free to use. No account, no cookies, no tracking.</p>
+  </div>
+</footer>

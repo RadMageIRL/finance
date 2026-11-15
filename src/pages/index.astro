@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CatalogCard from '../components/CatalogCard.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import { CALCULATORS, MODULES, SITE } from '../lib/site';
+import { href } from '../lib/url';
+---
+<BaseLayout
+  title="RadMage Finance: How Money Works, Shown Step by Step"
+  description={SITE.description}
+  schemaType="WebSite"
+>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <p class="eyebrow">Free financial education</p>
+      <h1 id="hero-title">How money works, shown step by step.</h1>
+      <p class="lead">
+        Interactive lessons and calculators for savers, borrowers, homeowners and anyone
+        curious about the financial system. Every formula is shown, every fact links to its
+        source, and every calculation runs in your browser.
+      </p>
+      <div class="button-row">
+        <a class="button" href={href('learn/')}>Start learning</a>
+        <a class="button button--secondary" href={href('calculators/')}>Open the calculators</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="learn-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="learn-title">Learn</h2>
+        <p>Interactive lessons with balance sheets that always balance.</p>
+      </div>
+      <ul class="card-grid card-grid--wide">
+        {MODULES.map((item, index) => (
+          <li><CatalogCard item={item} index={index + 1} feature /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="calculators-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="calculators-title">Calculators</h2>
+        <p>Savings, interest and loans, with the math and assumptions in plain view.</p>
+      </div>
+      <ul class="card-grid">
+        {CALCULATORS.map((item) => (
+          <li><CatalogCard item={item} /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="how-title">How this site works</h2>
+        <p><a href={href('methodology/')}>Read the methodology</a></p>
+      </div>
+      <ul class="principles">
+        <li>
+          <h3>Sources you can check</h3>
+          <p>Facts link to their source, preferably the law, regulation or official data itself, with the date they were last verified.</p>
+        </li>
+        <li>
+          <h3>Every claim labeled</h3>
+          <p>Statements say what kind of claim they are, so a teaching model is never mistaken for a fact or a forecast.</p>
+          <div class="claim-row">
+            <ClaimLabel kind="fact" />
+            <ClaimLabel kind="identity" />
+            <ClaimLabel kind="model" />
+            <ClaimLabel kind="interpretation" />
+            <ClaimLabel kind="forecast" />
+          </div>
+        </li>
+        <li>
+          <h3>Private by design</h3>
+          <p>No account and no tracking. Calculators run on your device, and the numbers you enter are never sent anywhere.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

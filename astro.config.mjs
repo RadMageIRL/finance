@@ -1,0 +1,47 @@
+import { createHash } from 'node:crypto';
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+import { HEAD_SCRIPT } from './src/lib/theme/head-script.mjs';
+
+// The theme bootstrap is the only inline script. Its hash goes into script-src so the page
+// can run it under a strict Content-Security-Policy.
+const headScriptHash = `sha256-${createHash('sha256').update(HEAD_SCRIPT).digest('base64')}`;
+
+// Pages that exist for review or error handling and must not be indexed.
+const NOT_IN_SITEMAP = /\/finance\/(design-system|404)\/$/;
+
+export default defineConfig({
+  site: 'https://radmagelabs.com',
+  base: '/finance',
+  trailingSlash: 'always',
+  output: 'static',
+  build: {
+    format: 'directory',
+    inlineStylesheets: 'never',
+  },
+  devToolbar: { enabled: false },
+  // No code blocks on the site; Shiki's inline styles would also conflict with the CSP.
+  markdown: { syntaxHighlight: false },
+  integrations: [
+    sitemap({
+      filter: (page) => !NOT_IN_SITEMAP.test(page),
+    }),
+  ],
+  security: {
+    csp: {
+      algorithm: 'SHA-256',
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ],
+      scriptDirective: {
+        hashes: [headScriptHash],
+      },
+    },
+  },
+});

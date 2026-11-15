@@ -1,0 +1,37 @@
+---
+// Dark, Light and System as a native radio group. Hidden without JavaScript, where the
+// site is always dark. The behavior lives in src/scripts/theme.ts.
+import Icon from './Icon.astro';
+
+interface Props {
+  /** Unique per page: the radio group name and legend id are built from it. */
+  id: string;
+  /** Icons only, with the names kept for assistive technology and as tooltips. */
+  compact?: boolean;
+}
+
+const { id, compact = false } = Astro.props;
+const options = [
+  { value: 'dark', label: 'Dark', icon: 'moon' },
+  { value: 'light', label: 'Light', icon: 'sun' },
+  { value: 'system', label: 'System', icon: 'system' },
+] as const;
+---
+<fieldset
+  class:list={['theme-control', { 'theme-control--compact': compact }]}
+  data-theme-control
+>
+  <legend class="vh">Theme</legend>
+  {options.map((option) => (
+    <label class="theme-option" title={compact ? `${option.label} theme` : undefined}>
+      <input
+        type="radio"
+        name={`theme-${id}`}
+        value={option.value}
+        checked={option.value === 'dark'}
+      />
+      <Icon name={option.icon} />
+      <span class="theme-option__text">{option.label}</span>
+    </label>
+  ))}
+</fieldset>

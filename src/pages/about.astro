@@ -1,0 +1,54 @@
+---
+import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { SITE } from '../lib/site';
+import { href } from '../lib/url';
+---
+<ReferenceLayout
+  title="About"
+  description="RadMage Finance is a free financial education site from RadMage Labs: interactive lessons, calculators that show their formulas, and sources you can check."
+  lead="RadMage Finance is a free financial education site. It explains how money, banking and interest work through interactive lessons, calculators that show their formulas, and sources you can check."
+  updated="2026-11-15"
+  schemaType="AboutPage"
+>
+  <h2>Who it is for</h2>
+  <p>
+    Adults in the United States who want to understand their own money and the system it
+    moves through: savers comparing accounts, borrowers and homeowners looking at a loan,
+    and anyone curious about how banks and the Federal Reserve actually work.
+  </p>
+  <p>
+    No financial background is assumed. Each topic starts with a plain explanation, and the
+    technical detail, including the accounting and the formulas, is there for readers who
+    want it.
+  </p>
+
+  <h2>What you will find</h2>
+  <ul>
+    <li><a href={href('learn/')}>Learn</a>: interactive lessons on what money is, how it flows between households, businesses, banks, the government and the Federal Reserve, and how banks create money when they lend.</li>
+    <li><a href={href('calculators/')}>Calculators</a>: compound interest, APR and APY, high-yield savings, loan amortization and mortgage payoff.</li>
+  </ul>
+
+  <h2>What it is not</h2>
+  <ul>
+    <li>Not investment advice, and not a trading-signal service.</li>
+    <li>Not a recommendation of any bank, product or asset.</li>
+    <li>Not a partisan outlet or a promoter of cryptocurrencies.</li>
+    <li>Not a forecast: simulations are teaching models, and they are labeled as such.</li>
+  </ul>
+
+  <h2>How it is made</h2>
+  <p>
+    Facts link to their sources, preferably primary ones, with the date they were last
+    checked. Statements are labeled by kind, so a fact, an accounting identity, a simplified
+    model, an interpretation and a forecast are never confused. Calculations are tested
+    against published worked examples and an independent reference implementation. The
+    details are on the <a href={href('methodology/')}>Methodology</a> page.
+  </p>
+
+  <h2>Publisher</h2>
+  <p>
+    RadMage Finance is published by <a href={SITE.publisherUrl}>{SITE.publisher}</a>. It is
+    free to use, needs no account, and does not track you.
+    Found an error? See <a href={href('corrections/')}>Corrections</a>.
+  </p>
+</ReferenceLayout>

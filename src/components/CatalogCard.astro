@@ -1,0 +1,29 @@
+---
+// A lesson or calculator card. Until the item exists it is shown without a link.
+import type { CatalogItem } from '../lib/site';
+import { href } from '../lib/url';
+
+interface Props {
+  item: CatalogItem;
+  index?: number;
+  feature?: boolean;
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { item, index, feature = false, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+const available = item.status === 'available';
+---
+<article class:list={['card', { 'card--feature': feature }]}>
+  {index !== undefined && <span class="card__index" aria-hidden="true">{String(index).padStart(2, '0')}</span>}
+  <Heading>
+    {available ? <a class="card__link" href={href(item.path)}>{item.title}</a> : item.title}
+  </Heading>
+  <p>{item.summary}</p>
+  <p class="card__detail">{item.detail}</p>
+  <div class="card__foot">
+    {available
+      ? <span class="badge badge--available">Available</span>
+      : <span class="badge">In development</span>}
+  </div>
+</article>

@@ -1,0 +1,199 @@
+---
+// Review page for the design system (Gate G1a). Not indexed, not in the sitemap, not linked
+// from the navigation.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import CatalogCard from '../components/CatalogCard.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import { CALCULATORS, MODULES } from '../lib/site';
+
+const swatches = [
+  'bg', 'bg-sunk', 'surface', 'surface-raised', 'line', 'line-strong', 'text', 'text-muted',
+  'text-faint', 'accent', 'accent-strong', 'positive', 'caution', 'negative',
+];
+const firstModule = MODULES[0]!;
+const firstCalculator = CALCULATORS[0]!;
+---
+<BaseLayout
+  title="Design system"
+  description="Colors, type, and components used across RadMage Finance, for design review."
+  noindex
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Design system' }]} />
+      <p class="eyebrow">Internal review page</p>
+      <h1>Design system</h1>
+      <p class="lead">
+        The tokens and components every page is built from. Switch between Dark, Light and
+        System in the header to review both themes. This page is not indexed.
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="section" aria-labelledby="ds-color">
+      <h2 id="ds-color">Color</h2>
+      <p class="muted">Each theme defines the same names. Text and controls meet WCAG 2.2 AA contrast in both.</p>
+      <ul class="swatches">
+        {swatches.map((name) => (
+          <li class="swatch">
+            <div class={`swatch__chip chip--${name}`}></div>
+            <span class="swatch__name">--{name}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="section" aria-labelledby="ds-type">
+      <h2 id="ds-type">Type</h2>
+      <div class="specimen-grid">
+        <div class="type-specimen">
+          <p class="eyebrow">Eyebrow label</p>
+          <p class="ds-h1"><strong>Page title, step 4</strong></p>
+          <h3>Section heading, step 1</h3>
+          <p class="lead">A lead paragraph introduces a page in a sentence or two, slightly larger and softer than body text.</p>
+        </div>
+        <div class="prose">
+          <p>
+            Body text is set in the system font at about 17 pixels with generous line height,
+            limited to roughly 68 characters per line. <a href="#ds-type">Links</a> are
+            underlined. Figures use tabular numerals: <span class="num">$1,234.56</span> and
+            <span class="num">$9,876.54</span> line up.
+          </p>
+          <p class="small muted">Small text is used for captions, hints and metadata.</p>
+          <p>Inline code looks like <code>rmf-theme</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="ds-claims">
+      <h2 id="ds-claims">Claim labels</h2>
+      <p class="muted">Every label writes out its kind, so color is never the only signal.</p>
+      <p class="button-row">
+        <ClaimLabel kind="fact" />
+        <ClaimLabel kind="identity" />
+        <ClaimLabel kind="model" />
+        <ClaimLabel kind="interpretation" />
+        <ClaimLabel kind="forecast" />
+      </p>
+      <div class="prose">
+        <p>
+          A new loan adds a loan asset and an equal deposit liability to the lending bank's
+          balance sheet. <ClaimLabel kind="identity" />
+        </p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="ds-callouts">
+      <h2 id="ds-callouts">Callouts and citations</h2>
+      <div class="prose">
+        <div class="callout">
+          <p class="callout__title">Note</p>
+          <p>A note adds context that is useful but not essential.</p>
+        </div>
+        <div class="callout callout--assumption">
+          <p class="callout__title">Assumption</p>
+          <p>The rate stays the same for the whole period. Real savings rates change.</p>
+        </div>
+        <div class="callout callout--caution">
+          <p class="callout__title">Unsupported scenario</p>
+          <p>The model cannot represent this step, so it is reported instead of computed.</p>
+        </div>
+        <p class="citation">
+          Format: Publisher. <cite>Title of the document</cite>. Date published.
+          <span class="asof">Verified November 15, 2026</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="ds-table">
+      <h2 id="ds-table">Tables</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Hypothetical example: a balance of $1,000.00 at 4.00% compounded monthly</caption>
+          <thead>
+            <tr>
+              <th scope="col">Year</th>
+              <th scope="col" class="num">Start balance</th>
+              <th scope="col" class="num">Interest</th>
+              <th scope="col" class="num">End balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">1</th><td class="num">$1,000.00</td><td class="num">$40.74</td><td class="num">$1,040.74</td></tr>
+            <tr><th scope="row">2</th><td class="num">$1,040.74</td><td class="num">$42.40</td><td class="num">$1,083.14</td></tr>
+            <tr><th scope="row">3</th><td class="num">$1,083.14</td><td class="num">$44.13</td><td class="num">$1,127.27</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted">Illustration of table styling only; the calculator engines arrive in milestone 2.</p>
+    </section>
+
+    <section class="section" aria-labelledby="ds-forms">
+      <h2 id="ds-forms">Inputs and buttons</h2>
+      <div class="specimen-grid">
+        <form action="#" aria-label="Example inputs">
+          <div class="field">
+            <label for="ds-amount">Starting balance</label>
+            <div class="input-affix">
+              <span class="input-affix__unit" aria-hidden="true">$</span>
+              <input class="input" id="ds-amount" inputmode="decimal" value="1,000.00" aria-describedby="ds-amount-hint" />
+            </div>
+            <p class="hint" id="ds-amount-hint">The amount in the account on day one.</p>
+          </div>
+          <div class="field">
+            <label for="ds-rate">Interest rate</label>
+            <div class="input-affix input-affix--suffix">
+              <input class="input" id="ds-rate" inputmode="decimal" value="45" aria-invalid="true" aria-describedby="ds-rate-error" />
+              <span class="input-affix__unit" aria-hidden="true">%</span>
+            </div>
+            <p class="error" id="ds-rate-error">Enter a rate between 0 and 30 percent.</p>
+          </div>
+          <div class="field">
+            <label for="ds-freq">Compounding</label>
+            <select class="select" id="ds-freq">
+              <option>Daily</option>
+              <option selected>Monthly</option>
+              <option>Quarterly</option>
+              <option>Annually</option>
+            </select>
+          </div>
+          <fieldset class="field">
+            <legend>Deposit timing</legend>
+            <label class="choice"><input type="radio" name="ds-timing" checked /> Start of each period</label>
+            <label class="choice"><input type="radio" name="ds-timing" /> End of each period</label>
+          </fieldset>
+        </form>
+        <div>
+          <div class="button-row">
+            <button class="button" type="button">Primary action</button>
+            <button class="button button--secondary" type="button">Secondary</button>
+            <button class="button button--quiet" type="button">Quiet</button>
+          </div>
+          <p class="button-row">
+            <span class="badge">In development</span>
+            <span class="badge badge--available">Available</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="ds-cards">
+      <h2 id="ds-cards">Cards</h2>
+      <ul class="card-grid card-grid--wide">
+        <li><CatalogCard item={firstModule} index={1} feature /></li>
+        <li><CatalogCard item={firstCalculator} /></li>
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .ds-h1 {
+    font-size: var(--step-4);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+</style>

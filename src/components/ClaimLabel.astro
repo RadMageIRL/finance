@@ -1,0 +1,19 @@
+---
+// The kind of statement a sentence or panel makes. See the Methodology page.
+export type ClaimKind = 'fact' | 'identity' | 'model' | 'interpretation' | 'forecast';
+
+interface Props {
+  kind: ClaimKind;
+}
+
+const NAMES: Record<ClaimKind, string> = {
+  fact: 'Fact',
+  identity: 'Identity',
+  model: 'Model',
+  interpretation: 'Interpretation',
+  forecast: 'Forecast',
+};
+
+const { kind } = Astro.props;
+---
+<span class={`claim claim--${kind}`}>{NAMES[kind]}</span>
