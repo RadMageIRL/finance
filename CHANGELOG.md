@@ -29,6 +29,7 @@ All notable changes to RadMage Finance are recorded here.
 - A reusable calculator kit: labeled inputs that accept pasted amounts like $1,234.56, results that update after a short pause in typing and are withdrawn the moment an entry becomes invalid, inline error messages, an SVG chart drawn at its real width so labels stay readable on phones, a sticky result bar on phones, and exact formatting and CSV helpers.
 - Learn and Calculators section pages listing the first three lessons and five calculators; lessons and calculators that are not built yet are shown as in development and are not links.
 - Reference pages: About, Methodology, Sources, Corrections, Privacy and Disclaimer.
+- Discoverability: descriptive titles for the lessons; structured data for every page (lessons as learning resources and calculators as free finance applications, both naming RadMage Labs as author and publisher, and breadcrumb trails below each hub); a 1200 by 630 sharing image for each lesson and calculator and a default for the rest, made by `tools/og-images.mjs`; and the review date as `lastmod` in the sitemap. The built-output check now verifies all of these.
 - A strict Content Security Policy on every page, no third-party requests and no cookies.
 - Local checks: house-style text scan, type check, unit tests, build output checks (links, origins, metadata, sitemap, page weight, words run into links), and browser tests for the theme, accessibility in every theme, layout at 320 px, privacy, and the reports (offline viewing, print layout, CSV values).
 

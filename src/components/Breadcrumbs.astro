@@ -1,4 +1,5 @@
 ---
+import { SITE } from '../lib/site';
 import { href } from '../lib/url';
 
 export interface Crumb {
@@ -12,6 +13,17 @@ interface Props {
 }
 
 const { items } = Astro.props;
+// The same trail as structured data (schema.org BreadcrumbList); the last item is this page.
+const trail = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.label,
+    item: new URL(index === items.length - 1 ? Astro.url.pathname : href(item.path ?? ''), SITE.origin).href,
+  })),
+};
 ---
 <nav class="breadcrumbs" aria-label="Breadcrumb">
   <ol>
@@ -24,3 +36,4 @@ const { items } = Astro.props;
     ))}
   </ol>
 </nav>
+<script type="application/ld+json" is:inline set:html={JSON.stringify(trail)} />

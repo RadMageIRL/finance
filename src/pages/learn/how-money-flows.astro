@@ -17,6 +17,9 @@ const opening = flowsOpening();
 const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) as Record<EntityId, string>;
 ---
 <LessonLayout
+  pageTitle="How Money Flows: Payments, Taxes and the Fed on Balance Sheets"
+  image="lesson-how-money-flows"
+  about={['Payment systems', 'Bank reserves', 'Treasury General Account', 'Open market operations']}
   title="How Money Flows"
   description="Follow wages, spending, lending, taxes, government spending, Treasury borrowing and Federal Reserve purchases between households, businesses, banks, the Treasury and the Fed, on balance sheets that always balance."
   lead="Every payment is a change on at least two balance sheets. Follow money between households, a business, two banks, the Treasury, the Federal Reserve and financial markets, step by step, then try any transaction yourself."

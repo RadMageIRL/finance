@@ -99,17 +99,17 @@ export const MODULES: readonly CatalogItem[] = [
     status: 'available',
   },
   {
-    title: 'How Money Flows',
-    path: 'learn/how-money-flows/',
-    summary: 'Follow wages, spending, taxes and bond purchases between households, businesses, banks, the government and the Fed.',
-    detail: 'Every step updates real balance sheets that always balance.',
-    status: 'available',
-  },
-  {
     title: 'How Banks Create Money',
     path: 'learn/how-banks-create-money/',
     summary: 'Make a loan, watch a deposit appear, then follow repayment, interest, settlement between banks and default.',
     detail: 'Capital, liquidity and credit risk shown as the constraints they are.',
+    status: 'available',
+  },
+  {
+    title: 'How Money Flows',
+    path: 'learn/how-money-flows/',
+    summary: 'Follow wages, spending, taxes and bond purchases between households, businesses, banks, the government and the Fed.',
+    detail: 'Every step updates real balance sheets that always balance.',
     status: 'available',
   },
 ];
@@ -119,7 +119,7 @@ export const CALCULATORS: readonly CatalogItem[] = [
     title: 'Compound interest',
     path: 'calculators/compound-interest/',
     summary: 'See how a balance grows with any compounding frequency and regular contributions.',
-    detail: 'Year-by-year table, contributions versus interest.',
+    detail: 'Schedules by day, month or year, contributions versus interest.',
     status: 'available',
   },
   {
@@ -151,3 +151,32 @@ export const CALCULATORS: readonly CatalogItem[] = [
     status: 'available',
   },
 ];
+
+/** The date the Phase 1 pages' text and facts were last reviewed. */
+export const PHASE1_REVIEWED = '2026-11-15';
+
+const ORGANIZATION = { '@type': 'Organization', name: SITE.publisher, url: SITE.publisherUrl } as const;
+
+/** schema.org properties for a calculator page (SEO_STRATEGY section 4). */
+export function calculatorSchema(reviewed = PHASE1_REVIEWED): Record<string, unknown> {
+  return {
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'Any (runs in a web browser)',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    isAccessibleForFree: true,
+    author: ORGANIZATION,
+    dateModified: reviewed,
+  };
+}
+
+/** schema.org properties for a Learn module (SEO_STRATEGY section 4). */
+export function lessonSchema(about: readonly string[], reviewed = PHASE1_REVIEWED): Record<string, unknown> {
+  return {
+    learningResourceType: 'Interactive lesson',
+    isAccessibleForFree: true,
+    author: ORGANIZATION,
+    datePublished: reviewed,
+    dateModified: reviewed,
+    about: about.map((name) => ({ '@type': 'Thing', name })),
+  };
+}

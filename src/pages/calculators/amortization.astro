@@ -9,6 +9,7 @@ import ShareExport from '../../components/calc/ShareExport.astro';
 import { loanPlan } from '../../lib/engines/loan-report';
 import { LOAN_ASSUMPTIONS, LOAN_GROUPINGS, LOAN_SERIES, LOAN_SOURCES, TERM_UNITS, loanChartSvg, loanScheduleNotes, loanTable, loanView, nextMonth } from '../../lib/calc/loan-view';
 import { MONTH_NAMES } from '../../lib/calc/schedule-view';
+import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
 import '../../styles/report.css';
 
@@ -24,6 +25,9 @@ const view = loanView(DEFAULT, plan);
 const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
 ---
 <BaseLayout
+  schemaType="WebApplication"
+  schema={calculatorSchema()}
+  image="calc-amortization"
   title="Loan Amortization Calculator"
   description="See the monthly payment on a loan, how each payment splits between principal and interest, and the full schedule by month or by year, with the payoff date and total interest."
 >

@@ -74,6 +74,29 @@ for (const file of pages) {
   const noindex = /<meta name="robots" content="noindex/.test(html);
   if (!noindex && !is404) indexable.add(ORIGIN + page);
 
+  // Open Graph image: present, the right size, and the file is in the build.
+  const ogImage = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+  if (!ogImage) fail(page, 'missing og:image');
+  else if (!ogImage.startsWith(`${ORIGIN}${BASE}og/`) || !existsSync(join(DIST, ogImage.slice(`${ORIGIN}${BASE}`.length)))) fail(page, `og:image ${ogImage} is not a built file under og/`);
+  if (!/<meta property="og:image:width" content="1200"/.test(html) || !/<meta property="og:image:height" content="630"/.test(html)) fail(page, 'og:image is not declared as 1200 x 630');
+
+  // Structured data: every JSON-LD block parses; lessons, calculators and pages below a hub
+  // carry the types SEO_STRATEGY section 4 asks for, with RadMage Labs as publisher.
+  const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => {
+    try {
+      return JSON.parse(m[1]);
+    } catch {
+      fail(page, 'a JSON-LD block does not parse');
+      return {};
+    }
+  });
+  const types = blocks.map((b) => b['@type']);
+  const main = blocks.find((b) => b['@type'] !== 'BreadcrumbList') ?? {};
+  if (!is404 && main.publisher?.name !== 'RadMage Labs') fail(page, 'structured data does not name RadMage Labs as publisher');
+  if (/^\/finance\/learn\/[^/]+\/$/.test(page) && !(main['@type'] === 'LearningResource' && main.dateModified && main.author?.name === 'RadMage Labs')) fail(page, 'a lesson needs LearningResource with dateModified and author');
+  if (/^\/finance\/calculators\/[^/]+\/$/.test(page) && !(main['@type'] === 'WebApplication' && main.applicationCategory === 'FinanceApplication' && main.offers?.price === '0')) fail(page, 'a calculator needs WebApplication with FinanceApplication and a free offer');
+  if (html.includes('class="breadcrumbs"') && !types.includes('BreadcrumbList')) fail(page, 'breadcrumbs without BreadcrumbList data');
+
   // The theme bootstrap must be the first script, before any stylesheet.
   const firstScript = html.indexOf('<script');
   const firstStylesheet = html.indexOf('rel="stylesheet"');
@@ -168,6 +191,12 @@ const listed = new Set(
 );
 for (const url of indexable) if (!listed.has(url)) fail('sitemap', `missing indexable page ${url}`);
 for (const url of listed) if (!indexable.has(url)) fail('sitemap', `lists a page that is not indexable: ${url}`);
+for (const f of sitemapFiles) {
+  const xml = readFileSync(join(DIST, f), 'utf8');
+  const urls = (xml.match(/<url>/g) ?? []).length;
+  const dated = (xml.match(/<lastmod>\d{4}-\d{2}-\d{2}/g) ?? []).length;
+  if (dated !== urls) fail('sitemap', `${urls - dated} URL(s) in ${f} have no lastmod`);
+}
 
 const kb = (n) => (n / 1024).toFixed(1).padStart(5);
 console.log('page                                   HTML gz  CSS gz   JS gz (KB)');

@@ -11,6 +11,7 @@ import ShareExport from '../../components/calc/ShareExport.astro';
 import { compareRates } from '../../lib/engines/rate-compare';
 import { rateIllustration } from '../../lib/engines/rate-illustration';
 import { ACCOUNT_NAMES, BLANK_ACCOUNT, DEFAULT_RATES, RATE_FREQUENCIES, RATES_ASSUMPTIONS, illustrationChartSvg, illustrationInput, illustrationNotes, illustrationTable, percentText, ratesView } from '../../lib/calc/rates-view';
+import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
 import '../../styles/report.css';
 
@@ -28,6 +29,9 @@ const hintFor = (kind: string) =>
 const VERIFIED = 'November 15, 2026';
 ---
 <BaseLayout
+  schemaType="WebApplication"
+  schema={calculatorSchema()}
+  image="calc-apr-apy"
   title="APR and APY Calculator"
   description="Convert a savings account's interest rate to its APY, or an APY back to the rate, for any compounding frequency, and compare up to three accounts. Why a savings APR and a loan APR differ."
 >

@@ -10,6 +10,7 @@ import { paymentBreakdown, payoffComparison } from '../../lib/engines/loan-repor
 import { LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownRows, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
 import { formatUSD } from '../../lib/calc/format';
 import { MONTH_NAMES } from '../../lib/calc/schedule-view';
+import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
 import '../../styles/report.css';
 
@@ -28,6 +29,9 @@ const parts = breakdownRows(brk.value);
 const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
 ---
 <BaseLayout
+  schemaType="WebApplication"
+  schema={calculatorSchema()}
+  image="calc-loan-payoff"
   title="Mortgage Payoff Calculator"
   description="See how extra monthly or one-time payments shorten a mortgage and cut its interest: payoff date, months saved and interest saved, with taxes, insurance and HOA dues kept apart from principal and interest."
 >

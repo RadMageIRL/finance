@@ -11,6 +11,7 @@ import { savingsGrowth } from '../../lib/engines/hysa';
 import { CONTRIBUTION_OPTIONS, contributionHint, contributionOption } from '../../lib/calc/frequency';
 import { CHANGE_SLOTS, COMPOUNDING_OPTIONS, DEFAULT_SAVINGS, SAVINGS_ASSUMPTIONS, SAVINGS_SERIES, savingsChartSvg, savingsSchedule, savingsScheduleConfig, savingsScheduleNotes, savingsView } from '../../lib/calc/savings-view';
 import { scheduleTable } from '../../lib/calc/schedule-view';
+import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
 import '../../styles/report.css';
 
@@ -26,6 +27,9 @@ const interval = contributionOption(DEFAULT_SAVINGS.contributionFrequency).inter
 const VERIFIED = 'November 15, 2026';
 ---
 <BaseLayout
+  schemaType="WebApplication"
+  schema={calculatorSchema()}
+  image="calc-savings-growth"
   title="High-Yield Savings Calculator"
   description="Project a savings account balance from its advertised APY, with regular deposits, rate changes, daily or monthly compounding, interest credited each month and the APY you actually earn."
 >

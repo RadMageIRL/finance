@@ -9,6 +9,8 @@ const headScriptHash = `sha256-${createHash('sha256').update(HEAD_SCRIPT).digest
 
 // Pages that must not be indexed: review and error pages, and News while it is a preview
 // (NEWS_LIVE in src/lib/site.ts; remove 'news' here when feeds go live).
+const LAST_REVIEWED = '2026-11-15';
+
 const NOT_IN_SITEMAP = /\/finance\/(design-system|404|news)\/$/;
 
 export default defineConfig({
@@ -26,6 +28,8 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !NOT_IN_SITEMAP.test(page),
+      // Every Phase 1 page was last reviewed on this date (src/lib/site.ts PHASE1_REVIEWED).
+      serialize: (item) => ({ ...item, lastmod: LAST_REVIEWED }),
     }),
   ],
   security: {

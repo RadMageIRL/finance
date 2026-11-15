@@ -11,6 +11,7 @@ import { compoundInterest } from '../../lib/engines/compound';
 import { COMPOUND_ASSUMPTIONS, DEFAULT_INPUT, FREQUENCIES, SERIES, compoundChartSvg, compoundSchedule, compoundScheduleConfig, compoundScheduleNotes, compoundView } from '../../lib/calc/compound-view';
 import { scheduleTable } from '../../lib/calc/schedule-view';
 import { CONTRIBUTION_OPTIONS, contributionHint, contributionOption } from '../../lib/calc/frequency';
+import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
 import '../../styles/report.css';
 
@@ -25,6 +26,9 @@ const chartSvg = compoundChartSvg(DEFAULT_INPUT, schedule, 'year', view.summary)
 const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interval;
 ---
 <BaseLayout
+  schemaType="WebApplication"
+  schema={calculatorSchema()}
+  image="calc-compound-interest"
   title="Compound Interest Calculator"
   description="See how a balance grows when interest earns interest, with any compounding frequency and weekly, monthly or other regular contributions. Year-by-year table, chart and CSV, calculated in your browser."
 >

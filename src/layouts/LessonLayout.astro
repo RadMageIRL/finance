@@ -3,6 +3,7 @@
 // key ideas, sources and related links (INFORMATION_ARCHITECTURE.md, Learn module template).
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { lessonSchema } from '../lib/site';
 import { href } from '../lib/url';
 
 interface Props {
@@ -12,12 +13,18 @@ interface Props {
   /** ISO date the lesson's text and facts were last reviewed. */
   reviewed: string;
   minutes: number;
+  /** A longer, more descriptive title for search results and sharing. */
+  pageTitle: string;
+  /** Open Graph image under public/og/, without the extension. */
+  image: string;
+  /** Subjects for structured data. */
+  about: readonly string[];
 }
 
-const { title, description, lead, reviewed, minutes } = Astro.props;
+const { title, description, lead, reviewed, minutes, pageTitle, image, about } = Astro.props;
 const reviewedLabel = new Date(`${reviewed}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 ---
-<BaseLayout title={title} description={description} schemaType="LearningResource">
+<BaseLayout title={pageTitle} description={description} schemaType="LearningResource" schema={lessonSchema(about, reviewed)} image={image}>
   <div class="page-head">
     <div class="wrap">
       <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Learn', path: 'learn/' }, { label: title }]} />
