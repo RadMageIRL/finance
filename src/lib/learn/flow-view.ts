@@ -20,7 +20,46 @@ export interface FlowView {
 const MONEY_LIKE = new Set<string>(['deposit', 'currency', 'tga']);
 const LENDING = new Set<string>(['loan', 'discount-loan', 'interbank-loan', 'reverse-repo']);
 
+/** One unmatched change in a holder's money, reserves or securities. */
+interface Side {
+  who: EntityId;
+  amount: number;
+  instrument: string;
+  issuer: EntityId;
+}
+
 const money = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * Payments where only one side holds money, which the payer-to-payee pairing cannot see:
+ * a borrower paying interest to its bank (the bank's equity rises), a bank paying wages or
+ * buying a security with a deposit it creates (its equity falls, or it gains the security),
+ * the Fed buying from an investor, and a cash withdrawal (a deposit turns into currency).
+ * The other party is read from the same transaction's postings: the entity whose equity
+ * moves the other way by the same amount, or the buyer of a security of that amount. Loan
+ * proceeds, repayments and lending (drawn separately below) are left alone.
+ */
+function oneSided(tx: Transaction, left: { down: Side[]; up: Side[] }, arrows: FlowArrow[]): void {
+  const lending = tx.claims.filter((c) => LENDING.has(c.instrument));
+  const equityBy = (amount: number, not: EntityId) => tx.equity.find((e) => e.change === amount && e.entity !== not)?.entity;
+  const up = [...left.up];
+  for (const d of left.down) {
+    if (lending.some((c) => (c.issuer === d.who && c.change < 0) || (c.holder === d.who && c.change > 0))) continue;
+    const cash = up.findIndex((u) => u.who === d.who && u.amount === d.amount && u.instrument === 'currency');
+    if (cash >= 0) {
+      arrows.push({ from: d.issuer, to: d.who, label: `cash ${money(d.amount)}` });
+      up.splice(cash, 1);
+      continue;
+    }
+    const payee = equityBy(d.amount, d.who);
+    if (payee) arrows.push({ from: d.who, to: payee, label: `${tx.kind === 'pay-interest' ? 'pays interest' : 'pays'} ${money(d.amount)}` });
+  }
+  for (const u of up) {
+    if (lending.some((c) => c.issuer === u.who && c.change > 0)) continue;
+    const payer = equityBy(-u.amount, u.who) ?? tx.claims.find((c) => c.instrument === 'security' && c.change === u.amount && c.holder !== u.who)?.holder;
+    if (payer) arrows.push({ from: payer, to: u.who, label: `${tx.kind === 'bank-pays' ? 'pays wages' : 'pays'} ${money(u.amount)}` });
+  }
+}
 
 /**
  * Arrows for a transaction: money (deposits, cash, the Treasury's account) from payer to
@@ -38,8 +77,10 @@ export function flowView(tx: Transaction | null): FlowView {
   for (const e of tx.equity) changed.add(e.entity);
 
   const pair = (match: (instrument: string) => boolean, verb: string, alone: EntityId | null, aloneVerb: (up: boolean) => string) => {
-    const down = tx.claims.filter((c) => match(c.instrument) && c.change < 0).map((c) => ({ who: c.holder, amount: -c.change }));
-    const up = tx.claims.filter((c) => match(c.instrument) && c.change > 0).map((c) => ({ who: c.holder, amount: c.change }));
+    const side = (sign: 1 | -1): Side[] =>
+      tx.claims.filter((c) => match(c.instrument) && Math.sign(c.change) === sign).map((c) => ({ who: c.holder, amount: Math.abs(c.change), instrument: c.instrument, issuer: c.issuer }));
+    const down = side(-1);
+    const up = side(1);
     for (const d of [...down]) {
       const k = up.findIndex((u) => u.amount === d.amount && u.who !== d.who);
       if (k < 0) continue;
@@ -47,19 +88,23 @@ export function flowView(tx: Transaction | null): FlowView {
       up.splice(k, 1);
       down.splice(down.indexOf(d), 1);
     }
-    if (!alone) return;
-    for (const u of up) if (u.who !== alone) arrows.push({ from: alone, to: u.who, label: `${aloneVerb(true)} ${money(u.amount)}` });
-    for (const d of down) if (d.who !== alone) arrows.push({ from: d.who, to: alone, label: `${aloneVerb(false)} ${money(d.amount)}` });
+    if (alone) {
+      for (const u of up) if (u.who !== alone) arrows.push({ from: alone, to: u.who, label: `${aloneVerb(true)} ${money(u.amount)}` });
+      for (const d of down) if (d.who !== alone) arrows.push({ from: d.who, to: alone, label: `${aloneVerb(false)} ${money(d.amount)}` });
+    }
+    return { down, up };
   };
-  pair((i) => MONEY_LIKE.has(i), 'pays', null, () => '');
+  const left = pair((i) => MONEY_LIKE.has(i), 'pays', null, () => '');
   pair((i) => i === 'reserves' || i === 'vault-cash', 'reserves', 'Fed', (up) => (up ? 'new reserves' : 'reserves to the Fed'));
   pair((i) => i === 'security', 'security', 'Treasury', (up) => (up ? 'new security' : 'security redeemed'));
+  oneSided(tx, left, arrows);
   for (const c of tx.claims) {
     if (!LENDING.has(c.instrument)) continue;
     // A write-off is not a repayment: nothing moves from the borrower. In this model the
-    // bank gives up its claim (the loss goes to its equity and the borrower's equity rises).
+    // bank charges off its claim and also forgives the debt (the loss goes to its equity
+    // and the borrower's equity rises), so the label names both.
     if (tx.kind === 'write-off') {
-      arrows.push({ from: c.holder, to: c.issuer, label: `writes off ${money(-c.change)}` });
+      arrows.push({ from: c.holder, to: c.issuer, label: `writes off and forgives ${money(-c.change)}` });
       continue;
     }
     arrows.push(c.change > 0 ? { from: c.holder, to: c.issuer, label: `lends ${money(c.change)}` } : { from: c.issuer, to: c.holder, label: `repays ${money(-c.change)}` });

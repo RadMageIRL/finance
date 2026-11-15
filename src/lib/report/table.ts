@@ -17,6 +17,8 @@ export interface TableRow {
   cells: readonly string[];
   /** A short marker shown with the row header, for example "New APY". */
   note?: string;
+  /** A subtotal or total inside the body, shown in bold. */
+  strong?: boolean;
 }
 
 export interface TableSource {

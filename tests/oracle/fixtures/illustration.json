@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.5",
+  "conventions": "v1.6",
   "cases": [
     {
       "id": "three-accounts-one-year-apy-4.5-daily-monthly-weekly",

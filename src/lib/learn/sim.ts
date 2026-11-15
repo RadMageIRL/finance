@@ -22,6 +22,10 @@ import {
 } from '../engines/ledger/model';
 import { formatUSD } from '../calc/format';
 
+/** Shown in both lessons when the free mode runs a write-off: the action is a charge-off plus forgiveness. */
+export const WRITE_OFF_NOTE =
+  'The simulation charges off the loan and also forgives it, so the debt leaves both balance sheets. A real charge-off by itself does not cancel the borrower\'s debt.';
+
 export interface GuidedStep {
   id: string;
   title: string;
@@ -136,6 +140,8 @@ export function movements(tx: Transaction): string[] {
   for (const e of tx.equity) {
     out.push(`Equity of ${ENTITY_INFO[e.entity].name}: ${e.change > 0 ? 'up' : 'down'} ${formatUSD(Math.abs(e.change))}.`);
   }
+  // The write-off is a charge-off plus forgiveness in this model; say so where the move is shown.
+  if (tx.kind === 'write-off') out.push('Charged off and forgiven: the loan leaves both balance sheets. A real charge-off alone would not cancel the debt.');
   return out;
 }
 

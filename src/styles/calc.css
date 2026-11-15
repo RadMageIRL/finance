@@ -135,6 +135,12 @@ html:not(.js) [data-js-only] {
   font-weight: 700;
 }
 
+.breakdown__subtotal dt,
+.breakdown__subtotal dd {
+  color: var(--text);
+  font-weight: 650;
+}
+
 .calc__summary {
   color: var(--text-muted);
   font-size: var(--step--1);

@@ -18,6 +18,9 @@ export interface Source {
 /** In the order they are cited on the page; numbered from 1. */
 export const SOURCES: readonly Source[] = [
   { id: 'fed-education-functions', publisher: 'Federal Reserve Education (Federal Reserve System)', title: 'Functions of Money', date: 'undated', url: 'https://www.federalreserveeducation.org/teaching-resources/economics/money/functions-of-money' },
+  { id: 'fed-faq-legal-tender', publisher: 'Board of Governors of the Federal Reserve System', title: 'Is it legal for a business in the United States to refuse cash as a form of payment?', date: 'last updated July 21, 2020', url: 'https://www.federalreserve.gov/faqs/currency_12772.htm' },
+  { id: 'fed-faq-inflation', publisher: 'Board of Governors of the Federal Reserve System', title: 'What is inflation, and how does the Federal Reserve evaluate changes in the rate of inflation?', date: 'last updated August 22, 2025', url: 'https://www.federalreserve.gov/faqs/economy_14419.htm' },
+  { id: 'fra-2a', publisher: 'Board of Governors of the Federal Reserve System', title: 'Federal Reserve Act, Section 2A, Monetary policy objectives (12 U.S.C. 225a)', date: 'last updated February 13, 2017', url: 'https://www.federalreserve.gov/aboutthefed/section2a.htm' },
   { id: 'fed-money-supply', publisher: 'Board of Governors of the Federal Reserve System', title: 'What is the money supply? Is it important?', date: 'last updated July 19, 2024', url: 'https://www.federalreserve.gov/faqs/money_12845.htm' },
   { id: 'fed-money-payments', publisher: 'Board of Governors of the Federal Reserve System', title: 'Money and Payments: The U.S. Dollar in the Age of Digital Transformation', date: 'January 2022', url: 'https://www.federalreserve.gov/publications/money-and-payments-discussion-paper.htm' },
   { id: 'usc-31-5103', publisher: 'U.S. Code (govinfo, 2023 edition)', title: '31 U.S.C. 5103, Legal tender', date: '2023 edition', url: 'https://www.govinfo.gov/content/pkg/USCODE-2023-title31/html/USCODE-2023-title31-subtitleIV-chap51-subchapI-sec5103.htm' },
@@ -194,7 +197,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
     noIssuer: true,
     answers: {
       promise: a('No one\'s liability: a physical commodity. Commodity money "had value because it was made of a substance that had value."', 'fed-education-functions'),
-      legal: a('Bullion is not legal tender, and "foreign gold or silver coins are not legal tender for debts." US gold coins are legal tender at their face value ($50 for the one-ounce coin) but are sold "at a price equal to the market value of the bullion."', 'usc-31-5103', 'usc-31-5112'),
+      legal: a('Bullion is not legal tender, and "foreign gold or silver coins are not legal tender for debts." US gold coins are legal tender at their face value ($50 for the one-ounce coin), but that is not their price: by law they are sold "at a price equal to the market value of the bullion at the time of sale, plus the cost of minting, marketing, and distributing such coins."', 'usc-31-5103', 'usc-31-5112'),
       holders: a('Anyone. The Treasury, not the Federal Reserve, holds the US government\'s gold: "The Federal Reserve does not own gold."', 'fed-gold-faq'),
       settlement: a('Paying with gold means delivering it, or transferring ownership of gold a custodian holds. In practice it is usually sold for dollars first.'),
       backing: a('None, and none needed: its value is what buyers pay for the metal. The Treasury\'s gold is carried at $42 and two-ninths (about $42.22) an ounce, "a value established by law," not a market price.', 'treasury-gold'),

@@ -7,8 +7,7 @@ import CalcSelect from '../../components/calc/CalcSelect.astro';
 import ScheduleView from '../../components/calc/ScheduleView.astro';
 import ShareExport from '../../components/calc/ShareExport.astro';
 import { paymentBreakdown, payoffComparison } from '../../lib/engines/loan-report';
-import { HOA_ROW, LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownRows, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
-import { formatUSD } from '../../lib/calc/format';
+import { LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownGroups, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
 import { MONTH_NAMES } from '../../lib/calc/schedule-view';
 import { calculatorSchema } from '../../lib/site';
 import { href } from '../../lib/url';
@@ -25,7 +24,7 @@ const c = computed.value;
 const brk = paymentBreakdown(c.accelerated.schedule.payment, COSTS);
 if (!brk.ok) throw new Error('mortgage example costs are invalid');
 const view = payoffView(c);
-const parts = breakdownRows(brk.value);
+const groups = breakdownGroups(brk.value);
 const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
 ---
 <BaseLayout
@@ -89,7 +88,7 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       <section class="calc__results" aria-labelledby="mp-results-title">
         <div class="calc__results-head">
           <h2 class="calc__heading" id="mp-results-title">Interest saved</h2>
-          <ClaimLabel kind="forecast" />
+          <ClaimLabel kind="projection" />
         </div>
         <div class="calc__values">
           <p class="calc__hero" data-out="hero">{view.hero}</p>
@@ -104,21 +103,17 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
             </table>
           </div>
           <h3 class="calc__subheading">Monthly housing costs</h3>
-          <dl class="breakdown">
-            <div><dt>{parts[0]!.label}</dt><dd data-out="part-0">{parts[0]!.value}</dd></div>
-          </dl>
-          <p class="breakdown__group">Other housing costs, kept apart from the loan</p>
-          <dl class="breakdown">
-            {parts.slice(1, HOA_ROW).map((p, i) => <div><dt>{p.label}</dt><dd data-out={`part-${i + 1}`}>{p.value}</dd></div>)}
-          </dl>
-          <p class="breakdown__group">Not part of the mortgage payment: usually paid to the association</p>
-          <dl class="breakdown">
-            <div><dt>{parts[HOA_ROW]!.label}</dt><dd data-out={`part-${HOA_ROW}`}>{parts[HOA_ROW]!.value}</dd></div>
-          </dl>
-          <dl class="breakdown">
-            <div class="breakdown__total"><dt>Estimated total monthly housing cost</dt><dd data-out="total-monthly">{formatUSD(brk.value.total)}</dd></div>
-          </dl>
-          <p class="small muted">An estimate of what the home costs each month. It includes HOA dues, which are not part of the mortgage payment, so it can be more than what you pay your lender.</p>
+          {groups.map((g) => (
+            <Fragment>
+              {g.heading && <p class="breakdown__group">{g.heading}</p>}
+              <dl class="breakdown">
+                {g.lines.map((p) => (
+                  <div class:list={{ breakdown__subtotal: p.kind === 'subtotal', breakdown__total: p.kind === 'total' }}><dt>{p.label}</dt><dd data-out={`part-${p.key}`}>{p.value}</dd></div>
+                ))}
+              </dl>
+            </Fragment>
+          ))}
+          <p class="small muted">The mortgage payment assumes the lender collects property tax and homeowners insurance through an escrow account, with mortgage insurance, alongside principal and interest; if you pay tax and insurance yourself, you pay your lender less. The total housing cost also includes HOA dues, so it can be more than what you pay your lender.</p>
           <p class="calc__summary" data-out="summary">{view.summary}</p>
         </div>
         <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
@@ -142,8 +137,16 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
         Interest each month is charged on the balance still owed. An extra payment goes
         entirely to principal, so every later month's interest is charged on a smaller
         balance, and more of each regular payment goes to principal. The regular payment does
-        not change; the loan simply ends sooner. The savings are largest early in the loan,
-        when the balance is highest.
+        not change; the loan simply ends sooner. What an extra payment saves is the interest
+        that amount would otherwise have been charged over the rest of the loan, so a dollar
+        paid early, with many months left, avoids more interest than the same dollar paid
+        near the end.
+      </p>
+      <p>
+        Whether paying extra makes sense depends on your other financial obligations, such as
+        other debts and savings, and on the loan's own terms, such as its interest rate and
+        how your servicer applies extra payments. This calculator shows only the effect on
+        this loan.
       </p>
       <p>
         On a mortgage, the total monthly payment usually includes "additional costs like

@@ -4,6 +4,8 @@
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { paymentBreakdown, payoffComparison } from '../../src/lib/engines/loan-report';
+import { formatUSD } from '../../src/lib/calc/format';
 import { storeTheme, url } from './helpers';
 
 const AMORTIZATION = url('calculators/amortization/');
@@ -84,11 +86,47 @@ test.describe('mortgage payoff calculator', () => {
     await expect(page.locator('[data-out="compare-rows"] tr').first().locator('td')).toHaveText(['Dec 2056', 'Dec 2056']);
     await page.fill('#mp-extra', '100');
     await expect(page.locator('[data-out="hero"]')).not.toHaveText('$0.00');
-    await expect(page.locator('[data-out="part-0"]')).toHaveText('$1,199.10');
+    await expect(page.locator('[data-out="part-pi"]')).toHaveText('$1,199.10');
     await page.fill('#mp-tax', '3,601');
-    await expect(page.locator('[data-out="part-1"]')).toHaveText('$300.08');
+    await expect(page.locator('[data-out="part-tax"]')).toHaveText('$300.08');
     // The housing costs never change the loan.
-    await expect(page.locator('[data-out="part-0"]')).toHaveText('$1,199.10');
+    await expect(page.locator('[data-out="part-pi"]')).toHaveText('$1,199.10');
+  });
+
+  test('shows the mortgage payment without HOA dues and the housing cost with them, as the engine figures them', async ({ page }) => {
+    await page.goto(PAYOFF);
+    await loan(page, 'mp', { principal: '200,000', rate: '6', term: '30', month: '1', year: '2027' });
+    const cases = [
+      { tax: '3,601', insurance: '1,500', mi: '90', hoa: '350' },
+      { tax: '0', insurance: '0', mi: '0', hoa: '0' },
+      { tax: '0', insurance: '0', mi: '0', hoa: '275.50' },
+      { tax: '2,400.06', insurance: '0', mi: '0', hoa: '0' },
+    ];
+    const payment = payoffComparison({ principal: 20_000_000, annualRate: 0.06, termMonths: 360, extraMonthly: 10_000 }, { year: 2027, month: 1 });
+    if (!payment.ok) throw new Error('invalid');
+    await page.fill('#mp-extra', '100');
+    const cents = (text: string) => Math.round(Number(text.replace(/,/g, '')) * 100);
+    for (const c of cases) {
+      await page.fill('#mp-tax', c.tax);
+      await page.fill('#mp-insurance', c.insurance);
+      await page.fill('#mp-mi', c.mi);
+      await page.fill('#mp-hoa', c.hoa);
+      const b = paymentBreakdown(payment.value.accelerated.schedule.payment, {
+        propertyTaxAnnual: cents(c.tax),
+        insuranceAnnual: cents(c.insurance),
+        mortgageInsuranceMonthly: cents(c.mi),
+        hoaMonthly: cents(c.hoa),
+      });
+      if (!b.ok) throw new Error('invalid');
+      const want = { pi: b.value.principalAndInterest, tax: b.value.propertyTax, insurance: b.value.insurance, escrow: b.value.escrow, mi: b.value.mortgageInsurance, mortgage: b.value.mortgagePayment, hoa: b.value.hoa, total: b.value.total };
+      await expect(page.locator('[data-out="part-total"]'), JSON.stringify(c)).toHaveText(formatUSD(want.total));
+      for (const [key, value] of Object.entries(want)) {
+        await expect(page.locator(`[data-out="part-${key}"]`), `${key} ${JSON.stringify(c)}`).toHaveText(formatUSD(value));
+      }
+      // HOA dues never enter the mortgage payment.
+      expect(b.value.mortgagePayment).toBe(b.value.principalAndInterest + b.value.escrow + b.value.mortgageInsurance);
+      expect(b.value.total - b.value.mortgagePayment).toBe(cents(c.hoa));
+    }
   });
 
   test('applies a one-time payment in its month and says which month that is', async ({ page }) => {
@@ -131,6 +169,12 @@ test.describe('mortgage payoff calculator', () => {
     expect(html).toContain('Estimated total monthly housing cost');
     expect(html).toContain('HOA dues (not part of the mortgage payment)');
     expect(html).not.toContain('Total monthly payment');
+    // The report's breakdown matches the page, line for line.
+    for (const key of ['pi', 'tax', 'insurance', 'escrow', 'mi', 'mortgage', 'hoa', 'total']) {
+      const shown = (await page.locator(`[data-out="part-${key}"]`).textContent())!;
+      expect(html, key).toContain(`<td>${shown}</td>`);
+    }
+    expect(html).toContain('<tr class="rmf-report__strong"><th scope="row">Estimated mortgage payment (to the lender)</th>');
     expect(html).not.toMatch(/<script/);
   });
 

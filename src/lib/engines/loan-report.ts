@@ -1,5 +1,5 @@
 // Loan schedules by month and calendar year, the payoff comparison and the monthly payment
-// breakdown (ENGINE_CONVENTIONS section 13, v1.5). Pure. The amortization itself is
+// breakdown (ENGINE_CONVENTIONS section 13, v1.6). Pure. The amortization itself is
 // section 6 (loan.ts); nothing here changes how interest or payments are figured.
 
 import { amortize, LOAN_LIMITS, type LoanInput, type LoanRow, type LoanSchedule } from './loan';
@@ -64,8 +64,13 @@ export interface PaymentBreakdown {
   principalAndInterest: Cents;
   propertyTax: Cents;
   insurance: Cents;
+  /** Property tax plus homeowners insurance: the escrow items modeled (conventions 13.5, v1.6). */
+  escrow: Cents;
   mortgageInsurance: Cents;
+  /** Principal and interest plus escrow plus mortgage insurance: paid to the lender, HOA dues excluded (v1.6). */
+  mortgagePayment: Cents;
   hoa: Cents;
+  /** The estimated total monthly housing cost: the mortgage payment plus HOA dues. */
   total: Cents;
 }
 
@@ -156,21 +161,25 @@ export function validateHousingCosts(costs: HousingCosts): Checker {
   return check;
 }
 
-/** Principal and interest kept apart from the other monthly housing costs (conventions 13.5). */
+/** Principal and interest kept apart from the other monthly housing costs, with the escrow and mortgage payment subtotals (conventions 13.5, v1.6). */
 export function paymentBreakdown(payment: Cents, costs: HousingCosts): Result<PaymentBreakdown> {
   const check = validateHousingCosts(costs);
   if (!check.ok) return check.fail();
   const propertyTax = roundCents(costs.propertyTaxAnnual / 12);
   const insurance = roundCents(costs.insuranceAnnual / 12);
+  const escrow = propertyTax + insurance;
+  const mortgagePayment = payment + escrow + costs.mortgageInsuranceMonthly;
   return {
     ok: true,
     value: {
       principalAndInterest: payment,
       propertyTax,
       insurance,
+      escrow,
       mortgageInsurance: costs.mortgageInsuranceMonthly,
+      mortgagePayment,
       hoa: costs.hoaMonthly,
-      total: payment + propertyTax + insurance + costs.mortgageInsuranceMonthly + costs.hoaMonthly,
+      total: mortgagePayment + costs.hoaMonthly,
     },
   };
 }

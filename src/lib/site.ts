@@ -7,7 +7,7 @@ export const SITE = {
   origin: 'https://radmagelabs.com',
   contactEmail: 'radmageirl@radmagelabs.com',
   description:
-    'Free financial news from named sources, interactive lessons, and calculators that show how money, banking and interest work, with every fact sourced.',
+    'Interactive lessons and calculators that show how money, banking and interest work, with every fact sourced. Source-linked financial news is in development.',
 } as const;
 
 export interface NavItem {

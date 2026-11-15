@@ -12,12 +12,13 @@ import { href } from '../lib/url';
 >
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
-      <p class="eyebrow">Free financial news and education</p>
+      <p class="eyebrow">Free financial education</p>
       <h1 id="hero-title">How money works, shown step by step.</h1>
       <p class="lead">
-        Financial news from named sources, interactive lessons, and calculators that show
-        their math, for savers, borrowers, homeowners and anyone curious about the financial
-        system. Every fact links to its source, and every calculation runs in your browser.
+        Interactive lessons and calculators that show their math, for savers, borrowers,
+        homeowners and anyone curious about the financial system. Every fact links to its
+        source, and every calculation runs in your browser. Source-linked financial news is
+        in development.
       </p>
       <div class="button-row">
         <a class="button" href={href('learn/')}>Start learning</a>
@@ -34,8 +35,8 @@ import { href } from '../lib/url';
           <span class="badge badge--preview">Preview</span>
         </div>
         <p>
-          Headlines from named publishers, grouped by topic and linked to the original
-          reporting, with publication times and refresh status shown on every page.
+          In development: headlines from named publishers, grouped by topic and linked to the
+          original reporting, with publication times and refresh status shown on every page.
         </p>
         <p class="small muted">News is in development. Feeds are not live yet, so no stories are shown.</p>
         <a class="button button--secondary" href={href('news/')}>Preview the News section</a>
@@ -94,12 +95,13 @@ import { href } from '../lib/url';
         </li>
         <li>
           <h3>Every claim labeled</h3>
-          <p>Statements say what kind of claim they are, so a teaching model is never mistaken for a fact or a forecast.</p>
+          <p>Statements say what kind of claim they are, so a teaching model is never mistaken for a fact, or a calculator's projection for a forecast.</p>
           <div class="claim-row">
             <ClaimLabel kind="fact" />
             <ClaimLabel kind="identity" />
             <ClaimLabel kind="model" />
             <ClaimLabel kind="interpretation" />
+            <ClaimLabel kind="projection" />
             <ClaimLabel kind="forecast" />
           </div>
         </li>

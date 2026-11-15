@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { formatUSD } from '../../../src/lib/calc/format';
 import {
   amortizationReport,
+  breakdownGroups,
+  breakdownLines,
   durationText,
+  ESCROW_GROUP,
+  HOA_GROUP,
   loanIssueMessage,
   loanTable,
   nextMonth,
@@ -101,6 +105,57 @@ describe('loan view', () => {
     expect(body).toContain('Estimated total monthly housing cost');
     expect(body).not.toContain('Total monthly payment');
     expect(report.summary).toContainEqual({ label: 'Estimated total monthly housing cost (HOA dues included)', value: formatUSD(brk.value.total) });
+    expect(report.summary).toContainEqual({ label: 'Estimated monthly mortgage payment (with escrow and mortgage insurance)', value: formatUSD(brk.value.mortgagePayment) });
+  });
+
+  it('lists the breakdown in order with the escrow and mortgage payment subtotals, HOA dues outside', () => {
+    const b = paymentBreakdown(119_910, { propertyTaxAnnual: 360_000, insuranceAnnual: 150_000, mortgageInsuranceMonthly: 9_000, hoaMonthly: 25_000 });
+    if (!b.ok) throw new Error('invalid');
+    const groups = breakdownGroups(b.value);
+    expect(groups.map((g) => g.heading)).toEqual([null, ESCROW_GROUP, null, HOA_GROUP, null]);
+    expect(breakdownLines(b.value).map((l) => [l.key, l.value, l.kind])).toEqual([
+      ['pi', '$1,199.10', 'item'],
+      ['tax', '$300.00', 'item'],
+      ['insurance', '$125.00', 'item'],
+      ['escrow', '$425.00', 'subtotal'],
+      ['mi', '$90.00', 'item'],
+      ['mortgage', '$1,714.10', 'total'],
+      ['hoa', '$250.00', 'item'],
+      ['total', '$1,964.10', 'total'],
+    ]);
+  });
+
+  it('shows zero optional costs as $0.00, with the mortgage payment and the total equal to principal and interest', () => {
+    const { loan, c } = mortgage();
+    const costs = { propertyTaxAnnual: 0, insuranceAnnual: 0, mortgageInsuranceMonthly: 0, hoaMonthly: 0 };
+    const b = paymentBreakdown(c.accelerated.schedule.payment, costs);
+    if (!b.ok) throw new Error('invalid');
+    const pi = formatUSD(c.accelerated.schedule.payment);
+    expect(Object.fromEntries(breakdownLines(b.value).map((l) => [l.key, l.value]))).toEqual({
+      pi,
+      tax: '$0.00',
+      insurance: '$0.00',
+      escrow: '$0.00',
+      mi: '$0.00',
+      mortgage: pi,
+      hoa: '$0.00',
+      total: pi,
+    });
+    const body = reportBody(payoffReport(loan, FIRST, costs, c, b.value, 'year', WHEN));
+    expect(body).toContain(`<tr class="rmf-report__strong"><th scope="row">Estimated mortgage payment (to the lender)</th><td>${pi}</td></tr>`);
+    expect(body).toContain(`<tfoot><tr><th scope="row">Estimated total monthly housing cost</th><td>${pi}</td></tr></tfoot>`);
+    expect(body).toContain('<tr><th scope="row">HOA dues (not part of the mortgage payment)</th><td>$0.00</td></tr>');
+  });
+
+  it('puts every breakdown line in the report with the same figures as the page view', () => {
+    const { loan, c } = mortgage();
+    const costs = { propertyTaxAnnual: 240_006, insuranceAnnual: 150_001, mortgageInsuranceMonthly: 4_321, hoaMonthly: 27_550 };
+    const b = paymentBreakdown(c.accelerated.schedule.payment, costs);
+    if (!b.ok) throw new Error('invalid');
+    const body = reportBody(payoffReport(loan, FIRST, costs, c, b.value, 'year', WHEN));
+    for (const line of breakdownLines(b.value)) expect(body, line.key).toContain(`<th scope="row">${line.reportLabel}</th><td>${line.value}</td>`);
+    expect(b.value.propertyTax).toBe(20_001);
+    expect(b.value.total).toBe(b.value.mortgagePayment + 27_550);
   });
 
   it('shares only the amounts that are set, and maps engine problems to their fields', () => {

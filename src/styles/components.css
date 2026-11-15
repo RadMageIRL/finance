@@ -171,7 +171,8 @@
   color: var(--kind-interpretation);
 }
 
-.claim--forecast {
+.claim--forecast,
+.claim--projection {
   color: var(--kind-forecast);
 }
 

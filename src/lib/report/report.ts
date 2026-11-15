@@ -123,7 +123,7 @@ function items(list: readonly ReportItem[]): string {
 
 function rowHtml(row: TableRow): string {
   const note = row.note ? ` <span class="rmf-report__note">${e(row.note)}</span>` : '';
-  return `<tr><th scope="row">${e(row.head)}${note}</th>${row.cells.map((c) => `<td>${e(c)}</td>`).join('')}</tr>`;
+  return `<tr${row.strong ? ' class="rmf-report__strong"' : ''}><th scope="row">${e(row.head)}${note}</th>${row.cells.map((c) => `<td>${e(c)}</td>`).join('')}</tr>`;
 }
 
 /** The whole table, every row, with the numeric columns marked for alignment. */

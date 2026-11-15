@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.5",
+  "conventions": "v1.6",
   "cases": [
     {
       "id": "30-year-200000-6-percent-first-payment-june",
@@ -381,7 +381,9 @@
       "breakdown": {
         "property_tax_cents": 40000,
         "insurance_cents": 12500,
+        "escrow_cents": 52500,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 172410,
         "hoa_cents": 0,
         "total_monthly_cents": 172410
       }
@@ -655,7 +657,9 @@
       "breakdown": {
         "property_tax_cents": 30001,
         "insurance_cents": 15000,
+        "escrow_cents": 45001,
         "mortgage_insurance_cents": 8750,
+        "mortgage_payment_cents": 173661,
         "hoa_cents": 4500,
         "total_monthly_cents": 178161
       }
@@ -1034,7 +1038,9 @@
       "breakdown": {
         "property_tax_cents": 34362,
         "insurance_cents": 17501,
+        "escrow_cents": 51863,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 171773,
         "hoa_cents": 35000,
         "total_monthly_cents": 206773
       }
@@ -1310,7 +1316,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
         "hoa_cents": 0,
         "total_monthly_cents": 119910
       }
@@ -1483,7 +1491,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
         "hoa_cents": 0,
         "total_monthly_cents": 119910
       }
@@ -1597,7 +1607,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
         "hoa_cents": 0,
         "total_monthly_cents": 119910
       }
@@ -1986,7 +1998,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
         "hoa_cents": 0,
         "total_monthly_cents": 119910
       }
@@ -2370,7 +2384,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
         "hoa_cents": 0,
         "total_monthly_cents": 119910
       }
@@ -2589,7 +2605,9 @@
       "breakdown": {
         "property_tax_cents": 45000,
         "insurance_cents": 16501,
+        "escrow_cents": 61501,
         "mortgage_insurance_cents": 12500,
+        "mortgage_payment_cents": 319126,
         "hoa_cents": 0,
         "total_monthly_cents": 319126
       }
@@ -2764,7 +2782,9 @@
       "breakdown": {
         "property_tax_cents": 45000,
         "insurance_cents": 16501,
+        "escrow_cents": 61501,
         "mortgage_insurance_cents": 12500,
+        "mortgage_payment_cents": 319126,
         "hoa_cents": 0,
         "total_monthly_cents": 319126
       }
@@ -2944,7 +2964,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 245125,
         "hoa_cents": 0,
         "total_monthly_cents": 245125
       }
@@ -3548,7 +3570,9 @@
       "breakdown": {
         "property_tax_cents": 833333333,
         "insurance_cents": 833333333,
+        "escrow_cents": 1666666666,
         "mortgage_insurance_cents": 10000000000,
+        "mortgage_payment_cents": 11719307145,
         "hoa_cents": 10000000000,
         "total_monthly_cents": 21719307145
       }
@@ -3919,7 +3943,9 @@
       "breakdown": {
         "property_tax_cents": 50000,
         "insurance_cents": 20001,
+        "escrow_cents": 70001,
         "mortgage_insurance_cents": 1,
+        "mortgage_payment_cents": 370846,
         "hoa_cents": 99999,
         "total_monthly_cents": 470845
       }
@@ -4088,7 +4114,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 833333334,
         "hoa_cents": 0,
         "total_monthly_cents": 833333334
       }
@@ -4384,7 +4412,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 833333334,
         "hoa_cents": 0,
         "total_monthly_cents": 833333334
       }
@@ -4768,7 +4798,9 @@
       "breakdown": {
         "property_tax_cents": 25000,
         "insurance_cents": 8000,
+        "escrow_cents": 33000,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 152912,
         "hoa_cents": 0,
         "total_monthly_cents": 152912
       }
@@ -4932,7 +4964,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 21078,
         "hoa_cents": 0,
         "total_monthly_cents": 21078
       }
@@ -5752,7 +5786,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 70800,
         "hoa_cents": 0,
         "total_monthly_cents": 70800
       }
@@ -6528,7 +6564,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 75537,
         "hoa_cents": 0,
         "total_monthly_cents": 75537
       }
@@ -6986,7 +7024,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 46970,
         "hoa_cents": 0,
         "total_monthly_cents": 46970
       }
@@ -8581,7 +8621,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 10000,
         "hoa_cents": 0,
         "total_monthly_cents": 10000
       }
@@ -9150,7 +9192,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 50000,
         "hoa_cents": 0,
         "total_monthly_cents": 50000
       }
@@ -10761,7 +10805,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 10000,
         "hoa_cents": 0,
         "total_monthly_cents": 10000
       }
@@ -10829,7 +10875,9 @@
       "breakdown": {
         "property_tax_cents": 1,
         "insurance_cents": 0,
+        "escrow_cents": 1,
         "mortgage_insurance_cents": 1,
+        "mortgage_payment_cents": 502919,
         "hoa_cents": 0,
         "total_monthly_cents": 502919
       }
@@ -10897,7 +10945,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 51,
         "hoa_cents": 0,
         "total_monthly_cents": 51
       }
@@ -12163,7 +12213,9 @@
       "breakdown": {
         "property_tax_cents": 12501,
         "insurance_cents": 7500,
+        "escrow_cents": 20001,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 78029,
         "hoa_cents": 0,
         "total_monthly_cents": 78029
       }
@@ -12254,7 +12306,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 18871,
         "hoa_cents": 0,
         "total_monthly_cents": 18871
       }
@@ -12322,7 +12376,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 833389489,
         "hoa_cents": 0,
         "total_monthly_cents": 833389489
       }
@@ -12705,7 +12761,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 19333,
         "hoa_cents": 0,
         "total_monthly_cents": 19333
       }
@@ -12928,7 +12986,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 82415,
         "hoa_cents": 0,
         "total_monthly_cents": 82415
       }
@@ -13139,7 +13199,9 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 0,
         "hoa_cents": 0,
         "total_monthly_cents": 0
       }
@@ -13350,9 +13412,1004 @@
       "breakdown": {
         "property_tax_cents": 0,
         "insurance_cents": 0,
+        "escrow_cents": 0,
         "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 9,
         "hoa_cents": 0,
         "total_monthly_cents": 9
+      }
+    },
+    {
+      "id": "30-year-200000-6-percent-hoa-dues-only",
+      "principal_cents": 20000000,
+      "annual_rate": "0.06",
+      "term_months": 360,
+      "extra_monthly_cents": 0,
+      "one_time": [],
+      "first_payment": [
+        2027,
+        6
+      ],
+      "property_tax_annual_cents": 0,
+      "insurance_annual_cents": 0,
+      "mortgage_insurance_monthly_cents": 0,
+      "hoa_monthly_cents": 42500,
+      "payment_cents": 119910,
+      "months": 360,
+      "total_interest_cents": 23167704,
+      "total_paid_cents": 43167704,
+      "payoff": [
+        2057,
+        5
+      ],
+      "yearly": [
+        [
+          2027,
+          7,
+          839370,
+          141479,
+          697891,
+          0,
+          19858521,
+          697891,
+          141479
+        ],
+        [
+          2028,
+          12,
+          1438920,
+          254327,
+          1184593,
+          0,
+          19604194,
+          1882484,
+          395806
+        ],
+        [
+          2029,
+          12,
+          1438920,
+          270012,
+          1168908,
+          0,
+          19334182,
+          3051392,
+          665818
+        ],
+        [
+          2030,
+          12,
+          1438920,
+          286667,
+          1152253,
+          0,
+          19047515,
+          4203645,
+          952485
+        ],
+        [
+          2031,
+          12,
+          1438920,
+          304348,
+          1134572,
+          0,
+          18743167,
+          5338217,
+          1256833
+        ],
+        [
+          2032,
+          12,
+          1438920,
+          323120,
+          1115800,
+          0,
+          18420047,
+          6454017,
+          1579953
+        ],
+        [
+          2033,
+          12,
+          1438920,
+          343051,
+          1095869,
+          0,
+          18076996,
+          7549886,
+          1923004
+        ],
+        [
+          2034,
+          12,
+          1438920,
+          364209,
+          1074711,
+          0,
+          17712787,
+          8624597,
+          2287213
+        ],
+        [
+          2035,
+          12,
+          1438920,
+          386672,
+          1052248,
+          0,
+          17326115,
+          9676845,
+          2673885
+        ],
+        [
+          2036,
+          12,
+          1438920,
+          410519,
+          1028401,
+          0,
+          16915596,
+          10705246,
+          3084404
+        ],
+        [
+          2037,
+          12,
+          1438920,
+          435840,
+          1003080,
+          0,
+          16479756,
+          11708326,
+          3520244
+        ],
+        [
+          2038,
+          12,
+          1438920,
+          462722,
+          976198,
+          0,
+          16017034,
+          12684524,
+          3982966
+        ],
+        [
+          2039,
+          12,
+          1438920,
+          491261,
+          947659,
+          0,
+          15525773,
+          13632183,
+          4474227
+        ],
+        [
+          2040,
+          12,
+          1438920,
+          521562,
+          917358,
+          0,
+          15004211,
+          14549541,
+          4995789
+        ],
+        [
+          2041,
+          12,
+          1438920,
+          553730,
+          885190,
+          0,
+          14450481,
+          15434731,
+          5549519
+        ],
+        [
+          2042,
+          12,
+          1438920,
+          587884,
+          851036,
+          0,
+          13862597,
+          16285767,
+          6137403
+        ],
+        [
+          2043,
+          12,
+          1438920,
+          624144,
+          814776,
+          0,
+          13238453,
+          17100543,
+          6761547
+        ],
+        [
+          2044,
+          12,
+          1438920,
+          662638,
+          776282,
+          0,
+          12575815,
+          17876825,
+          7424185
+        ],
+        [
+          2045,
+          12,
+          1438920,
+          703507,
+          735413,
+          0,
+          11872308,
+          18612238,
+          8127692
+        ],
+        [
+          2046,
+          12,
+          1438920,
+          746898,
+          692022,
+          0,
+          11125410,
+          19304260,
+          8874590
+        ],
+        [
+          2047,
+          12,
+          1438920,
+          792965,
+          645955,
+          0,
+          10332445,
+          19950215,
+          9667555
+        ],
+        [
+          2048,
+          12,
+          1438920,
+          841876,
+          597044,
+          0,
+          9490569,
+          20547259,
+          10509431
+        ],
+        [
+          2049,
+          12,
+          1438920,
+          893800,
+          545120,
+          0,
+          8596769,
+          21092379,
+          11403231
+        ],
+        [
+          2050,
+          12,
+          1438920,
+          948927,
+          489993,
+          0,
+          7647842,
+          21582372,
+          12352158
+        ],
+        [
+          2051,
+          12,
+          1438920,
+          1007455,
+          431465,
+          0,
+          6640387,
+          22013837,
+          13359613
+        ],
+        [
+          2052,
+          12,
+          1438920,
+          1069593,
+          369327,
+          0,
+          5570794,
+          22383164,
+          14429206
+        ],
+        [
+          2053,
+          12,
+          1438920,
+          1135563,
+          303357,
+          0,
+          4435231,
+          22686521,
+          15564769
+        ],
+        [
+          2054,
+          12,
+          1438920,
+          1205603,
+          233317,
+          0,
+          3229628,
+          22919838,
+          16770372
+        ],
+        [
+          2055,
+          12,
+          1438920,
+          1279962,
+          158958,
+          0,
+          1949666,
+          23078796,
+          18050334
+        ],
+        [
+          2056,
+          12,
+          1438920,
+          1358904,
+          80016,
+          0,
+          590762,
+          23158812,
+          19409238
+        ],
+        [
+          2057,
+          5,
+          599654,
+          590762,
+          8892,
+          0,
+          0,
+          23167704,
+          20000000
+        ]
+      ],
+      "baseline": {
+        "months": 360,
+        "total_interest_cents": 23167704,
+        "payoff": [
+          2057,
+          5
+        ]
+      },
+      "months_saved": 0,
+      "interest_saved_cents": 0,
+      "breakdown": {
+        "property_tax_cents": 0,
+        "insurance_cents": 0,
+        "escrow_cents": 0,
+        "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 119910,
+        "hoa_cents": 42500,
+        "total_monthly_cents": 162410
+      }
+    },
+    {
+      "id": "15-year-5.5-percent-mortgage-insurance-only",
+      "principal_cents": 30000000,
+      "annual_rate": "0.055",
+      "term_months": 180,
+      "extra_monthly_cents": 0,
+      "one_time": [],
+      "first_payment": [
+        2026,
+        3
+      ],
+      "property_tax_annual_cents": 0,
+      "insurance_annual_cents": 0,
+      "mortgage_insurance_monthly_cents": 12500,
+      "hoa_monthly_cents": 0,
+      "payment_cents": 245125,
+      "months": 180,
+      "total_interest_cents": 14122511,
+      "total_paid_cents": 44122511,
+      "payoff": [
+        2041,
+        2
+      ],
+      "yearly": [
+        [
+          2026,
+          10,
+          2451250,
+          1098722,
+          1352528,
+          0,
+          28901278,
+          1352528,
+          1098722
+        ],
+        [
+          2027,
+          12,
+          2941500,
+          1386536,
+          1554964,
+          0,
+          27514742,
+          2907492,
+          2485258
+        ],
+        [
+          2028,
+          12,
+          2941500,
+          1464747,
+          1476753,
+          0,
+          26049995,
+          4384245,
+          3950005
+        ],
+        [
+          2029,
+          12,
+          2941500,
+          1547370,
+          1394130,
+          0,
+          24502625,
+          5778375,
+          5497375
+        ],
+        [
+          2030,
+          12,
+          2941500,
+          1634654,
+          1306846,
+          0,
+          22867971,
+          7085221,
+          7132029
+        ],
+        [
+          2031,
+          12,
+          2941500,
+          1726865,
+          1214635,
+          0,
+          21141106,
+          8299856,
+          8858894
+        ],
+        [
+          2032,
+          12,
+          2941500,
+          1824271,
+          1117229,
+          0,
+          19316835,
+          9417085,
+          10683165
+        ],
+        [
+          2033,
+          12,
+          2941500,
+          1927173,
+          1014327,
+          0,
+          17389662,
+          10431412,
+          12610338
+        ],
+        [
+          2034,
+          12,
+          2941500,
+          2035880,
+          905620,
+          0,
+          15353782,
+          11337032,
+          14646218
+        ],
+        [
+          2035,
+          12,
+          2941500,
+          2150720,
+          790780,
+          0,
+          13203062,
+          12127812,
+          16796938
+        ],
+        [
+          2036,
+          12,
+          2941500,
+          2272039,
+          669461,
+          0,
+          10931023,
+          12797273,
+          19068977
+        ],
+        [
+          2037,
+          12,
+          2941500,
+          2400197,
+          541303,
+          0,
+          8530826,
+          13338576,
+          21469174
+        ],
+        [
+          2038,
+          12,
+          2941500,
+          2535588,
+          405912,
+          0,
+          5995238,
+          13744488,
+          24004762
+        ],
+        [
+          2039,
+          12,
+          2941500,
+          2678615,
+          262885,
+          0,
+          3316623,
+          14007373,
+          26683377
+        ],
+        [
+          2040,
+          12,
+          2941500,
+          2829712,
+          111788,
+          0,
+          486911,
+          14119161,
+          29513089
+        ],
+        [
+          2041,
+          2,
+          490261,
+          486911,
+          3350,
+          0,
+          0,
+          14122511,
+          30000000
+        ]
+      ],
+      "baseline": {
+        "months": 180,
+        "total_interest_cents": 14122511,
+        "payoff": [
+          2041,
+          2
+        ]
+      },
+      "months_saved": 0,
+      "interest_saved_cents": 0,
+      "breakdown": {
+        "property_tax_cents": 0,
+        "insurance_cents": 0,
+        "escrow_cents": 0,
+        "mortgage_insurance_cents": 12500,
+        "mortgage_payment_cents": 257625,
+        "hoa_cents": 0,
+        "total_monthly_cents": 257625
+      }
+    },
+    {
+      "id": "30-year-200000-6-percent-escrow-a-cent-less-than-one-rounding",
+      "principal_cents": 20000000,
+      "annual_rate": "0.06",
+      "term_months": 360,
+      "extra_monthly_cents": 0,
+      "one_time": [],
+      "first_payment": [
+        2027,
+        6
+      ],
+      "property_tax_annual_cents": 420005,
+      "insurance_annual_cents": 144005,
+      "mortgage_insurance_monthly_cents": 0,
+      "hoa_monthly_cents": 0,
+      "payment_cents": 119910,
+      "months": 360,
+      "total_interest_cents": 23167704,
+      "total_paid_cents": 43167704,
+      "payoff": [
+        2057,
+        5
+      ],
+      "yearly": [
+        [
+          2027,
+          7,
+          839370,
+          141479,
+          697891,
+          0,
+          19858521,
+          697891,
+          141479
+        ],
+        [
+          2028,
+          12,
+          1438920,
+          254327,
+          1184593,
+          0,
+          19604194,
+          1882484,
+          395806
+        ],
+        [
+          2029,
+          12,
+          1438920,
+          270012,
+          1168908,
+          0,
+          19334182,
+          3051392,
+          665818
+        ],
+        [
+          2030,
+          12,
+          1438920,
+          286667,
+          1152253,
+          0,
+          19047515,
+          4203645,
+          952485
+        ],
+        [
+          2031,
+          12,
+          1438920,
+          304348,
+          1134572,
+          0,
+          18743167,
+          5338217,
+          1256833
+        ],
+        [
+          2032,
+          12,
+          1438920,
+          323120,
+          1115800,
+          0,
+          18420047,
+          6454017,
+          1579953
+        ],
+        [
+          2033,
+          12,
+          1438920,
+          343051,
+          1095869,
+          0,
+          18076996,
+          7549886,
+          1923004
+        ],
+        [
+          2034,
+          12,
+          1438920,
+          364209,
+          1074711,
+          0,
+          17712787,
+          8624597,
+          2287213
+        ],
+        [
+          2035,
+          12,
+          1438920,
+          386672,
+          1052248,
+          0,
+          17326115,
+          9676845,
+          2673885
+        ],
+        [
+          2036,
+          12,
+          1438920,
+          410519,
+          1028401,
+          0,
+          16915596,
+          10705246,
+          3084404
+        ],
+        [
+          2037,
+          12,
+          1438920,
+          435840,
+          1003080,
+          0,
+          16479756,
+          11708326,
+          3520244
+        ],
+        [
+          2038,
+          12,
+          1438920,
+          462722,
+          976198,
+          0,
+          16017034,
+          12684524,
+          3982966
+        ],
+        [
+          2039,
+          12,
+          1438920,
+          491261,
+          947659,
+          0,
+          15525773,
+          13632183,
+          4474227
+        ],
+        [
+          2040,
+          12,
+          1438920,
+          521562,
+          917358,
+          0,
+          15004211,
+          14549541,
+          4995789
+        ],
+        [
+          2041,
+          12,
+          1438920,
+          553730,
+          885190,
+          0,
+          14450481,
+          15434731,
+          5549519
+        ],
+        [
+          2042,
+          12,
+          1438920,
+          587884,
+          851036,
+          0,
+          13862597,
+          16285767,
+          6137403
+        ],
+        [
+          2043,
+          12,
+          1438920,
+          624144,
+          814776,
+          0,
+          13238453,
+          17100543,
+          6761547
+        ],
+        [
+          2044,
+          12,
+          1438920,
+          662638,
+          776282,
+          0,
+          12575815,
+          17876825,
+          7424185
+        ],
+        [
+          2045,
+          12,
+          1438920,
+          703507,
+          735413,
+          0,
+          11872308,
+          18612238,
+          8127692
+        ],
+        [
+          2046,
+          12,
+          1438920,
+          746898,
+          692022,
+          0,
+          11125410,
+          19304260,
+          8874590
+        ],
+        [
+          2047,
+          12,
+          1438920,
+          792965,
+          645955,
+          0,
+          10332445,
+          19950215,
+          9667555
+        ],
+        [
+          2048,
+          12,
+          1438920,
+          841876,
+          597044,
+          0,
+          9490569,
+          20547259,
+          10509431
+        ],
+        [
+          2049,
+          12,
+          1438920,
+          893800,
+          545120,
+          0,
+          8596769,
+          21092379,
+          11403231
+        ],
+        [
+          2050,
+          12,
+          1438920,
+          948927,
+          489993,
+          0,
+          7647842,
+          21582372,
+          12352158
+        ],
+        [
+          2051,
+          12,
+          1438920,
+          1007455,
+          431465,
+          0,
+          6640387,
+          22013837,
+          13359613
+        ],
+        [
+          2052,
+          12,
+          1438920,
+          1069593,
+          369327,
+          0,
+          5570794,
+          22383164,
+          14429206
+        ],
+        [
+          2053,
+          12,
+          1438920,
+          1135563,
+          303357,
+          0,
+          4435231,
+          22686521,
+          15564769
+        ],
+        [
+          2054,
+          12,
+          1438920,
+          1205603,
+          233317,
+          0,
+          3229628,
+          22919838,
+          16770372
+        ],
+        [
+          2055,
+          12,
+          1438920,
+          1279962,
+          158958,
+          0,
+          1949666,
+          23078796,
+          18050334
+        ],
+        [
+          2056,
+          12,
+          1438920,
+          1358904,
+          80016,
+          0,
+          590762,
+          23158812,
+          19409238
+        ],
+        [
+          2057,
+          5,
+          599654,
+          590762,
+          8892,
+          0,
+          0,
+          23167704,
+          20000000
+        ]
+      ],
+      "baseline": {
+        "months": 360,
+        "total_interest_cents": 23167704,
+        "payoff": [
+          2057,
+          5
+        ]
+      },
+      "months_saved": 0,
+      "interest_saved_cents": 0,
+      "breakdown": {
+        "property_tax_cents": 35000,
+        "insurance_cents": 12000,
+        "escrow_cents": 47000,
+        "mortgage_insurance_cents": 0,
+        "mortgage_payment_cents": 166910,
+        "hoa_cents": 0,
+        "total_monthly_cents": 166910
       }
     }
   ]

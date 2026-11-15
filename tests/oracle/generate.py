@@ -1,7 +1,7 @@
 """Independent reference oracle for the RadMage Finance calculation engines.
 
 Writes JSON fixtures to tests/oracle/fixtures/ from the rules in
-docs/ENGINE_CONVENTIONS.md (v1.5), sections 2 to 6 and 9 to 13. It uses only
+docs/ENGINE_CONVENTIONS.md (v1.6), sections 2 to 6 and 9 to 13. It uses only
 the Python standard library and exact decimal arithmetic (with exact fractions
 where section 2 allows them), and it is written from that specification alone,
 not from the TypeScript engines, so that a mistake shared by both is unlikely.
@@ -44,7 +44,8 @@ amortization (the first payment's calendar month plus k - 1 months), add the
 running totals of interest and of principal plus extra, group the payments by
 calendar year, compare the loan as entered with the same loan without extra
 payments, and split the monthly payment into principal and interest and the
-other housing costs. They are checked against a separate restatement in exact
+other housing costs, with the escrow and mortgage payment subtotals of 13.5
+(v1.6). They are checked against a separate restatement in exact
 fractions that walks the calendar one month at a time, against the closed
 form for the balance, against loans.json where the inputs coincide, and, on
 loans from a seeded generator that are not written, against the invariant of
@@ -64,7 +65,7 @@ from fractions import Fraction
 from pathlib import Path
 
 GENERATOR = "tests/oracle/generate.py"
-CONVENTIONS = "v1.5"
+CONVENTIONS = "v1.6"
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
 # Section 2 asks for at least 60 digits; 100 leaves a wide margin everywhere.
@@ -2422,7 +2423,8 @@ def build_illustration():
     return fixture(cases=cases)
 
 
-# loan_reports.json: section 13, loan schedules, payoff comparison and payment breakdown (v1.5)
+# loan_reports.json: section 13, loan schedules, payoff comparison and payment breakdown (v1.5; 13.5 and
+# 13.6 v1.6)
 
 # Section 13.6: month rows are written only for terms of at most this many months.
 LOAN_MONTH_ROWS_MAX_TERM = 120
@@ -2430,6 +2432,12 @@ LOAN_MONTH_ROWS_MAX_TERM = 120
 LOAN_AMOUNT_MAX = 10_000_000_000
 LOAN_TERM_MAX = 600
 FIRST_PAYMENT_YEARS = (1970, 2200)
+# Section 13.1: the four optional housing costs (13.5 "all four optional amounts").
+LOAN_HOUSING_COSTS = ("property_tax_annual_cents", "insurance_annual_cents", "mortgage_insurance_monthly_cents",
+                      "hoa_monthly_cents")
+# Section 13.6: the breakdown keys, in fixture order.
+BREAKDOWN_KEYS = ["property_tax_cents", "insurance_cents", "escrow_cents", "mortgage_insurance_cents",
+                  "mortgage_payment_cents", "hoa_cents", "total_monthly_cents"]
 # The seeded loans of the section 13.4 sweep (FINANCIAL_MODEL_REQUIREMENTS 8.2); none is written.
 LOAN_SWEEP_COUNT = 240
 LOAN_SWEEP_SEED = 20261115
@@ -2497,17 +2505,28 @@ def monthly_share(annual_cents):
 
 
 def payment_breakdown(payment, spec):
-    """Section 13.5: the scheduled payment M kept apart from the other housing costs."""
+    """Section 13.5: the scheduled payment M kept apart from the other housing costs.
+
+    The escrow items are the monthly property tax and homeowners insurance,
+    each its own annual amount / 12 rounded to the cent; the mortgage payment
+    is M plus the escrow items plus mortgage insurance (what the lender or
+    servicer is paid); the total adds HOA dues, which are paid separately.
+    The subtotals are sums of whole cents: nothing more is rounded (v1.6).
+    """
     tax = monthly_share(spec["property_tax_annual_cents"])
     insurance = monthly_share(spec["insurance_annual_cents"])
+    escrow = tax + insurance
     mortgage_insurance = spec["mortgage_insurance_monthly_cents"]
+    mortgage_payment = payment + escrow + mortgage_insurance
     hoa = spec["hoa_monthly_cents"]
     return {
         "property_tax_cents": tax,
         "insurance_cents": insurance,
+        "escrow_cents": escrow,
         "mortgage_insurance_cents": mortgage_insurance,
+        "mortgage_payment_cents": mortgage_payment,
         "hoa_cents": hoa,
-        "total_monthly_cents": payment + tax + insurance + mortgage_insurance + hoa,
+        "total_monthly_cents": mortgage_payment + hoa,
     }
 
 
@@ -2688,8 +2707,12 @@ def check_loan_report(spec, report):
     plan's balance never above the baseline's, and with no extra paid the
     two plans identical. (e) The restatement in fractions gives the same
     payment, month rows and year rows for both plans. (f) 13.5: each monthly
-    share restated in integers, the total, and the first month's payment
-    equal to M. (g) The baseline balance against the closed form.
+    share restated in integers, the escrow, mortgage payment and total
+    identities, the v1.5 total, HOA dues never changing the mortgage payment
+    (the breakdown recomputed without them and with them alone), the
+    breakdown with all four optional amounts 0 (escrow 0, mortgage payment
+    and total both M), and the first month's payment equal to M. (g) The
+    baseline balance against the closed form.
     """
     case_id = spec["id"]
     principal = spec["principal_cents"]
@@ -2813,8 +2836,37 @@ def check_loan_report(spec, report):
         check(abs(12 * breakdown[key] - annual) <= 6, case_id, f"{key} is more than half a cent from annual / 12")
     check(breakdown["mortgage_insurance_cents"] == spec["mortgage_insurance_monthly_cents"]
           and breakdown["hoa_cents"] == spec["hoa_monthly_cents"], case_id, "monthly amounts not as entered")
-    others = sum(value for key, value in breakdown.items() if key != "total_monthly_cents")
-    check(breakdown["total_monthly_cents"] == payment + others, case_id, "total is not M plus the four amounts")
+    check(list(breakdown) == BREAKDOWN_KEYS, case_id, f"breakdown keys {list(breakdown)}")
+    tax, insurance = breakdown["property_tax_cents"], breakdown["insurance_cents"]
+    mortgage_insurance, hoa = breakdown["mortgage_insurance_cents"], breakdown["hoa_cents"]
+    escrow, mortgage_payment = breakdown["escrow_cents"], breakdown["mortgage_payment_cents"]
+    total = breakdown["total_monthly_cents"]
+    check(escrow == tax + insurance, case_id, f"escrow {escrow} is not property tax plus insurance")
+    # One rounding of the two annual amounts together, for comparison only (13.5 rounds each share): each
+    # share is within half a cent of its twelfth, so the two differ by at most a cent either way.
+    one_rounding = (spec["property_tax_annual_cents"] + spec["insurance_annual_cents"] + 6) // 12
+    check(abs(escrow - one_rounding) <= 1, case_id, f"escrow {escrow} is over a cent from one rounding {one_rounding}")
+    check(mortgage_payment == payment + escrow + mortgage_insurance, case_id,
+          f"mortgage payment {mortgage_payment} is not M plus escrow plus mortgage insurance")
+    check(total == mortgage_payment + hoa, case_id, f"total {total} is not the mortgage payment plus HOA dues")
+    # The v1.5 total, unchanged in v1.6: M plus the four amounts, the shares restated in integers.
+    restated_total = (payment + (spec["property_tax_annual_cents"] + 6) // 12
+                      + (spec["insurance_annual_cents"] + 6) // 12
+                      + spec["mortgage_insurance_monthly_cents"] + spec["hoa_monthly_cents"])
+    check(total == restated_total, case_id, f"total {total} is not M plus the four amounts ({restated_total})")
+    # HOA dues change the total and never the mortgage payment: without them the mortgage payment is
+    # the same and the total lower by exactly the dues; with HOA dues alone the mortgage payment is M.
+    without_hoa = without_audit(payment_breakdown, payment, {**spec, "hoa_monthly_cents": 0})
+    check(without_hoa["mortgage_payment_cents"] == mortgage_payment
+          and total - without_hoa["total_monthly_cents"] == hoa, case_id, "HOA dues changed the mortgage payment")
+    no_costs = {**spec, **dict.fromkeys(LOAN_HOUSING_COSTS, 0)}
+    hoa_alone = without_audit(payment_breakdown, payment, {**no_costs, "hoa_monthly_cents": spec["hoa_monthly_cents"]})
+    check(hoa_alone["mortgage_payment_cents"] == payment and hoa_alone["total_monthly_cents"] == payment + hoa,
+          case_id, "HOA dues alone: the mortgage payment is not M or the total not M plus the dues")
+    # With all four optional amounts 0: escrow 0, and the mortgage payment and the total both M.
+    zero = without_audit(payment_breakdown, payment, no_costs)
+    check(zero["escrow_cents"] == 0 and zero["mortgage_payment_cents"] == zero["total_monthly_cents"] == payment,
+          case_id, "with all four optional amounts 0 the mortgage payment and the total are not M")
     check(rows[0][1] == payment, case_id, f"the first month's payment {rows[0][1]} is not M = {payment} (13.5)")
 
     # (g) The closed form for the baseline balance.
@@ -2829,6 +2881,8 @@ def check_loan_report(spec, report):
     # scheduled payment the balance is still positive, so only an extra can bring it to 0.
     scheduled_rows = rows if final_row[4] > 0 else rows[:-1]
     capped = any(row[4] < spec["extra_monthly_cents"] + sum(applied.get(row[0], [])) for row in scheduled_rows)
+    entered = {key for key in LOAN_HOUSING_COSTS if spec[key] > 0}
+    escrow_only = bool(entered) and entered <= {"property_tax_annual_cents", "insurance_annual_cents"}
     return {
         "first month": first_payment[1],
         "zero rate": Decimal(spec["annual_rate"]) == 0,
@@ -2858,6 +2912,15 @@ def check_loan_report(spec, report):
         "all four housing costs": all(spec[key] > 0 for key in (
             "property_tax_annual_cents", "insurance_annual_cents", "mortgage_insurance_monthly_cents",
             "hoa_monthly_cents")),
+        # Section 13.6 (v1.6): the breakdown cases.
+        "every optional amount 0": not entered,
+        "HOA dues only": entered == {"hoa_monthly_cents"},
+        "escrow items only": escrow_only,
+        "mortgage insurance only": entered == {"mortgage_insurance_monthly_cents"},
+        # The two shares rounded one at a time (13.5) against one rounding of their annual sum, in each
+        # direction (13.6).
+        "escrow only, a cent more than one rounding": escrow_only and escrow == one_rounding + 1,
+        "escrow only, a cent less than one rounding": escrow_only and escrow == one_rounding - 1,
         "payoff after 2200": payoff[0] > FIRST_PAYMENT_YEARS[1],
         "one-time out of month order": [month for month, _ in spec["one_time"]]
         != sorted(month for month, _ in spec["one_time"]),
@@ -2870,7 +2933,8 @@ def check_loan_report_fixture(case):
     The totals against the year rows, the payoff dates against the first
     payment, the savings against the baseline, the month rows present exactly
     for terms of at most 120 months (and then matching the year rows), and the
-    breakdown total.
+    breakdown: its identities (13.5), M for the mortgage payment and the total
+    when all four optional amounts are 0, and its key order (13.6).
     """
     case_id = case["id"]
     yearly = case["yearly"]
@@ -2902,8 +2966,17 @@ def check_loan_report_fixture(case):
     check(breakdown["total_monthly_cents"] == case["payment_cents"] + breakdown["property_tax_cents"]
           + breakdown["insurance_cents"] + breakdown["mortgage_insurance_cents"] + breakdown["hoa_cents"], case_id,
           "fixture: breakdown total")
-    check(list(breakdown) == ["property_tax_cents", "insurance_cents", "mortgage_insurance_cents", "hoa_cents",
-                              "total_monthly_cents"], case_id, "fixture: breakdown keys")
+    check(breakdown["escrow_cents"] == breakdown["property_tax_cents"] + breakdown["insurance_cents"], case_id,
+          "fixture: breakdown escrow")
+    check(breakdown["mortgage_payment_cents"] == case["payment_cents"] + breakdown["escrow_cents"]
+          + breakdown["mortgage_insurance_cents"], case_id, "fixture: breakdown mortgage payment")
+    check(breakdown["total_monthly_cents"] == breakdown["mortgage_payment_cents"] + breakdown["hoa_cents"], case_id,
+          "fixture: breakdown total is not the mortgage payment plus HOA dues")
+    if all(case[key] == 0 for key in LOAN_HOUSING_COSTS):
+        check(breakdown["escrow_cents"] == 0
+              and breakdown["mortgage_payment_cents"] == breakdown["total_monthly_cents"] == case["payment_cents"],
+              case_id, "fixture: no optional amounts, but the mortgage payment or the total is not M")
+    check(list(breakdown) == BREAKDOWN_KEYS, case_id, f"fixture: breakdown keys {list(breakdown)}")
     expected_keys = ["id", "principal_cents", "annual_rate", "term_months", "extra_monthly_cents", "one_time",
                      "first_payment", "property_tax_annual_cents", "insurance_annual_cents",
                      "mortgage_insurance_monthly_cents", "hoa_monthly_cents", "payment_cents", "months",
@@ -3048,6 +3121,16 @@ def loan_report_cases():
         # M = 0: a December payment of 0, then eleven more rows in the next year.
         from_loans("one-cent-zero-rate-12-months-first-payment-december", "one-cent-zero-rate-12-months", (2026, 12)),
         from_loans("half-cent-interest-month-1", "half-cent-interest-month-1", (2026, 6)),
+        # Section 13.6 (v1.6): HOA dues only, the reference loan and date of the escrow-only first case.
+        # The mortgage payment stays M = 119,910; the total is M plus the dues.
+        from_loans("30-year-200000-6-percent-hoa-dues-only", "reference-30-year-6-percent", (2027, 6), hoa=42_500),
+        # Section 13.6 (v1.6): mortgage insurance only, the 15-year loan without its escrow items.
+        loan_report_case("15-year-5.5-percent-mortgage-insurance-only", *fifteen, (2026, 3), mortgage_insurance=12_500),
+        # Section 13.6 (v1.6): escrow items only, each 5 more than a multiple of 12, on the same loan and
+        # date. The shares round down to 35,000 and 12,000, so escrow is 47,000: a cent less than one
+        # rounding of 564,010 / 12 = 47,000.83 (the 120-month case above has a cent more).
+        from_loans("30-year-200000-6-percent-escrow-a-cent-less-than-one-rounding", "reference-30-year-6-percent",
+                   (2027, 6), tax=420_005, insurance=144_005),
     ]
 
 
@@ -3135,7 +3218,9 @@ def build_loan_reports():
         "extra capped at the balance", "extra monthly", "months saved", "interest saved but no months",
         "extra paid, nothing saved", "extra entered, none paid", "baseline ends before N", "final payment above M",
         "exact half share", "share rounded down", "share rounded up", "all four housing costs", "payoff after 2200",
-        "one-time out of month order")]
+        "one-time out of month order", "every optional amount 0", "HOA dues only", "escrow items only",
+        "mortgage insurance only", "escrow only, a cent more than one rounding",
+        "escrow only, a cent less than one rounding")]
     for label, test in wanted:
         check(any(test(fact) for fact in facts), "loan_reports.json", f"no case has {label}")
     ids = [case["id"] for case in cases]

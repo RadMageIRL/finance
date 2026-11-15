@@ -70,7 +70,7 @@ export const BANK_STEPS: readonly GuidedStep[] = [
   {
     id: 'default',
     title: 'The borrower defaults',
-    text: 'Household 1 loses its income and cannot pay the rest. Bank A writes off the remaining loan: the asset disappears and the loss comes out of Bank A\'s equity. Deposits are untouched, so the money supply does not change, but the bank is weaker. This is credit risk. The simulation also takes the loan off Household 1\'s balance sheet, as if forgiven; in real life a charge-off does not cancel the debt, and the borrower still owes it.',
+    text: 'Household 1 loses its income and cannot pay the rest. In this simulation Bank A writes off the remaining loan and also forgives it, two things a real bank does separately. The write-off (charge-off) is the bank\'s accounting entry: the loan asset disappears and the loss comes out of Bank A\'s equity. The forgiveness takes the debt off Household 1\'s balance sheet, so its equity rises. In real life a charge-off by itself does not cancel the debt: the borrower still owes it unless the bank forgives it. Deposits are untouched, so the money supply does not change, but the bank is weaker. This is credit risk.',
     make: (s) => [writeOff('H1', claimAmount(s, { instrument: 'loan', holder: 'BankA', issuer: 'H1' }))],
   },
   {

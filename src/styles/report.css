@@ -238,6 +238,12 @@
   font-weight: 700;
 }
 
+.rmf-report tbody tr.rmf-report__strong th,
+.rmf-report tbody tr.rmf-report__strong td {
+  border-top: 1px solid var(--r-line-strong);
+  font-weight: 700;
+}
+
 .rmf-report td,
 .rmf-report th.num {
   text-align: right;

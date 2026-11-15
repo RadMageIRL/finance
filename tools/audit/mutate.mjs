@@ -103,7 +103,9 @@ const MUTANTS = [
   ['loan-baseline-keeps-extras', `${E}loan-report.ts`, 'loanPlan({ principal: input.principal, annualRate: input.annualRate, termMonths: input.termMonths }, first)', 'loanPlan(input, first)'],
   ['loan-months-saved-reversed', `${E}loan-report.ts`, 'monthsSaved: b.schedule.months - a.schedule.months,', 'monthsSaved: a.schedule.months - b.schedule.months,'],
   ['loan-tax-truncated', `${E}loan-report.ts`, 'const propertyTax = roundCents(costs.propertyTaxAnnual / 12);', 'const propertyTax = Math.floor(costs.propertyTaxAnnual / 12);'],
-  ['loan-total-without-hoa', `${E}loan-report.ts`, '+ costs.mortgageInsuranceMonthly + costs.hoaMonthly,', '+ costs.mortgageInsuranceMonthly,'],
+  ['loan-total-without-hoa', `${E}loan-report.ts`, 'total: mortgagePayment + costs.hoaMonthly,', 'total: mortgagePayment,'],
+  ['loan-mortgage-payment-with-hoa', `${E}loan-report.ts`, 'const mortgagePayment = payment + escrow + costs.mortgageInsuranceMonthly;', 'const mortgagePayment = payment + escrow + costs.mortgageInsuranceMonthly + costs.hoaMonthly;'],
+  ['loan-escrow-misses-insurance', `${E}loan-report.ts`, 'const escrow = propertyTax + insurance;', 'const escrow = propertyTax;'],
   // Lesson simulator (src/lib/learn/sim.ts)
   ['sim-runs-past-refusal', 'src/lib/learn/sim.ts', 'if (!result.ok) {\n      const short', 'if (!result.ok && false) {\n      const short'],
   ['sim-interbank-wrong-lender', 'src/lib/learn/sim.ts', 'make: () => interbankLoan(other, short.bank, short.amount)', 'make: () => interbankLoan(short.bank, other, short.amount)'],

@@ -25,7 +25,7 @@ import type { Transaction } from '../engines/ledger/ledger';
 import { createState, ENTITIES, type Bank, type EntityId, type LedgerState, type Nonbank } from '../engines/ledger/model';
 import { OPENING_CLAIMS } from '../engines/ledger/scenario';
 import { formatUSD } from '../calc/format';
-import type { Counters, GuidedStep } from './sim';
+import { WRITE_OFF_NOTE, type Counters, type GuidedStep } from './sim';
 
 /** The engine's opening scenario, read as dollars: 250 becomes $250.00. */
 export const flowsOpening = (): LedgerState => createState(OPENING_CLAIMS.map((c) => ({ ...c, amount: c.amount * 100 })));
@@ -106,7 +106,10 @@ export interface CatalogAction {
   parties: readonly EntityId[];
   counterparties?: readonly EntityId[];
   make: (party: EntityId, counterparty: EntityId | null, cents: number) => Transaction;
+  /** A sentence added to the log when the action runs (what the simulation simplifies). */
+  note?: string;
 }
+
 
 /** Every transaction the free mode offers: the 16 of the catalog plus payments and wages. */
 export const FLOW_CATALOG: readonly CatalogAction[] = [
@@ -114,7 +117,7 @@ export const FLOW_CATALOG: readonly CatalogAction[] = [
   { id: 'lend', label: 'A bank lends to its customer', parties: NONBANK_IDS, make: (p, _c, a) => bankLends(p as Nonbank, a) },
   { id: 'repay', label: 'Repay loan principal', parties: NONBANK_IDS, make: (p, _c, a) => repayPrincipal(p as Nonbank, a) },
   { id: 'interest', label: 'Pay loan interest', parties: NONBANK_IDS, make: (p, _c, a) => payInterest(p as Nonbank, a) },
-  { id: 'write-off', label: 'A bank writes off and forgives a loan', parties: NONBANK_IDS, make: (p, _c, a) => writeOff(p as Nonbank, a) },
+  { id: 'write-off', label: 'A bank writes off and forgives a loan', parties: NONBANK_IDS, make: (p, _c, a) => writeOff(p as Nonbank, a), note: WRITE_OFF_NOTE },
   { id: 'bank-pays', label: 'A bank pays wages', parties: BANK_IDS, counterparties: NONBANK_IDS, make: (p, c, a) => bankPays(p as Bank, c as Nonbank, a) },
   { id: 'bank-buys', label: 'A bank buys a Treasury security from a customer', parties: BANK_IDS, counterparties: NONBANK_IDS, make: (p, c, a) => bankBuysSecurity(p as Bank, c as Nonbank, a) },
   { id: 'fed-buys-nonbank', label: 'The Fed buys a Treasury security from a nonbank', parties: NONBANK_IDS, make: (p, _c, a) => fedBuysFromNonbank(p as Nonbank, a) },

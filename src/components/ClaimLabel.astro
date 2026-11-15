@@ -1,6 +1,6 @@
 ---
 // The kind of statement a sentence or panel makes. See the Methodology page.
-export type ClaimKind = 'fact' | 'identity' | 'model' | 'interpretation' | 'forecast';
+export type ClaimKind = 'fact' | 'identity' | 'model' | 'interpretation' | 'projection' | 'forecast';
 
 interface Props {
   kind: ClaimKind;
@@ -11,6 +11,7 @@ const NAMES: Record<ClaimKind, string> = {
   identity: 'Identity',
   model: 'Model',
   interpretation: 'Interpretation',
+  projection: 'Projection',
   forecast: 'Forecast',
 };
 

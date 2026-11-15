@@ -60,6 +60,7 @@ export function durationText(months: number): string {
 
 export const LOAN_ASSUMPTIONS: readonly string[] = [
   'Each month the loan charges one twelfth of the interest rate on the balance, whatever the length of the month, and the interest is rounded to the nearest cent, half a cent rounding up.',
+  'Many loans figure interest by the day instead. On auto loans, simple interest is "far more common," and the CFPB says it "calculates the interest based on the outstanding balance of the loan either on a daily or monthly basis." Where interest is figured daily, paying before or after the due date changes the interest a little; this calculator does not model that.',
   'The monthly payment of principal and interest is rounded to the cent. The last payment is the remaining balance plus that month\'s interest, so it differs a little from the others.',
   'The interest rate is the note rate, fixed for the whole loan. It is not the loan\'s APR, which also counts certain fees.',
   'Payments are made on time, in full, once a month, starting in the month you choose. Dates only label the payments; they do not change the interest.',
@@ -76,6 +77,7 @@ export const PAYOFF_ASSUMPTIONS: readonly string[] = [
 export const LOAN_SOURCES: readonly string[] = [
   'Consumer Financial Protection Bureau, "On a mortgage, what\'s the difference between my principal and interest payment and my total monthly payment?" (last reviewed August 28, 2023), consumerfinance.gov/ask-cfpb/what-is-piti-en-1941/.',
   'Consumer Financial Protection Bureau, "How does paying down a mortgage work?" (last reviewed May 28, 2024), consumerfinance.gov/ask-cfpb/how-does-paying-down-a-mortgage-work-en-1943/.',
+  'Consumer Financial Protection Bureau, "What\'s the difference between a simple interest rate and precomputed interest on an auto loan?" (last reviewed January 30, 2024), consumerfinance.gov/ask-cfpb/whats-the-difference-between-a-simple-interest-rate-and-precomputed-interest-on-an-auto-loan-en-841/.',
   '12 CFR part 1026 (Regulation Z, Truth in Lending), section 1026.22 and appendix J, on the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
 ];
 
@@ -95,7 +97,7 @@ export function loanView(input: LoanInput, plan: LoanPlan): LoanView {
     breakdown: [
       { label: 'Loan amount', value: formatUSD(input.principal) },
       { label: 'Total interest', value: formatUSD(s.totalInterest) },
-      { label: 'Total of payments', value: formatUSD(s.totalPaid) },
+      { label: 'Total paid (principal and interest)', value: formatUSD(s.totalPaid) },
       { label: 'Number of payments', value: formatInteger(s.months) },
     ],
     payoff,
@@ -126,24 +128,67 @@ export function payoffView(c: PayoffComparison): PayoffView {
       { label: 'Payoff date', baseline: dateLabel(c.baseline.payoff), accelerated: dateLabel(c.accelerated.payoff) },
       { label: 'Number of payments', baseline: formatInteger(b.months), accelerated: formatInteger(a.months) },
       { label: 'Total interest', baseline: formatUSD(b.totalInterest), accelerated: formatUSD(a.totalInterest) },
-      { label: 'Total paid', baseline: formatUSD(b.totalPaid), accelerated: formatUSD(a.totalPaid) },
+      { label: 'Total paid (principal and interest)', baseline: formatUSD(b.totalPaid), accelerated: formatUSD(a.totalPaid) },
     ],
     summary,
   };
 }
 
-/** The HOA dues row in `breakdownRows`: not part of the mortgage payment, usually paid to the association. */
-export const HOA_ROW = 4;
+export type BreakdownKey = 'pi' | 'tax' | 'insurance' | 'escrow' | 'mi' | 'mortgage' | 'hoa' | 'total';
 
-export function breakdownRows(b: PaymentBreakdown): { label: string; value: string }[] {
+export interface BreakdownLine {
+  key: BreakdownKey;
+  label: string;
+  /** The label in a flat list such as the report table, where the group heading is not shown. */
+  reportLabel: string;
+  value: string;
+  kind: 'item' | 'subtotal' | 'total';
+}
+
+export interface BreakdownGroup {
+  heading: string | null;
+  lines: BreakdownLine[];
+}
+
+export const ESCROW_GROUP = 'Escrow items, assumed to be collected with the mortgage payment';
+export const HOA_GROUP = 'Not part of the mortgage payment: usually paid to the association';
+
+/**
+ * The first month's housing costs in display order (conventions 13.5, v1.6): principal and
+ * interest, the escrow items and their subtotal, mortgage insurance, the mortgage payment,
+ * then HOA dues outside it and the estimated total housing cost.
+ */
+export function breakdownGroups(b: PaymentBreakdown): BreakdownGroup[] {
+  const line = (key: BreakdownKey, label: string, value: number, kind: BreakdownLine['kind'] = 'item', reportLabel = label): BreakdownLine => ({
+    key,
+    label,
+    reportLabel,
+    value: formatUSD(value),
+    kind,
+  });
   return [
-    { label: 'Principal and interest', value: formatUSD(b.principalAndInterest) },
-    { label: 'Property tax', value: formatUSD(b.propertyTax) },
-    { label: 'Homeowners insurance', value: formatUSD(b.insurance) },
-    { label: 'Mortgage insurance', value: formatUSD(b.mortgageInsurance) },
-    { label: 'HOA dues', value: formatUSD(b.hoa) },
+    { heading: null, lines: [line('pi', 'Principal and interest', b.principalAndInterest)] },
+    {
+      heading: ESCROW_GROUP,
+      lines: [
+        line('tax', 'Property tax', b.propertyTax, 'item', 'Property tax (escrow)'),
+        line('insurance', 'Homeowners insurance', b.insurance, 'item', 'Homeowners insurance (escrow)'),
+        line('escrow', 'Escrow total', b.escrow, 'subtotal'),
+      ],
+    },
+    {
+      heading: null,
+      lines: [
+        line('mi', 'Mortgage insurance', b.mortgageInsurance),
+        line('mortgage', 'Estimated mortgage payment', b.mortgagePayment, 'total', 'Estimated mortgage payment (to the lender)'),
+      ],
+    },
+    { heading: HOA_GROUP, lines: [line('hoa', 'HOA dues', b.hoa, 'item', 'HOA dues (not part of the mortgage payment)')] },
+    { heading: null, lines: [line('total', 'Estimated total monthly housing cost', b.total, 'total')] },
   ];
 }
+
+export const breakdownLines = (b: PaymentBreakdown): BreakdownLine[] => breakdownGroups(b).flatMap((g) => g.lines);
 
 interface TableOptions {
   /** Include the extra-payment column (the payoff calculator). */
@@ -375,9 +420,9 @@ export function amortizationReport(input: LoanInput, first: PaymentDate, plan: L
     composition: [
       { label: 'Principal', value: formatUSD(input.principal), share: share(input.principal) },
       { label: 'Interest', value: formatUSD(s.totalInterest), share: share(s.totalInterest) },
-      { label: 'Total of payments', value: formatUSD(s.totalPaid), share: '100.0%' },
+      { label: 'Total paid (principal and interest)', value: formatUSD(s.totalPaid), share: '100.0%' },
     ],
-    compositionText: { heading: 'Principal versus interest', caption: 'How the total of payments is made up', shareLabel: 'Share of all payments' },
+    compositionText: { heading: 'Principal versus interest', caption: 'How the total paid is made up', shareLabel: 'Share of all payments' },
     rateChanges: null,
     tables: [],
     chart: {
@@ -407,11 +452,13 @@ export function payoffReport(input: LoanInput, first: PaymentDate, costs: Housin
     columns: [{ label: '', numeric: false }, { label: 'Without extra payments', numeric: true }, { label: 'With extra payments', numeric: true }],
     rows: v.rows.map((r) => ({ head: r.label, cells: [r.baseline, r.accelerated] })),
   });
+  const lines = breakdownLines(breakdown);
+  const total = lines.pop()!;
   const monthly = staticTable({
-    caption: 'The first month\'s housing costs: principal and interest, the other housing costs kept apart, and HOA dues, which are not part of the mortgage payment',
+    caption: 'The first month\'s housing costs: principal and interest, the escrow items and mortgage insurance that make up the mortgage payment, then HOA dues, which are not part of it',
     columns: [{ label: 'Part', numeric: false }, { label: 'Per month', numeric: true }],
-    rows: breakdownRows(breakdown).map((r, i) => ({ head: i === HOA_ROW ? `${r.label} (not part of the mortgage payment)` : r.label, cells: [r.value] })),
-    footer: { head: 'Estimated total monthly housing cost', cells: [formatUSD(breakdown.total)] },
+    rows: lines.map((r) => ({ head: r.reportLabel, cells: [r.value], ...(r.kind === 'item' ? {} : { strong: true }) })),
+    footer: { head: total.reportLabel, cells: [total.value] },
   });
   return {
     calculator: PAYOFF_CALCULATOR,
@@ -421,6 +468,7 @@ export function payoffReport(input: LoanInput, first: PaymentDate, costs: Housin
       { label: 'Paid off', value: `${dateLabel(c.accelerated.payoff)} (instead of ${dateLabel(c.baseline.payoff)})` },
       { label: 'Time saved', value: durationText(c.monthsSaved) },
       { label: 'Monthly principal and interest', value: formatUSD(c.accelerated.schedule.payment) },
+      { label: 'Estimated monthly mortgage payment (with escrow and mortgage insurance)', value: formatUSD(breakdown.mortgagePayment) },
       { label: 'Estimated total monthly housing cost (HOA dues included)', value: formatUSD(breakdown.total) },
     ],
     sentence: v.summary,

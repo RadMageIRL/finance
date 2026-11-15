@@ -109,8 +109,20 @@ test.describe('How Money Flows', () => {
     await page.fill('#sim-flows-amount', '40');
     await page.click('.sim-free button[type="submit"]');
     const title = page.locator('[data-sim="flow"] svg title');
-    await expect(title).toHaveText('Flows: Bank A to Household 1, writes off $40.00');
+    await expect(title).toHaveText('Flows: Bank A to Household 1, writes off and forgives $40.00');
     await expect(title).not.toContainText('repays');
+    // The step text says the action is a charge-off plus forgiveness, and what a real one does.
+    await expect(page.locator('[data-sim="title"]').first()).toContainText('writes off and forgives');
+    await expect(page.locator('[data-sim="text"]').first()).toContainText('A real charge-off by itself does not cancel the borrower\'s debt.');
+  });
+
+  test('free mode: paying loan interest is drawn from the borrower to its bank, not as "No flows"', async ({ page }) => {
+    await page.goto(FLOWS);
+    await page.selectOption('#sim-flows-action', 'interest');
+    await page.selectOption('#sim-flows-party', 'H1');
+    await page.fill('#sim-flows-amount', '10');
+    await page.click('.sim-free button[type="submit"]');
+    await expect(page.locator('[data-sim="flow"] svg title')).toHaveText('Flows: Household 1 to Bank A, pays interest $10.00');
   });
 });
 

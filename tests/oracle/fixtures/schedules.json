@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.5",
+  "conventions": "v1.6",
   "cases": [
     {
       "id": "compound-n1-weekly-start-1-year",

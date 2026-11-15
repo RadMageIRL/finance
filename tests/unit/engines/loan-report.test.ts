@@ -33,7 +33,15 @@ interface Case {
   baseline: { months: number; total_interest_cents: number; payoff: [number, number] };
   months_saved: number;
   interest_saved_cents: number;
-  breakdown: { property_tax_cents: number; insurance_cents: number; mortgage_insurance_cents: number; hoa_cents: number; total_monthly_cents: number };
+  breakdown: {
+    property_tax_cents: number;
+    insurance_cents: number;
+    escrow_cents: number;
+    mortgage_insurance_cents: number;
+    mortgage_payment_cents: number;
+    hoa_cents: number;
+    total_monthly_cents: number;
+  };
 }
 
 const inputOf = (c: Case) => ({
@@ -55,11 +63,21 @@ describe('loan reports against the oracle', () => {
   const cases = fixture.cases as Case[];
 
   it('has cases with extra payments, monthly rows and housing costs', () => {
-    expect(fixture.conventions).toBe('v1.5');
+    expect(fixture.conventions).toBe('v1.6');
     expect(cases.some((c) => c.extra_monthly_cents > 0)).toBe(true);
     expect(cases.some((c) => c.one_time.length > 1)).toBe(true);
     expect(cases.some((c) => c.monthly)).toBe(true);
     expect(cases.some((c) => c.property_tax_annual_cents % 12 !== 0)).toBe(true);
+  });
+
+  it('covers the breakdown cases conventions 13.6 lists', () => {
+    const optional = (c: Case) => [c.property_tax_annual_cents, c.insurance_annual_cents, c.mortgage_insurance_monthly_cents, c.hoa_monthly_cents];
+    const only = (c: Case, keep: number[]) => optional(c).every((v, i) => (keep.includes(i) ? true : v === 0)) && keep.some((i) => optional(c)[i]! > 0);
+    expect(cases.some((c) => optional(c).every((v) => v === 0))).toBe(true);
+    expect(cases.some((c) => only(c, [3]))).toBe(true);
+    expect(cases.some((c) => only(c, [0, 1]))).toBe(true);
+    expect(cases.some((c) => only(c, [2]))).toBe(true);
+    expect(cases.some((c) => c.property_tax_annual_cents % 12 === 6 || c.insurance_annual_cents % 12 === 6)).toBe(true);
   });
 
   for (const c of cases) {
@@ -77,10 +95,20 @@ describe('loan reports against the oracle', () => {
       expect([r.value.monthsSaved, r.value.interestSaved]).toEqual([c.months_saved, c.interest_saved_cents]);
       const brk = paymentBreakdown(a.schedule.payment, costsOf(c));
       if (!brk.ok) throw new Error('breakdown refused');
-      expect([brk.value.propertyTax, brk.value.insurance, brk.value.mortgageInsurance, brk.value.hoa, brk.value.total]).toEqual([
+      expect([
+        brk.value.propertyTax,
+        brk.value.insurance,
+        brk.value.escrow,
+        brk.value.mortgageInsurance,
+        brk.value.mortgagePayment,
+        brk.value.hoa,
+        brk.value.total,
+      ]).toEqual([
         c.breakdown.property_tax_cents,
         c.breakdown.insurance_cents,
+        c.breakdown.escrow_cents,
         c.breakdown.mortgage_insurance_cents,
+        c.breakdown.mortgage_payment_cents,
         c.breakdown.hoa_cents,
         c.breakdown.total_monthly_cents,
       ]);
@@ -138,7 +166,32 @@ describe('loan report rules', () => {
   it('rounds a twelfth of an annual cost half up, and keeps costs out of the loan', () => {
     const r = paymentBreakdown(119_910, { propertyTaxAnnual: 6, insuranceAnnual: 360_100, mortgageInsuranceMonthly: 5_000, hoaMonthly: 2_500 });
     if (!r.ok) throw new Error('invalid');
-    expect(r.value).toEqual({ principalAndInterest: 119_910, propertyTax: 1, insurance: 30_008, mortgageInsurance: 5_000, hoa: 2_500, total: 119_910 + 1 + 30_008 + 5_000 + 2_500 });
+    expect(r.value).toEqual({
+      principalAndInterest: 119_910,
+      propertyTax: 1,
+      insurance: 30_008,
+      escrow: 1 + 30_008,
+      mortgageInsurance: 5_000,
+      mortgagePayment: 119_910 + 1 + 30_008 + 5_000,
+      hoa: 2_500,
+      total: 119_910 + 1 + 30_008 + 5_000 + 2_500,
+    });
+  });
+
+  it('keeps HOA dues out of the mortgage payment and in the total housing cost', () => {
+    const none = { propertyTaxAnnual: 0, insuranceAnnual: 0, mortgageInsuranceMonthly: 0, hoaMonthly: 0 };
+    const zero = paymentBreakdown(119_910, none);
+    if (!zero.ok) throw new Error('invalid');
+    expect([zero.value.escrow, zero.value.mortgagePayment, zero.value.total]).toEqual([0, 119_910, 119_910]);
+    const hoaOnly = paymentBreakdown(119_910, { ...none, hoaMonthly: 35_000 });
+    if (!hoaOnly.ok) throw new Error('invalid');
+    expect([hoaOnly.value.escrow, hoaOnly.value.mortgagePayment, hoaOnly.value.total]).toEqual([0, 119_910, 154_910]);
+    const escrowOnly = paymentBreakdown(119_910, { ...none, propertyTaxAnnual: 360_000, insuranceAnnual: 150_000 });
+    if (!escrowOnly.ok) throw new Error('invalid');
+    expect([escrowOnly.value.escrow, escrowOnly.value.mortgagePayment, escrowOnly.value.total]).toEqual([42_500, 162_410, 162_410]);
+    const miOnly = paymentBreakdown(119_910, { ...none, mortgageInsuranceMonthly: 9_000 });
+    if (!miOnly.ok) throw new Error('invalid');
+    expect([miOnly.value.escrow, miOnly.value.mortgagePayment, miOnly.value.total]).toEqual([0, 128_910, 128_910]);
   });
 
   it('refuses a first payment outside 1970 to 2200 or a negative cost, with the loan problems too', () => {

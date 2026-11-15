@@ -38,8 +38,10 @@ const VERIFIED = 'November 15, 2026';
       <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators', path: 'calculators/' }, { label: 'High-yield savings' }]} />
       <h1>High-yield savings calculator</h1>
       <p class="lead">
-        Project a savings balance the way a bank figures interest: a daily rate on each day's
-        balance, credited every month, with your deposits and with rate changes along the way.
+        Project a savings balance with the daily balance method, one of the two methods
+        Regulation DD lets banks use: a daily rate on each day's balance. Here interest is
+        credited every month (banks may credit on other schedules), with your deposits and
+        with rate changes along the way.
       </p>
     </div>
   </div>
@@ -76,7 +78,7 @@ const VERIFIED = 'November 15, 2026';
       <section class="calc__results" aria-labelledby="sg-results-title">
         <div class="calc__results-head">
           <h2 class="calc__heading" id="sg-results-title">Projected balance</h2>
-          <ClaimLabel kind="forecast" />
+          <ClaimLabel kind="projection" />
         </div>
         <div class="calc__values">
           <p class="calc__hero" data-out="final">{view.final}</p>

@@ -93,6 +93,23 @@ describe('How Banks Create Money', () => {
     expect(choices[2]!.make()).toBeNull();
   });
 
+  it('says in the moves list and the step text that the write-off is a charge-off plus forgiveness', () => {
+    let s = bankLessonOpening();
+    for (const step of BANK_STEPS) {
+      const txs = step.make(s);
+      if (step.id === 'default') {
+        const lines = movements(txs[0]!);
+        expect(lines).toContainEqual(expect.stringMatching(/^Loans held by Bank A, owed by Household 1: \$[\d,.]+ removed\.$/));
+        expect(lines.at(-1)).toBe('Charged off and forgiven: the loan leaves both balance sheets. A real charge-off alone would not cancel the debt.');
+        expect(step.text).toContain('writes off the remaining loan and also forgives it');
+        expect(step.text).toContain('a charge-off by itself does not cancel the debt');
+        return;
+      }
+      s = runTransactions(s, txs).state;
+    }
+    throw new Error('no default step');
+  });
+
   it('describes each step in words and marks changed lines in the balance sheets', () => {
     const s = bankLessonOpening();
     const tx = BANK_STEPS[0]!.make(s)[0]!;

@@ -6,7 +6,18 @@ import { FLOW_CATALOG, FLOW_STEPS, flowsOpening } from '../../../src/lib/learn/f
 import { flowSvg, flowView } from '../../../src/lib/learn/flow-view';
 import { counters, runTransactions } from '../../../src/lib/learn/sim';
 import { ENTITIES, ENTITY_INFO, balanceSheet, type EntityId, type LedgerState } from '../../../src/lib/engines/ledger/model';
-import { writeOff } from '../../../src/lib/engines/ledger/catalog';
+import {
+  bankBuysSecurity,
+  bankLends,
+  bankPays,
+  fedBuysFromNonbank,
+  mmfReverseRepo,
+  payInterest,
+  payment,
+  repayPrincipal,
+  withdrawCurrency,
+  writeOff,
+} from '../../../src/lib/engines/ledger/catalog';
 
 const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) as Record<EntityId, string>;
 
@@ -77,12 +88,67 @@ describe('How Money Flows', () => {
     expect(svg).not.toMatch(/NaN|undefined/);
   });
 
-  it('labels a write-off as the bank writing off the loan, never as a repayment', () => {
+  it('labels a write-off as the bank writing off and forgiving the loan, never as a repayment', () => {
     const view = flowView(writeOff('H1', 2_500));
-    expect(view.arrows).toEqual([{ from: 'BankA', to: 'H1', label: 'writes off $25.00' }]);
+    expect(view.arrows).toEqual([{ from: 'BankA', to: 'H1', label: 'writes off and forgives $25.00' }]);
     const svg = flowSvg(view, names, 'wo');
-    expect(svg).toContain('<title id="wo-title">Flows: Bank A to Household 1, writes off $25.00</title>');
+    expect(svg).toContain('<title id="wo-title">Flows: Bank A to Household 1, writes off and forgives $25.00</title>');
     expect(svg).not.toContain('repays');
+  });
+
+  it('draws who paid whom when only one side holds money, as the postings say', () => {
+    // Interest: the borrower's deposit falls and its bank's equity rises; nothing crosses banks.
+    expect(flowView(payInterest('H1', 1_000)).arrows).toEqual([{ from: 'H1', to: 'BankA', label: 'pays interest $10.00' }]);
+    // Wages from a bank to its own customer: a new deposit, no reserves move.
+    expect(flowView(bankPays('BankA', 'H1', 4_000)).arrows).toEqual([{ from: 'BankA', to: 'H1', label: 'pays wages $40.00' }]);
+    // Wages to another bank's customer: the payment and the reserves that settle it.
+    expect(flowView(bankPays('BankA', 'H2', 4_000)).arrows).toEqual([
+      { from: 'BankA', to: 'BankB', label: 'reserves $40.00' },
+      { from: 'BankA', to: 'H2', label: 'pays wages $40.00' },
+    ]);
+    // A bank buys a security from a customer and pays with a new deposit.
+    expect(flowView(bankBuysSecurity('BankA', 'Investor', 5_000)).arrows).toEqual([
+      { from: 'Investor', to: 'BankA', label: 'security $50.00' },
+      { from: 'BankA', to: 'Investor', label: 'pays $50.00' },
+    ]);
+    // The Fed buys from an investor: it pays the investor and creates the reserves behind the deposit.
+    expect(flowView(fedBuysFromNonbank('Investor', 5_000)).arrows).toEqual([
+      { from: 'Fed', to: 'BankA', label: 'new reserves $50.00' },
+      { from: 'Investor', to: 'Fed', label: 'security $50.00' },
+      { from: 'Fed', to: 'Investor', label: 'pays $50.00' },
+    ]);
+    // A cash withdrawal: the bank hands over cash, and its reserves go to the Fed for it.
+    expect(flowView(withdrawCurrency('H1', 2_000)).arrows).toEqual([
+      { from: 'BankA', to: 'Fed', label: 'reserves to the Fed $20.00' },
+      { from: 'BankA', to: 'H1', label: 'cash $20.00' },
+    ]);
+  });
+
+  it('adds no payment arrow where a loan, a repayment or a reverse repo already says it', () => {
+    expect(flowView(bankLends('H1', 10_000)).arrows).toEqual([{ from: 'BankA', to: 'H1', label: 'lends $100.00' }]);
+    expect(flowView(repayPrincipal('H1', 5_000)).arrows).toEqual([{ from: 'H1', to: 'BankA', label: 'repays $50.00' }]);
+    expect(flowView(mmfReverseRepo(5_000)).arrows).toEqual([
+      { from: 'BankA', to: 'Fed', label: 'reserves to the Fed $50.00' },
+      { from: 'MMF', to: 'Fed', label: 'lends $50.00' },
+    ]);
+    // A payment between customers is still drawn once, payer to payee.
+    expect(flowView(payment('H1', 'H2', 3_000)).arrows).toEqual([
+      { from: 'H1', to: 'H2', label: 'pays $30.00' },
+      { from: 'BankA', to: 'BankB', label: 'reserves $30.00' },
+    ]);
+  });
+
+  it('never shows "No flows" for a catalog action that posts', () => {
+    const s = flowsOpening();
+    for (const a of FLOW_CATALOG) {
+      for (const party of a.parties) {
+        const counterparty = a.counterparties?.find((c) => c !== party) ?? null;
+        const tx = a.make(party, counterparty, 1_000);
+        const out = runTransactions(s, [tx]);
+        if (out.stopped) continue;
+        expect(flowView(tx).arrows.length, `${a.id} ${party} ${counterparty ?? ''}`).toBeGreaterThan(0);
+      }
+    }
   });
 
   it('offers the whole catalog, and every action posts or is refused for a stated reason', () => {

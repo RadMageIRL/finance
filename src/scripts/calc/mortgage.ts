@@ -3,7 +3,7 @@
 
 import { formatUSD } from '../../lib/calc/format';
 import {
-  breakdownRows,
+  breakdownLines,
   dateLabel,
   loanIssueMessage,
   loanScheduleNotes,
@@ -166,10 +166,7 @@ if (root) {
         return tr;
       }),
     );
-    breakdownRows(outcome.breakdown).forEach((p, i) => {
-      out(`part-${i}`).textContent = p.value;
-    });
-    out('total-monthly').textContent = formatUSD(outcome.breakdown.total);
+    for (const p of breakdownLines(outcome.breakdown)) out(`part-${p.key}`).textContent = p.value;
     out('summary').textContent = view.summary;
     for (const slot of ONE_TIME_SLOTS) hint(slot, scenario.first);
     schedule.update({

@@ -67,7 +67,7 @@ const actions = [
 
   <section class="prose lesson-section" aria-labelledby="limits">
     <h2 id="limits">What limits lending</h2>
-    <p>Banks cannot lend without limit. The simulation shows three constraints, each with its usual name.</p>
+    <p>Banks cannot lend without limit. The simulation shows three constraints on the bank's side, each with its usual name; the last part of this section adds the borrowers' side.</p>
     <h3>Capital</h3>
     <p class="claim-line"><ClaimLabel kind="fact" /></p>
     <p>
@@ -117,6 +117,18 @@ const actions = [
       agency.<Cite ids={['occ-charge-off']} number={n} /> The simulation is simpler here too: it
       also takes the loan off the borrower's balance sheet, as if the bank had forgiven it.
     </p>
+    <h3>Borrowers and interest rates</h3>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      The three constraints above sit on the bank's balance sheet. Lending also depends on
+      borrowers. A bank lends only where it expects to be repaid, since it "needs to gauge its
+      credit risk (whether it will be paid back in full when an investment period ends)," and
+      only as much as creditworthy households and businesses want to borrow at the
+      prevailing interest rate. Interest rates, which the Federal Reserve influences, shape
+      that demand: "higher interest rates in the economy might dissuade a business from
+      taking out a bank loan."<Cite ids={['stlfed-2021']} number={n} /> In the simulation a
+      loan is made whenever you choose, so these limits do not appear.
+    </p>
   </section>
 
   <section class="sidebar-model" aria-labelledby="multiplier">
@@ -147,6 +159,7 @@ const actions = [
       <li>Interest and losses go straight to equity: there is no income statement, no loss allowance and no tax.</li>
       <li>A write-off also cancels the borrower's debt. In reality a charged-off loan is still owed unless the bank forgives it.</li>
       <li>The capital rule (equity of at least 5 percent of total assets) is a hypothetical one for teaching, not a regulatory minimum.</li>
+      <li>Loans are made whenever you choose. Real lending also depends on creditworthy borrowers wanting loans at the prevailing interest rate.</li>
       <li>Payments settle at once; there is no intraday credit, and no clearing banks or dealers.</li>
       <li>Banks here hold only reserves, Treasury securities and loans, and no cash in the vault.</li>
     </ul>
@@ -159,6 +172,7 @@ const actions = [
       <li>Banks settle payments with each other in reserves, which only the Federal Reserve creates.</li>
       <li>A bank short of reserves borrows them, from other banks or from the Fed's discount window.</li>
       <li>Losses come out of a bank's equity, and capital rules limit how much it can lend on its equity.</li>
+      <li>Lending also depends on creditworthy borrowers wanting loans at the prevailing interest rate, which the Federal Reserve influences.</li>
       <li>Reserve requirements have been zero since March 2020; the money multiplier is a historical model.</li>
     </ul>
   </section>
