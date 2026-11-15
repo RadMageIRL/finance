@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.2",
+  "conventions": "v1.3",
   "apy_from_interest": [
     {
       "id": "I.A-1-now-account-365-days",

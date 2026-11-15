@@ -158,6 +158,12 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
         adds each contribution on its own date.
       </p>
       <p>
+        This is the textbook model. A bank figures savings interest a little differently: with
+        a daily rate of 1/365 of the interest rate on each day's balance, so a 31-day month
+        earns slightly more than a 28-day one. The <a href={href('calculators/savings-growth/')}>high-yield savings calculator</a>
+        works that way, starting from the APY a bank advertises.
+      </p>
+      <p>
         The calculation is checked against an independent implementation that uses exact
         decimal arithmetic. See the <a href={href('methodology/')}>Methodology</a>.
       </p>

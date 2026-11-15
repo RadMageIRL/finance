@@ -68,6 +68,15 @@ const MUTANTS = [
   ['rates-kind-swapped', `${E}rate-compare.ts`, "const annualRate = a.kind === 'rate' ? a.value : nominalFromApy(a.value, n);", "const annualRate = a.kind === 'apy' ? a.value : nominalFromApy(a.value, n);"],
   ['rates-best-is-lowest', `${E}rate-compare.ts`, 'const top = Math.max(...out.map((a) => a.apy));', 'const top = Math.min(...out.map((a) => a.apy));'],
   ['rates-four-accounts', `${E}rate-compare.ts`, 'export const MAX_ACCOUNTS = 3;', 'export const MAX_ACCOUNTS = 4;'],
+  // Savings account (hysa.ts)
+  ['hysa-monthly-366-days', `${E}hysa.ts`, 'interest = roundCents((balanceDays * rate.annualRate) / YEAR_DAYS);', 'interest = roundCents((balanceDays * rate.annualRate) / (YEAR_DAYS + 1));'],
+  ['hysa-daily-364-days', `${E}hysa.ts`, 'const logDaily = Math.log1p(rate.apy) / YEAR_DAYS;', 'const logDaily = Math.log1p(rate.apy) / (YEAR_DAYS - 1);'],
+  ['hysa-deposit-whole-month', `${E}hysa.ts`, 'heldEnds.push(end - deposits[next]!);', 'heldEnds.push(days);'],
+  ['hysa-calibration-textbook', `${E}hysa.ts`, 'const growth = (r: number) => MONTH_DAYS.reduce((sum, days) => sum + Math.log1p((r * days) / YEAR_DAYS), 0);', 'const growth = (r: number) => 12 * Math.log1p(r / 12) + 0 * MONTH_DAYS.length;'],
+  ['hysa-rate-change-late', `${E}hysa.ts`, 'rates[rateIndex + 1]!.fromMonth <= month', 'rates[rateIndex + 1]!.fromMonth < month'],
+  ['hysa-apy-earned-inverted', `${E}hysa.ts`, 'Math.expm1((YEAR_DAYS / days) * Math.log1p(interest / averageDailyBalance))', 'Math.expm1((days / YEAR_DAYS) * Math.log1p(interest / averageDailyBalance))'],
+  ['hysa-belongs-swapped', `${E}hysa.ts`, "timing === 'start' ? (t: number, end: number) => t < end : (t: number, end: number) => t <= end;", "timing === 'start' ? (t: number, end: number) => t <= end : (t: number, end: number) => t < end;"],
+  ['hysa-cap-doubled', `${E}hysa.ts`, 'if (balance > Number.MAX_SAFE_INTEGER) {', 'if (balance > 2 * Number.MAX_SAFE_INTEGER) {'],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
   ['loan-months-per-year-13', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 13);'],

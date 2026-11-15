@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compoundInterest, type CompoundFrequency, type ContributionFrequency } from '../../../src/lib/engines/compound';
+import { savingsGrowth, type HysaCompounding } from '../../../src/lib/engines/hysa';
 import { amortize } from '../../../src/lib/engines/loan';
 import { percent2Text, roundCents } from '../../../src/lib/engines/money';
 import {
@@ -20,6 +21,7 @@ const regdd = fixture('regdd');
 const conversions = fixture('conversions');
 const loans = fixture('loans');
 const compound = fixture('compound');
+const hysa = fixture('hysa');
 
 function expectCloseRelative(actual: number, expected: number, tolerance = 1e-12) {
   if (expected === 0) expect(Math.abs(actual)).toBeLessThanOrEqual(1e-15);
@@ -27,8 +29,8 @@ function expectCloseRelative(actual: number, expected: number, tolerance = 1e-12
 }
 
 describe('oracle fixtures', () => {
-  it('were generated under the conventions this code implements (v1.2)', () => {
-    for (const f of [regdd, conversions, loans, compound]) expect(f.conventions).toBe('v1.2');
+  it('were generated under the conventions this code implements (v1.3)', () => {
+    for (const f of [regdd, conversions, loans, compound, hysa]) expect(f.conventions).toBe('v1.3');
   });
 
   it('cover every contribution frequency with every compounding frequency and both timings', () => {
@@ -140,6 +142,37 @@ describe('oracle: compound interest', () => {
       expect(r.totalContributions).toBe(c.total_contributions_cents);
       expect(r.totalInterest).toBe(c.total_interest_cents);
       expect(r.years.map((y) => [y.year, y.startBalance, y.contributions, y.interest, y.endBalance])).toEqual(c.yearly);
+    });
+  }
+});
+
+describe('oracle: savings account (HYSA)', () => {
+  for (const c of hysa.cases) {
+    it(`${c.id}: every month and year matches to the cent, rates and APY earned to 1e-12`, () => {
+      const result = savingsGrowth({
+        principal: c.principal_cents,
+        years: c.years,
+        compounding: c.compounding as HysaCompounding,
+        rates: c.rates.map((r: { from_month: number; apy: string }) => ({ fromMonth: r.from_month, apy: Number(r.apy) })),
+        contributionFrequency: c.contribution_frequency as ContributionFrequency,
+        contribution: c.contribution_cents,
+        timing: c.timing,
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const r = result.value;
+      expect(r.finalBalance).toBe(c.final_balance_cents);
+      expect(r.contributionCount).toBe(c.contribution_count);
+      expect(r.totalContributions).toBe(c.total_contributions_cents);
+      expect(r.totalInterest).toBe(c.total_interest_cents);
+      expect(r.months.map((m) => [m.month, m.days, m.startBalance, m.contributions, m.interest, m.endBalance])).toEqual(c.monthly);
+      expect(r.years.map((y) => [y.year, y.startBalance, y.contributions, y.interest, y.endBalance])).toEqual(c.yearly);
+      r.rates.forEach((rate, i) => expectCloseRelative(rate.annualRate, Number(c.rates[i].annual_rate)));
+      r.months.forEach((m, i) => {
+        const expected = c.monthly_apy_earned_percent[i];
+        if (expected === null) expect(m.apyEarned).toBeNull();
+        else expectCloseRelative(m.apyEarned!, Number(expected));
+      });
     });
   }
 });

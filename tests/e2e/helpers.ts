@@ -10,6 +10,7 @@ export const PAGES = [
   'calculators/',
   'calculators/compound-interest/',
   'calculators/apr-apy/',
+  'calculators/savings-growth/',
   'about/',
   'methodology/',
   'sources/',

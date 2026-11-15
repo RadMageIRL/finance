@@ -134,7 +134,7 @@ export const CALCULATORS: readonly CatalogItem[] = [
     path: 'calculators/savings-growth/',
     summary: 'Project a savings balance with deposits, rate changes and daily or monthly compounding.',
     detail: 'Interest earned each period and the APY you actually earned.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'Loan amortization',
