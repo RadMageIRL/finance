@@ -120,7 +120,7 @@ export const CALCULATORS: readonly CatalogItem[] = [
     path: 'calculators/compound-interest/',
     summary: 'See how a balance grows with any compounding frequency and regular contributions.',
     detail: 'Year-by-year table, contributions versus interest.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'APR and APY',

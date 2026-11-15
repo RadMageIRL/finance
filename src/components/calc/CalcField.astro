@@ -1,0 +1,40 @@
+---
+// A calculator text input: label, optional unit, hint, and an error slot the calculator
+// script fills. Text inputs with inputmode (not type=number) so pasted values like
+// "$1,234.56" are accepted and parsed exactly.
+interface Props {
+  id: string;
+  label: string;
+  value: string;
+  kind: 'money' | 'percent' | 'whole';
+  hint: string;
+  /** Spoken unit for screen readers, for example "in dollars". */
+  unitLabel?: string;
+}
+
+const { id, label, value, kind, hint, unitLabel } = Astro.props;
+const prefix = kind === 'money' ? '$' : undefined;
+const suffix = kind === 'percent' ? '%' : undefined;
+const inputmode = kind === 'whole' ? 'numeric' : 'decimal';
+---
+<div class="field calc-field" data-field={id}>
+  <label for={id}>{label}{unitLabel && <span class="vh"> {unitLabel}</span>}</label>
+  <div class:list={['input-affix', { 'input-affix--suffix': suffix, 'input-affix--none': !prefix && !suffix }]}>
+    {prefix && <span class="input-affix__unit" aria-hidden="true">{prefix}</span>}
+    <input
+      class="input"
+      id={id}
+      name={id}
+      type="text"
+      inputmode={inputmode}
+      autocomplete="off"
+      spellcheck="false"
+      value={value}
+      data-kind={kind}
+      aria-describedby={`${id}-hint ${id}-error`}
+    />
+    {suffix && <span class="input-affix__unit" aria-hidden="true">{suffix}</span>}
+  </div>
+  <p class="hint" id={`${id}-hint`}>{hint}</p>
+  <p class="error" id={`${id}-error`} hidden></p>
+</div>

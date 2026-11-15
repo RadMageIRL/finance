@@ -16,7 +16,10 @@ const ORIGIN = 'https://radmagelabs.com';
 const BUDGET = {
   htmlCssGzip: 50 * 1024,
   chromeJsGzip: 4 * 1024,
+  interactiveJsGzip: 60 * 1024,
 };
+// Calculator and lesson pages load their own island on top of the site chrome.
+const isInteractive = (page) => /^\/finance\/(calculators|learn)\/[^/]+\/$/.test(page);
 
 const problems = [];
 const fail = (page, message) => problems.push(`${page}: ${message}`);
@@ -139,8 +142,9 @@ for (const file of pages) {
   if (htmlGzip + cssGzip > BUDGET.htmlCssGzip) {
     fail(page, `HTML + CSS ${(htmlGzip + cssGzip) / 1024} KB gzip exceeds ${BUDGET.htmlCssGzip / 1024} KB`);
   }
-  if (jsGzip > BUDGET.chromeJsGzip) {
-    fail(page, `JavaScript ${jsGzip} B gzip exceeds the ${BUDGET.chromeJsGzip} B site chrome budget`);
+  const jsBudget = isInteractive(page) ? BUDGET.interactiveJsGzip : BUDGET.chromeJsGzip;
+  if (jsGzip > jsBudget) {
+    fail(page, `JavaScript ${jsGzip} B gzip exceeds the ${jsBudget} B budget for this page`);
   }
   report.push({ page, htmlGzip, cssGzip, jsGzip });
 }

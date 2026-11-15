@@ -1,0 +1,22 @@
+---
+// A small radio group for a calculator choice (for example contribution timing).
+interface Props {
+  name: string;
+  legend: string;
+  value: string;
+  options: readonly { value: string; label: string }[];
+}
+
+const { name, legend, value, options } = Astro.props;
+---
+<fieldset class="field calc-field calc-choice" data-field={name}>
+  <legend>{legend}</legend>
+  <div class="calc-choice__options">
+    {options.map((o) => (
+      <label class="choice">
+        <input type="radio" name={name} value={o.value} checked={o.value === value} />
+        {o.label}
+      </label>
+    ))}
+  </div>
+</fieldset>

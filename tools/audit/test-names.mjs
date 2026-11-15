@@ -55,6 +55,8 @@ function statedFigures(name) {
 }
 
 function bodyChecks(body, figure) {
+  // The figure exactly as stated (for example '$12,345.67' in a displayed-text assertion).
+  if (body.includes(figure.text)) return true;
   const digits = body.replace(/_/g, '');
   const has = (s) => new RegExp(`(^|[^\\d.])${s.replace('.', '\\.')}($|[^\\d])`).test(digits);
   if (figure.percent) return has(figure.percent);

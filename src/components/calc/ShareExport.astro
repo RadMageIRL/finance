@@ -1,0 +1,33 @@
+---
+// CSV download and share link controls. Both need JavaScript and are hidden without it.
+// The share link carries the scenario in the URL fragment (after #), which browsers never
+// send to a server.
+interface Props {
+  idPrefix: string;
+  roundLabel: string;
+}
+
+const { idPrefix, roundLabel } = Astro.props;
+---
+<div class="calc-actions" data-js-only>
+  <div class="button-row">
+    <button class="button button--secondary" type="button" data-action="csv">Download CSV</button>
+    <button class="button button--secondary" type="button" data-action="share" aria-expanded="false" aria-controls={`${idPrefix}-share`}>Share link</button>
+  </div>
+  <div class="calc-share" id={`${idPrefix}-share`} hidden>
+    <label for={`${idPrefix}-share-link`}>Link to this scenario</label>
+    <div class="calc-share__row">
+      <input class="input" id={`${idPrefix}-share-link`} type="text" readonly />
+      <button class="button" type="button" data-action="copy">Copy</button>
+    </div>
+    <label class="choice">
+      <input type="checkbox" data-action="round" />
+      {roundLabel}
+    </label>
+    <p class="small muted">
+      Anyone with this link sees these numbers. They are stored in the link itself, after
+      the # sign, which browsers do not send to any server. Nothing is saved on this site.
+    </p>
+    <p class="small" data-out="share-status" role="status" aria-live="polite"></p>
+  </div>
+</div>

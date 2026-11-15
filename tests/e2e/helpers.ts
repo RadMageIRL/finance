@@ -8,6 +8,7 @@ export const PAGES = [
   'news/',
   'learn/',
   'calculators/',
+  'calculators/compound-interest/',
   'about/',
   'methodology/',
   'sources/',

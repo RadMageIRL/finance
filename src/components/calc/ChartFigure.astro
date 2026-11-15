@@ -1,0 +1,35 @@
+---
+// A chart with its legend, a hover and keyboard tooltip, and a table equivalent in a
+// disclosure that works without JavaScript. The SVG is rendered by src/lib/calc/chart.ts.
+interface Props {
+  id: string;
+  heading: string;
+  series: readonly { key: string; label: string }[];
+  svg: string;
+  tableSummary: string;
+}
+
+const { id, heading, series, svg, tableSummary } = Astro.props;
+---
+<section class="calc-chart" aria-labelledby={`${id}-heading`}>
+  <div class="calc-chart__head">
+    <h2 id={`${id}-heading`}>{heading}</h2>
+    <ul class="chart-legend" aria-label="Legend">
+      {series.map((s, i) => (
+        <li><span class={`chart-legend__key chart-legend__key--${i + 1}`} aria-hidden="true"></span>{s.label}</li>
+      ))}
+    </ul>
+  </div>
+  <div class="chart-box" data-chart tabindex="0" role="group" aria-labelledby={`${id}-heading`} aria-describedby={`${id}-help`}>
+    <div class="chart-box__svg" data-out="chart" set:html={svg} />
+    <div class="chart-tooltip" data-tooltip role="status" aria-live="polite" hidden></div>
+  </div>
+  <p class="small muted" id={`${id}-help`}>
+    Hover over a year, or focus the chart and use the arrow keys, to read its values. All
+    values are also in the table below.
+  </p>
+  <details class="calc-table">
+    <summary>{tableSummary}</summary>
+    <slot />
+  </details>
+</section>

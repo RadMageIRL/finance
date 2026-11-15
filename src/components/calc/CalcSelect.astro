@@ -1,0 +1,18 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  value: string;
+  options: readonly { value: string; label: string }[];
+  hint: string;
+}
+
+const { id, label, value, options, hint } = Astro.props;
+---
+<div class="field calc-field" data-field={id}>
+  <label for={id}>{label}</label>
+  <select class="select" id={id} name={id} aria-describedby={`${id}-hint`}>
+    {options.map((o) => <option value={o.value} selected={o.value === value}>{o.label}</option>)}
+  </select>
+  <p class="hint" id={`${id}-hint`}>{hint}</p>
+</div>
