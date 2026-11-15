@@ -13,6 +13,15 @@ const swatches = [
 ];
 const firstModule = MODULES[0]!;
 const firstCalculator = CALCULATORS[0]!;
+// A planned item (Phase 2), so the in-development card style stays visible and tested now
+// that every Phase 1 lesson and calculator is available.
+const plannedItem = {
+  title: 'Inflation',
+  path: 'calculators/inflation/',
+  summary: 'What a sum of money is worth across years of price changes.',
+  detail: 'Planned for Phase 2, with official consumer price data.',
+  status: 'in-development' as const,
+};
 ---
 <BaseLayout
   title="Design system"
@@ -184,6 +193,7 @@ const firstCalculator = CALCULATORS[0]!;
       <ul class="card-grid card-grid--wide">
         <li><CatalogCard item={firstModule} index={1} feature /></li>
         <li><CatalogCard item={firstCalculator} /></li>
+        <li><CatalogCard item={plannedItem} /></li>
       </ul>
     </section>
   </div>

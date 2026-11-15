@@ -1,0 +1,169 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import Cite from '../../components/learn/Cite.astro';
+import SimPanel from '../../components/learn/SimPanel.astro';
+import { BANK_LESSON_ENTITIES, BANK_OPENING_TEXT, BANK_STEPS, LESSON_CAPITAL_RATIO, bankCounterRows, bankLessonOpening, firstLoanPayment } from '../../lib/learn/banks';
+import { BANK_SOURCES, LESSONS_REVIEWED, LESSONS_REVIEWED_LABEL, numberer } from '../../lib/learn/lesson-sources';
+import { counters } from '../../lib/learn/sim';
+import { formatUSD } from '../../lib/calc/format';
+import { href } from '../../lib/url';
+import '../../styles/learn.css';
+
+const n = numberer(BANK_SOURCES);
+const opening = bankLessonOpening();
+const pay = firstLoanPayment();
+const actions = [
+  { id: 'lend', label: 'A bank lends to its customer' },
+  { id: 'pay', label: 'A customer pays the other' },
+  { id: 'repay', label: 'Repay loan principal' },
+  { id: 'interest', label: 'Pay loan interest' },
+  { id: 'write-off', label: 'The bank writes off a loan' },
+];
+---
+<LessonLayout
+  title="How Banks Create Money"
+  description="Make a loan and watch a new deposit appear, then follow the payment between banks, repayment with interest, a default and write-off, a reserve shortfall and a capital rule, on balance sheets that always balance."
+  lead="When a bank lends, it does not hand over money someone else deposited. It writes a new deposit into the borrower's account. Step through a loan from start to finish on real accounting, and see what limits how much banks can lend."
+  reviewed={LESSONS_REVIEWED}
+  minutes={15}
+>
+  <section class="prose lesson-section" aria-labelledby="short">
+    <h2 id="short">The short version</h2>
+    <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">As central banks describe it</span></p>
+    <p>
+      "Whenever a bank makes a loan, it simultaneously creates a matching deposit in the
+      borrower's bank account, thereby creating new money." In other words, "bank lending
+      creates deposits," not the other way around.<Cite ids={['boe-2014']} number={n} />
+      Federal Reserve economists put it the same way: "When banks make loans to nonbanks or
+      buy assets, such as marketable securities, from nonbanks they create new bank
+      deposits."<Cite ids={['feds-2022']} number={n} />
+    </p>
+    <p>
+      Banks still need something else to settle payments with each other: reserves, their
+      balances at the Federal Reserve. Reserve balances "are a liability of the Federal
+      Reserve," and "only the Federal Reserve, as the central bank, can create
+      reserves."<Cite ids={['fed-iorb-faq']} number={n} /> The simulation below shows both
+      kinds of money at work.
+    </p>
+  </section>
+
+  <SimPanel lesson="banks" heading="Step through a loan" entities={BANK_LESSON_ENTITIES} opening={opening} openingText={BANK_OPENING_TEXT} steps={BANK_STEPS.length} counters={bankCounterRows(counters(opening))} actions={actions} capitalRatio={LESSON_CAPITAL_RATIO} />
+
+  <section class="prose lesson-section" aria-labelledby="steps">
+    <h2 id="steps">What happens at each step</h2>
+    <p class="small muted">Amounts are illustrative. The ledger checks after every step that each balance sheet balances and that every asset is someone else's liability.</p>
+    <ol>
+      {BANK_STEPS.map((s) => <li><strong>{s.title}.</strong> {s.text}</li>)}
+    </ol>
+    <p>
+      The repayment step uses the same engine as the <a href={href('calculators/amortization/')}>loan amortization calculator</a>:
+      $1,000 at 12 percent a year over 12 months means a monthly payment of {formatUSD(pay.payment)}, of which {formatUSD(pay.interest)} is the first month's interest.
+    </p>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="limits">
+    <h2 id="limits">What limits lending</h2>
+    <p>Banks cannot lend without limit. The simulation shows three constraints, each with its usual name.</p>
+    <h3>Capital</h3>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      A bank's equity absorbs its losses, and regulators require a minimum. US banks must keep
+      "a common equity tier 1 capital ratio of 4.5 percent," "a tier 1 capital ratio of 6
+      percent," "a total capital ratio of 8 percent" and "a leverage ratio of 4 percent," among
+      other rules.<Cite ids={['cfr-217-10']} number={n} /> Most of these ratios weigh assets by
+      their risk. The simulation's rule (equity at least 5 percent of assets) is a simplified
+      stand-in for them.
+    </p>
+    <h3>Liquidity</h3>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      When a borrower pays someone at another bank, the banks settle in reserves, for example
+      over Fedwire, where a payment is "immediate, final, and irrevocable once
+      processed."<Cite ids={['fed-fedwire']} number={n} /> A bank short of reserves can borrow
+      them: from other banks overnight, at the federal funds rate, "the interest rate at which
+      depository institutions lend reserve balances to other depository institutions
+      overnight,"<Cite ids={['fed-omo']} number={n} /> a market in which "certain other entities,
+      primarily government-sponsored enterprises," also lend;<Cite ids={['nyfed-effr']} number={n} />
+      or from the Federal Reserve's discount window, which lets depository institutions
+      "borrow from Federal Reserve Banks after executing legal agreements and pledging
+      collateral."<Cite ids={['fed-discount']} number={n} /> As of October 29, 2026 the primary
+      credit rate is 4.0 percent.<Cite ids={['fed-implementation-2026-10']} number={n} />
+    </p>
+    <h3>Credit risk</h3>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      A loan that will not be repaid is charged off: "removed from balance sheet because of
+      uncollectability."<Cite ids={['fdic-qbp']} number={n} /> In practice a bank sets aside an
+      allowance for expected losses in advance, through provisions that are an expense, and
+      charges the loan off against that allowance; the reporting rules forbid charging
+      uncollectible loans directly to retained earnings.<Cite ids={['ffiec-glossary']} number={n} /> Either way the
+      loss reduces the bank's equity, which is all the simulation shows: it takes the loss
+      straight to equity, one of the simplifications listed below.
+    </p>
+  </section>
+
+  <section class="sidebar-model" aria-labelledby="multiplier">
+    <h2 id="multiplier">The money multiplier: a historical model</h2>
+    <p class="claim-line"><ClaimLabel kind="model" /> <span class="small muted">Shown for history; not how money is created today</span></p>
+    <p>
+      Older textbooks describe banks as lending out a multiple of their reserves: each bank
+      keeps a required fraction of deposits as reserves and lends the rest, so a dollar of
+      reserves becomes several dollars of deposits. In the United States the required fraction
+      is now zero: "the Board reduced reserve requirement ratios to zero percent effective
+      March 26, 2020," which "eliminated reserve requirements for all depository
+      institutions."<Cite ids={['fed-reserve-requirements']} number={n} />
+    </p>
+    <p>
+      The Bank of England calls the money multiplier "a useful way of introducing money and
+      banking in economic textbooks" that "is not an accurate description of how money is
+      created in reality."<Cite ids={['boe-2014']} number={n} /> Economists at the Federal Reserve
+      Bank of St. Louis call it "an outdated concept."<Cite ids={['stlfed-2021']} number={n} />
+    </p>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="simplified">
+    <h2 id="simplified">What the simulation leaves out</h2>
+    <ul>
+      <li>Two small banks and a handful of customers stand in for the whole system. The amounts are illustrative.</li>
+      <li>Interest and losses go straight to equity: there is no income statement, no loss allowance and no tax.</li>
+      <li>The capital rule is equity over total assets, not the risk-weighted ratios real banks report.</li>
+      <li>Payments settle at once; there is no intraday credit, and no clearing banks or dealers.</li>
+      <li>Banks here hold only reserves, Treasury securities and loans, and no cash in the vault.</li>
+    </ul>
+  </section>
+
+  <section class="key-ideas" aria-labelledby="key-ideas">
+    <h2 id="key-ideas">Key ideas</h2>
+    <ul>
+      <li>A bank loan creates a deposit, which is new money; repaying the loan destroys it.</li>
+      <li>Banks settle payments with each other in reserves, which only the Federal Reserve creates.</li>
+      <li>A bank short of reserves borrows them, from other banks or from the Fed's discount window.</li>
+      <li>Losses come out of a bank's equity, and capital rules limit how much it can lend on its equity.</li>
+      <li>Reserve requirements have been zero since March 2020; the money multiplier is a historical model.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="related">
+    <h2 id="related">Related</h2>
+    <ul>
+      <li><a href={href('learn/what-is-money/')}>What Is Money?</a>: deposits, reserves and other kinds of money compared.</li>
+      <li><a href={href('learn/how-money-flows/')}>How Money Flows</a>: payments, taxes and the Federal Reserve across the whole system.</li>
+      <li><a href={href('calculators/amortization/')}>Loan amortization calculator</a>: a loan's full repayment schedule.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="sources">
+    <h2 id="sources">Sources</h2>
+    <p class="small">Every source was checked on {LESSONS_REVIEWED_LABEL}. Rates and rules are stated as of that date.</p>
+    <ol class="source-list small">
+      {BANK_SOURCES.map((s) => (
+        <li id={`src-${s.id}`}>{s.publisher}, <a href={s.url}>{s.title}</a>, {s.date}.</li>
+      ))}
+    </ol>
+  </section>
+</LessonLayout>
+
+<script>
+  import '../../scripts/learn/banks';
+</script>

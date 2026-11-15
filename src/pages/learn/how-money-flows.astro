@@ -1,0 +1,133 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import Cite from '../../components/learn/Cite.astro';
+import SimPanel from '../../components/learn/SimPanel.astro';
+import { ENTITIES, ENTITY_INFO, type EntityId } from '../../lib/engines/ledger/model';
+import { flowSvg, flowView } from '../../lib/learn/flow-view';
+import { FLOW_CATALOG, FLOW_ENTITIES, FLOW_OPENING_TEXT, FLOW_STEPS, flowCounterRows, flowsOpening } from '../../lib/learn/flows';
+import { FLOW_SOURCES, LESSONS_REVIEWED, LESSONS_REVIEWED_LABEL, numberer } from '../../lib/learn/lesson-sources';
+import { LESSON_CAPITAL_RATIO } from '../../lib/learn/banks';
+import { counters } from '../../lib/learn/sim';
+import { href } from '../../lib/url';
+import '../../styles/learn.css';
+
+const n = numberer(FLOW_SOURCES);
+const opening = flowsOpening();
+const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) as Record<EntityId, string>;
+---
+<LessonLayout
+  title="How Money Flows"
+  description="Follow wages, spending, lending, taxes, government spending, Treasury borrowing and Federal Reserve purchases between households, businesses, banks, the Treasury and the Fed, on balance sheets that always balance."
+  lead="Every payment is a change on at least two balance sheets. Follow money between households, a business, two banks, the Treasury, the Federal Reserve and financial markets, step by step, then try any transaction yourself."
+  reviewed={LESSONS_REVIEWED}
+  minutes={15}
+>
+  <section class="prose lesson-section" aria-labelledby="layers">
+    <h2 id="layers">Two layers of money</h2>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      Households and businesses pay each other with bank deposits. Banks pay each other with
+      reserves, their accounts at the Federal Reserve, and a Fedwire payment between them is
+      "immediate, final, and irrevocable once processed."<Cite ids={['fed-fedwire']} number={n} />
+      The government has an account there too: the Treasury General Account, "the U.S.
+      government's operating account."<Cite ids={['treasury-tga']} number={n} /> Watch those three
+      totals (deposits, reserves and the Treasury's account) as you step through.
+    </p>
+  </section>
+
+  <SimPanel lesson="flows" heading="Follow the money" entities={FLOW_ENTITIES} opening={opening} openingText={FLOW_OPENING_TEXT} steps={FLOW_STEPS.length} counters={flowCounterRows(counters(opening))} actions={FLOW_CATALOG.map((a) => ({ id: a.id, label: a.label }))} capitalRatio={LESSON_CAPITAL_RATIO} flowSvg={flowSvg(flowView(null), names, 'mf-flow')} />
+
+  <section class="prose lesson-section" aria-labelledby="steps">
+    <h2 id="steps">What happens at each step</h2>
+    <p class="small muted">Amounts are illustrative. The ledger checks after every step that each balance sheet balances and that every asset is someone else's liability.</p>
+    <ol>
+      {FLOW_STEPS.map((s) => <li><strong>{s.title}.</strong> {s.text}</li>)}
+    </ol>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="government">
+    <h2 id="government">The government's account and bank reserves</h2>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      Taxes and government spending move reserves. In the words of a Federal Reserve governor,
+      "when tax payments are made to the Treasury, we debit the payer's bank reserves and credit
+      the Treasury's TGA account," and "when the Treasury makes a payment, we debit the TGA and
+      credit the recipient bank's reserve account."<Cite ids={['fed-waller-2025']} number={n} />
+      So, all else equal, "reserves adjust to TGA fluctuations, in the opposite direction of the
+      TGA."<Cite ids={['feds-2025-tga']} number={n} /> Selling a Treasury security to the public does
+      the same as a tax payment: the buyer's deposit and its bank's reserves move into the
+      Treasury's account.<Cite ids={['treasury-tga', 'fed-liabilities']} number={n} />
+    </p>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="fed">
+    <h2 id="fed">How the Federal Reserve adds reserves</h2>
+    <p class="claim-line"><ClaimLabel kind="fact" /></p>
+    <p>
+      "When the Federal Reserve adds reserves to the financial system, it does so by buying
+      Treasury securities from private markets and crediting reserve accounts of banks."<Cite ids={['fed-iorb-faq']} number={n} />
+      When the seller is not a bank, "it creates new bank deposits by crediting the reserve
+      account of the depository institution at which the nonbank seller has an account, and
+      then the depository institution credits the deposit account of the nonbank
+      seller."<Cite ids={['feds-2022']} number={n} /> In practice the Fed buys from dealers and pays
+      through their banks;<Cite ids={['fed-explained']} number={n} /> the simulation sells
+      straight from the investor to keep the steps short.
+    </p>
+    <p>
+      Two transactions in the free mode drain reserves instead. A cash withdrawal comes out of
+      the bank's vault, and when the bank buys more currency from the Fed it pays "with a debit
+      to its Federal Reserve account";<Cite ids={['fed-liabilities']} number={n} /> the simulation
+      shows both parts at once. And a money market fund can lend to the Fed overnight through
+      its reverse repo facility, open to "2a-7 money market funds, banks, and
+      government-sponsored enterprises," which "reduces bank reserve liabilities on the Federal
+      Reserve's balance sheet and increases RRP liabilities by an equal offsetting
+      amount."<Cite ids={['nyfed-rrp']} number={n} />
+    </p>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="simplified">
+    <h2 id="simplified">What the simulation leaves out</h2>
+    <ul>
+      <li>One of each kind of institution stands in for the whole economy, and the amounts are illustrative.</li>
+      <li>Wages, purchases, interest and taxes change equity directly: no goods, income statements or tax rules are modeled.</li>
+      <li>The Fed buys from the investor directly; real purchases go through dealers and their banks.</li>
+      <li>A cash withdrawal shows its net effect only: the bank's vault cash is restocked from the Fed at once.</li>
+      <li>Payments settle at once, with no intraday credit and no clearing banks.</li>
+    </ul>
+  </section>
+
+  <section class="key-ideas" aria-labelledby="key-ideas">
+    <h2 id="key-ideas">Key ideas</h2>
+    <ul>
+      <li>Every payment changes at least two balance sheets, and every one still balances afterward.</li>
+      <li>The public pays with deposits; banks settle with reserves; the Treasury keeps its account at the Fed.</li>
+      <li>A payment within one bank moves no reserves; a payment between banks does.</li>
+      <li>Taxes and Treasury borrowing move reserves into the Treasury's account; government spending moves them back out.</li>
+      <li>Fed purchases of securities add reserves, and when the seller is not a bank they add deposits too.</li>
+      <li>Bank lending creates deposits and repayment destroys them; see <a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="related">
+    <h2 id="related">Related</h2>
+    <ul>
+      <li><a href={href('learn/what-is-money/')}>What Is Money?</a>: deposits, reserves and Treasury bills compared.</li>
+      <li><a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>: a loan from start to finish.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="sources">
+    <h2 id="sources">Sources</h2>
+    <p class="small">Every source was checked on {LESSONS_REVIEWED_LABEL}.</p>
+    <ol class="source-list small">
+      {FLOW_SOURCES.map((s) => (
+        <li id={`src-${s.id}`}>{s.publisher}, <a href={s.url}>{s.title}</a>, {s.date}.</li>
+      ))}
+    </ol>
+  </section>
+</LessonLayout>
+
+<script>
+  import '../../scripts/learn/flows';
+</script>

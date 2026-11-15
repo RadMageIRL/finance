@@ -103,14 +103,14 @@ export const MODULES: readonly CatalogItem[] = [
     path: 'learn/how-money-flows/',
     summary: 'Follow wages, spending, taxes and bond purchases between households, businesses, banks, the government and the Fed.',
     detail: 'Every step updates real balance sheets that always balance.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'How Banks Create Money',
     path: 'learn/how-banks-create-money/',
     summary: 'Make a loan, watch a deposit appear, then follow repayment, interest, settlement between banks and default.',
     detail: 'Capital, liquidity and credit risk shown as the constraints they are.',
-    status: 'in-development',
+    status: 'available',
   },
 ];
 

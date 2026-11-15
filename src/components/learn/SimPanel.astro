@@ -1,0 +1,90 @@
+---
+// The balance-sheet simulator's markup, rendered at build time with the opening state so
+// the balance sheets read without JavaScript. The behavior is src/scripts/learn/simulator.ts.
+import type { EntityId, LedgerState } from '../../lib/engines/ledger/model';
+import { sheetView, taccountHtml } from '../../lib/learn/sim';
+
+interface Props {
+  lesson: string;
+  heading: string;
+  entities: readonly EntityId[];
+  opening: LedgerState;
+  openingText: string;
+  steps: number;
+  counters: readonly { label: string; value: string }[];
+  actions: readonly { id: string; label: string }[];
+  /** The capital rule's ratio as a fraction, for the free-mode switch; none hides it. */
+  capitalRatio?: number;
+  /** Markup of the flow view at the opening (How Money Flows). */
+  flowSvg?: string;
+}
+
+const { lesson, heading, entities, opening, openingText, steps, counters, actions, capitalRatio, flowSvg } = Astro.props;
+const id = `sim-${lesson}`;
+const sheets = entities.map((e) => taccountHtml(sheetView(opening, e))).join('');
+---
+<section class="sim" aria-labelledby={`${id}-heading`} data-sim-lesson={lesson} data-view="both">
+  <h2 id={`${id}-heading`}>{heading}</h2>
+  <div class="sim__step">
+    <p class="sim__count" data-sim="count">Step 0 of {steps}</p>
+    <h3 class="sim__title" data-sim="title">The starting balance sheets</h3>
+    <p class="sim__text" data-sim="text">{openingText}</p>
+    <ul class="sim__moves" data-sim="moves" aria-label="What moved" hidden></ul>
+    <p class="sim__message" data-sim="message" hidden></p>
+    <div class="sim__choices" data-sim="choices" hidden></div>
+  </div>
+  <div class="sim__controls" data-js-only>
+    <button class="button button--secondary" type="button" data-sim="back">Back</button>
+    <button class="button" type="button" data-sim="next">Next step</button>
+    <button class="button button--secondary" type="button" data-sim="reset">Start over</button>
+    {flowSvg && (
+      <fieldset class="segmented">
+        <legend class="vh">Show</legend>
+        <div class="segmented__options">
+          <label><input type="radio" name="mf-view" value="both" checked /><span>Both</span></label>
+          <label><input type="radio" name="mf-view" value="flow" /><span>Flows</span></label>
+          <label><input type="radio" name="mf-view" value="sheets" /><span>Balance sheets</span></label>
+        </div>
+      </fieldset>
+    )}
+  </div>
+  <p class="vh" data-sim="status" role="status" aria-live="polite"></p>
+  <p class="small muted calc__nojs">The simulation needs JavaScript to step through. Without it, this shows the starting balance sheets; every step is described in the text below.</p>
+  <dl class="sim__counters" data-sim="counters">
+    {counters.map((c) => <div><dt>{c.label}</dt><dd>{c.value}</dd></div>)}
+  </dl>
+  {flowSvg && <div class="sim__flow" data-sim="flow" set:html={flowSvg} />}
+  <div class="sim__sheets" data-sim="sheets" set:html={sheets} />
+  <form class="sim-free" data-sim="free" data-js-only novalidate>
+    <h3>Try your own transaction</h3>
+    <p class="small muted">Any transaction you add continues from the step on screen. The ledger refuses anything that would not balance or that an account cannot cover.</p>
+    <div class="sim-free__row">
+      <div class="field">
+        <label for={`${id}-action`}>Transaction</label>
+        <select class="select" id={`${id}-action`} name="action">
+          {actions.map((a) => <option value={a.id}>{a.label}</option>)}
+        </select>
+      </div>
+      <div class="field">
+        <label for={`${id}-party`}>Who</label>
+        <select class="select" id={`${id}-party`} name="party"></select>
+      </div>
+      <div class="field" data-sim="counterparty-field">
+        <label for={`${id}-counterparty`}>To whom</label>
+        <select class="select" id={`${id}-counterparty`} name="counterparty"></select>
+      </div>
+      <div class="field">
+        <label for={`${id}-amount`}>Amount <span class="vh">in dollars</span></label>
+        <div class="input-affix">
+          <span class="input-affix__unit" aria-hidden="true">$</span>
+          <input class="input" id={`${id}-amount`} name="amount" type="text" inputmode="decimal" autocomplete="off" value="100.00" aria-describedby={`${id}-amount-error`} />
+        </div>
+        <p class="error" id={`${id}-amount-error`} data-sim="amount-error" hidden></p>
+      </div>
+    </div>
+    {capitalRatio !== undefined && (
+      <label class="choice sim-free__rule"><input type="checkbox" name="capital" /> Apply the simplified capital rule (equity at least {Math.round(capitalRatio * 100)} percent of assets)</label>
+    )}
+    <div class="button-row"><button class="button" type="submit">Add this transaction</button></div>
+  </form>
+</section>

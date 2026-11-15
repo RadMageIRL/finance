@@ -104,6 +104,10 @@ const MUTANTS = [
   ['loan-months-saved-reversed', `${E}loan-report.ts`, 'monthsSaved: b.schedule.months - a.schedule.months,', 'monthsSaved: a.schedule.months - b.schedule.months,'],
   ['loan-tax-truncated', `${E}loan-report.ts`, 'const propertyTax = roundCents(costs.propertyTaxAnnual / 12);', 'const propertyTax = Math.floor(costs.propertyTaxAnnual / 12);'],
   ['loan-total-without-hoa', `${E}loan-report.ts`, '+ costs.mortgageInsuranceMonthly + costs.hoaMonthly,', '+ costs.mortgageInsuranceMonthly,'],
+  // Lesson simulator (src/lib/learn/sim.ts)
+  ['sim-runs-past-refusal', 'src/lib/learn/sim.ts', 'if (!result.ok) {\n      const short', 'if (!result.ok && false) {\n      const short'],
+  ['sim-interbank-wrong-lender', 'src/lib/learn/sim.ts', 'make: () => interbankLoan(other, short.bank, short.amount)', 'make: () => interbankLoan(short.bank, other, short.amount)'],
+  ['sim-nothing-marked-changed', 'src/lib/learn/sim.ts', "if ((before.claims[key] ?? 0) !== (after.claims[key] ?? 0)) out.add(key);", "if ((before.claims[key] ?? 0) !== (after.claims[key] ?? 0) && false) out.add(key);"],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
   ['loan-months-per-year-13', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 13);'],

@@ -439,6 +439,14 @@ tbody tr:hover {
   text-decoration: none;
 }
 
+.button:disabled,
+.button:disabled:hover {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
 .button--secondary {
   border-color: var(--line-strong);
   background: transparent;
