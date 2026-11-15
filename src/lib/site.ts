@@ -141,13 +141,13 @@ export const CALCULATORS: readonly CatalogItem[] = [
     path: 'calculators/amortization/',
     summary: 'Build the full payment schedule for a fixed-rate loan, month by month.',
     detail: 'How each payment splits between principal and interest.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'Mortgage payoff',
     path: 'calculators/loan-payoff/',
     summary: 'Compare paying as scheduled with extra monthly or one-time principal payments.',
     detail: 'Interest saved, months saved and the new payoff date.',
-    status: 'in-development',
+    status: 'available',
   },
 ];

@@ -12,6 +12,8 @@ export const PAGES = [
   'calculators/compound-interest/',
   'calculators/apr-apy/',
   'calculators/savings-growth/',
+  'calculators/amortization/',
+  'calculators/loan-payoff/',
   'about/',
   'methodology/',
   'sources/',

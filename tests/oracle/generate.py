@@ -1,7 +1,7 @@
 """Independent reference oracle for the RadMage Finance calculation engines.
 
 Writes JSON fixtures to tests/oracle/fixtures/ from the rules in
-docs/ENGINE_CONVENTIONS.md (v1.4), sections 2 to 6 and 9 to 12. It uses only
+docs/ENGINE_CONVENTIONS.md (v1.5), sections 2 to 6 and 9 to 13. It uses only
 the Python standard library and exact decimal arithmetic (with exact fractions
 where section 2 allows them), and it is written from that specification alone,
 not from the TypeScript engines, so that a mistake shared by both is unlikely.
@@ -39,12 +39,24 @@ periods of section 5.2 for n = 52), and that balance rounded to the cent. It
 is checked against deposit * (1 + APY)^y at every year end and against an
 independent count of k.
 
+The loan reports of section 13 date every payment of the section 6
+amortization (the first payment's calendar month plus k - 1 months), add the
+running totals of interest and of principal plus extra, group the payments by
+calendar year, compare the loan as entered with the same loan without extra
+payments, and split the monthly payment into principal and interest and the
+other housing costs. They are checked against a separate restatement in exact
+fractions that walks the calendar one month at a time, against the closed
+form for the balance, against loans.json where the inputs coincide, and, on
+loans from a seeded generator that are not written, against the invariant of
+13.4: extra payments never increase interest or months.
+
 If any check fails, the generator prints the failing cases, writes nothing
 and exits with status 1.
 """
 
 import json
 import math
+import random
 import sys
 from bisect import bisect_right
 from decimal import ROUND_FLOOR, ROUND_HALF_UP, Context, Decimal, setcontext
@@ -52,7 +64,7 @@ from fractions import Fraction
 from pathlib import Path
 
 GENERATOR = "tests/oracle/generate.py"
-CONVENTIONS = "v1.4"
+CONVENTIONS = "v1.5"
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
 # Section 2 asks for at least 60 digits; 100 leaves a wide margin everywhere.
@@ -2410,6 +2422,796 @@ def build_illustration():
     return fixture(cases=cases)
 
 
+# loan_reports.json: section 13, loan schedules, payoff comparison and payment breakdown (v1.5)
+
+# Section 13.6: month rows are written only for terms of at most this many months.
+LOAN_MONTH_ROWS_MAX_TERM = 120
+# Sections 6 and 13.1 input ranges.
+LOAN_AMOUNT_MAX = 10_000_000_000
+LOAN_TERM_MAX = 600
+FIRST_PAYMENT_YEARS = (1970, 2200)
+# The seeded loans of the section 13.4 sweep (FINANCIAL_MODEL_REQUIREMENTS 8.2); none is written.
+LOAN_SWEEP_COUNT = 240
+LOAN_SWEEP_SEED = 20261115
+LOAN_SWEEP_SUMMARY = {}
+
+
+def payment_date(first_payment, k):
+    """Section 13.2: the calendar month of payment k, the first payment's month plus k - 1 months.
+
+    Months are counted as 12 * year + (month - 1), so a count that passes
+    December carries into January of the next year. Returns [year, month].
+    """
+    year, month = first_payment
+    carried_year, month_index = divmod(12 * year + (month - 1) + (k - 1), 12)
+    return [carried_year, month_index + 1]
+
+
+def loan_month_rows(first_payment, rows):
+    """Section 13.3: the section 6 rows with their dates (13.2) and two running totals.
+
+    Rows are [month, year, calendar_month, payment, interest, principal,
+    extra, balance, cumulative_interest, cumulative_principal], where
+    cumulative_principal counts the principal and the extra of this row and
+    every earlier one.
+    """
+    result = []
+    cumulative_interest = 0
+    cumulative_principal = 0
+    for month, payment, interest, principal, extra, balance in rows:
+        cumulative_interest += interest
+        cumulative_principal += principal + extra
+        year, calendar_month = payment_date(first_payment, month)
+        result.append([month, year, calendar_month, payment, interest, principal, extra, balance,
+                       cumulative_interest, cumulative_principal])
+    return result
+
+
+def loan_year_rows(month_rows):
+    """Section 13.3: one row per calendar year with a payment dated in it, in order.
+
+    Rows are [year, payments, scheduled, principal, interest, extra,
+    end_balance, cumulative_interest, cumulative_principal]: the number of
+    month rows dated in the year, the sums of their payment (`scheduled`),
+    principal, interest and extra, then the balance and the two running
+    totals at the year's last row.
+    """
+    years = []
+    for row in month_rows:
+        _, year, _, payment, interest, principal, extra, balance, cumulative_interest, cumulative_principal = row
+        if not years or years[-1][0] != year:
+            years.append([year, 0, 0, 0, 0, 0, 0, 0, 0])
+        totals = years[-1]
+        totals[1] += 1
+        totals[2] += payment
+        totals[3] += principal
+        totals[4] += interest
+        totals[5] += extra
+        totals[6:] = [balance, cumulative_interest, cumulative_principal]
+    return years
+
+
+def monthly_share(annual_cents):
+    """Section 13.5: round_cents(annual_cents / 12), the monthly part of a yearly amount."""
+    return round_cents(Decimal(annual_cents) / 12)
+
+
+def payment_breakdown(payment, spec):
+    """Section 13.5: the scheduled payment M kept apart from the other housing costs."""
+    tax = monthly_share(spec["property_tax_annual_cents"])
+    insurance = monthly_share(spec["insurance_annual_cents"])
+    mortgage_insurance = spec["mortgage_insurance_monthly_cents"]
+    hoa = spec["hoa_monthly_cents"]
+    return {
+        "property_tax_cents": tax,
+        "insurance_cents": insurance,
+        "mortgage_insurance_cents": mortgage_insurance,
+        "hoa_cents": hoa,
+        "total_monthly_cents": payment + tax + insurance + mortgage_insurance + hoa,
+    }
+
+
+def one_time_entries(pairs):
+    """Section 6 one-time payments as amortize takes them, from the fixture's [[month, amount_cents], ...]."""
+    return [{"month": month, "amount_cents": amount} for month, amount in pairs]
+
+
+def loan_report(spec):
+    """Section 13 for one loan, built on the section 6 amortization (amortize).
+
+    The accelerated plan is the loan as entered and the baseline the same
+    loan with no extra and no one-time payments (13.4). Returns the payment
+    M, the section 6 rows of both plans, the month and year rows of the
+    accelerated plan (13.3) and the breakdown (13.5).
+    """
+    principal = spec["principal_cents"]
+    rate = Decimal(spec["annual_rate"])
+    term = spec["term_months"]
+    payment, rows = amortize(principal, rate, term, spec["extra_monthly_cents"], one_time_entries(spec["one_time"]))
+    # The baseline repeats the plan's rounding points up to its first extra payment, so the
+    # audit does not count them twice.
+    baseline_payment, baseline_rows = without_audit(amortize, principal, rate, term, 0, [])
+    if baseline_payment != payment:
+        raise OracleError(f"{spec['id']}: the baseline has a different payment")
+    month_rows = loan_month_rows(spec["first_payment"], rows)
+    return {
+        "payment": payment,
+        "rows": rows,
+        "baseline_rows": baseline_rows,
+        "month_rows": month_rows,
+        "year_rows": loan_year_rows(month_rows),
+        "breakdown": payment_breakdown(payment, spec),
+    }
+
+
+def exact_payment(principal_cents, rate, term_months):
+    """Section 6's M from exact fractions, a cross-check of scheduled_payment.
+
+    `rate` is a Fraction. M = P * i / (1 - (1 + i)^(-N)) with i = r / 12 is
+    P * r * (12 + r)^N / (12 * ((12 + r)^N - 12^N)), an exact fraction, or P / N
+    at a zero rate; it is positive, so half away from zero is floor(x + 1/2).
+    """
+    if rate == 0:
+        value = Fraction(principal_cents, term_months)
+    else:
+        grown = (12 + rate) ** term_months
+        value = principal_cents * rate * grown / (12 * (grown - 12 ** term_months))
+    return math.floor(value + HALF_FRACTION)
+
+
+def loan_report_restated(spec, extra_monthly_cents, one_time):
+    """Sections 6, 13.2 and 13.3 restated, a cross-check of loan_report written separately from amortize.
+
+    Exact fractions throughout: the payment from exact_payment, each month's
+    interest floor(balance * r / 12 + 1/2) (half away from zero, the balance
+    being nonnegative), the one-time amounts due found by scanning the list
+    each month, the date advanced one calendar month per payment (to January
+    of the next year after December), and the year rows accumulated during
+    the walk. Returns (payment, month rows, year rows) in the layouts of
+    loan_month_rows and loan_year_rows.
+    """
+    principal = spec["principal_cents"]
+    rate = Fraction(spec["annual_rate"])
+    term = spec["term_months"]
+    payment = exact_payment(principal, rate, term)
+    if rate > 0 and payment <= math.floor(principal * rate / 12 + HALF_FRACTION):
+        raise OracleError(f"{spec['id']}: payment-does-not-cover-interest (restated)")
+    year, calendar_month = spec["first_payment"]
+    balance = principal
+    cumulative_interest = 0
+    cumulative_principal = 0
+    month_rows = []
+    year_rows = {}
+    for month in range(1, term + 1):
+        interest = math.floor(balance * rate / 12 + HALF_FRACTION)
+        if month == term or balance + interest <= payment:
+            paid, principal_part, extra = balance + interest, balance, 0
+        else:
+            paid, principal_part = payment, payment - interest
+            due = extra_monthly_cents + sum(amount for due_month, amount in one_time if due_month == month)
+            extra = min(due, balance - principal_part)
+        balance -= principal_part + extra
+        cumulative_interest += interest
+        cumulative_principal += principal_part + extra
+        month_rows.append([month, year, calendar_month, paid, interest, principal_part, extra, balance,
+                           cumulative_interest, cumulative_principal])
+        totals = year_rows.setdefault(year, [year, 0, 0, 0, 0, 0, 0, 0, 0])
+        totals[1] += 1
+        totals[2] += paid
+        totals[3] += principal_part
+        totals[4] += interest
+        totals[5] += extra
+        totals[6] = balance
+        totals[7] = cumulative_interest
+        totals[8] = cumulative_principal
+        if balance == 0:
+            break
+        calendar_month += 1
+        if calendar_month == 13:
+            calendar_month = 1
+            year += 1
+    return payment, month_rows, list(year_rows.values())
+
+
+def check_amortization(case_id, label, principal, payment, rows, term):
+    """Section 6 identities for one plan, and the row arithmetic they rest on."""
+    total_interest = sum(row[2] for row in rows)
+    total_paid = sum(row[1] + row[4] for row in rows)
+    check(sum(row[3] + row[4] for row in rows) == principal, case_id, f"{label}: principal plus extra differs from P")
+    check(rows[-1][5] == 0, case_id, f"{label}: final balance is not 0")
+    check(total_paid == principal + total_interest, case_id, f"{label}: total paid differs from P plus interest")
+    check(1 <= len(rows) <= term, case_id, f"{label}: {len(rows)} rows for a term of {term}")
+    balance = principal
+    for index, (month, paid, interest, principal_part, extra, after) in enumerate(rows):
+        check(month == index + 1, case_id, f"{label}: month {month} out of order")
+        check(paid == interest + principal_part, case_id, f"{label} month {month}: payment is not interest plus principal")
+        check(after == balance - principal_part - extra, case_id, f"{label} month {month}: balance does not carry")
+        check(min(paid, interest, principal_part, extra, after) >= 0, case_id, f"{label} month {month}: negative value")
+        if month < len(rows):
+            check(paid == payment and after > 0, case_id, f"{label} month {month}: not a scheduled payment")
+        balance = after
+
+
+def check_closed_form_balance(case_id, principal, rate_text, payment, rows):
+    """FINANCIAL_MODEL_REQUIREMENTS 5.1: the baseline balance against B_k = P(1 + i)^k - M((1 + i)^k - 1) / i.
+
+    Each month's interest is rounded by at most half a cent, and each error
+    then grows with the balance, so after k scheduled payments the balance is
+    within ((1 + i)^k - 1) / (2i) of B_k (exactly P - kM at a zero rate). The
+    final row is left out: it is not a payment of M.
+    """
+    rate = Decimal(rate_text)
+    i = rate / 12
+    growth = ONE
+    for month, _, _, _, _, balance in rows[:-1]:
+        if rate == 0:
+            check(balance == principal - month * payment, case_id, f"month {month}: balance {balance} is not P - kM")
+            continue
+        growth *= ONE + i
+        closed = principal * growth - payment * (growth - ONE) / i
+        bound = (growth - ONE) / (2 * i)
+        if abs(balance - closed) > bound + Decimal("1e-50"):
+            check(False, case_id, f"month {month}: balance {balance}, closed form {closed}, bound {bound}")
+            return
+
+
+def check_loan_report_inputs(spec):
+    """Sections 6 and 13.1 input rules, so that no case is invalid by mistake."""
+    case_id = spec["id"]
+    term = spec["term_months"]
+    check(1 <= spec["principal_cents"] <= LOAN_AMOUNT_MAX, case_id, "principal out of range")
+    check(0 <= Decimal(spec["annual_rate"]) <= 1, case_id, "rate out of range")
+    check(1 <= term <= LOAN_TERM_MAX, case_id, "term out of range")
+    check(0 <= spec["extra_monthly_cents"] <= LOAN_AMOUNT_MAX, case_id, "extra out of range")
+    for month, amount in spec["one_time"]:
+        check(1 <= month <= term and 1 <= amount <= LOAN_AMOUNT_MAX, case_id, f"one-time [{month}, {amount}]")
+    year, month = spec["first_payment"]
+    check(FIRST_PAYMENT_YEARS[0] <= year <= FIRST_PAYMENT_YEARS[1] and 1 <= month <= 12, case_id,
+          f"first payment {spec['first_payment']}")
+    for key in ("property_tax_annual_cents", "insurance_annual_cents", "mortgage_insurance_monthly_cents",
+                "hoa_monthly_cents"):
+        check(0 <= spec[key] <= LOAN_AMOUNT_MAX, case_id, f"{key} out of range")
+    for key, value in spec.items():
+        if key not in ("id", "annual_rate", "one_time", "first_payment"):
+            check(isinstance(value, int) and not isinstance(value, bool), case_id, f"{key} is not an integer")
+
+
+def check_loan_report(spec, report):
+    """Every section 13 check for one case. Returns facts about the case for the coverage check.
+
+    (a) Section 6 identities for both plans, and the payment against its
+    exact fraction. (b) 13.2: the first row is dated first_payment, each row
+    one calendar month after the last (January after December), the payoff
+    date is the last row's and first_payment plus months - 1. (c) 13.3: the
+    running totals, cumulative principal plus balance equal to P on every
+    row, and every year identity. (d) 13.4: savings never negative, the
+    plan's balance never above the baseline's, and with no extra paid the
+    two plans identical. (e) The restatement in fractions gives the same
+    payment, month rows and year rows for both plans. (f) 13.5: each monthly
+    share restated in integers, the total, and the first month's payment
+    equal to M. (g) The baseline balance against the closed form.
+    """
+    case_id = spec["id"]
+    principal = spec["principal_cents"]
+    term = spec["term_months"]
+    first_payment = spec["first_payment"]
+    payment = report["payment"]
+    rows = report["rows"]
+    baseline_rows = report["baseline_rows"]
+    month_rows = report["month_rows"]
+    year_rows = report["year_rows"]
+    months = len(rows)
+    total_interest = sum(row[2] for row in rows)
+    total_paid = sum(row[1] + row[4] for row in rows)
+
+    # (a) Section 6.
+    check_amortization(case_id, "plan", principal, payment, rows, term)
+    check_amortization(case_id, "baseline", principal, payment, baseline_rows, term)
+    check(payment == exact_payment(principal, Fraction(spec["annual_rate"]), term), case_id,
+          "the payment differs from its exact fraction")
+    check(not without_audit(payment_refused, principal, Decimal(spec["annual_rate"]), term), case_id,
+          "a refused loan is written")
+    if (principal, spec["annual_rate"], term) == (20_000_000, "0.06", 360):
+        check(payment == 119_910, case_id, f"reference payment {payment}, expected 119,910 (FMR 5.1)")
+
+    # (b) Section 13.2 dates.
+    check([row[0] for row in month_rows] == [row[0] for row in rows], case_id, "month rows are not the section 6 rows")
+    check(month_rows[0][1:3] == list(first_payment), case_id, "the first row is not dated first_payment")
+    for previous, row in zip(month_rows, month_rows[1:]):
+        year, calendar_month = previous[1:3]
+        expected = [year + 1, 1] if calendar_month == 12 else [year, calendar_month + 1]
+        check(row[1:3] == expected, case_id, f"month {row[0]}: dated {row[1:3]} after {previous[1:3]}")
+    for row in month_rows:
+        check(1 <= row[2] <= 12, case_id, f"month {row[0]}: calendar month {row[2]}")
+    payoff = month_rows[-1][1:3]
+    first_count = 12 * first_payment[0] + first_payment[1] - 1
+    check(12 * payoff[0] + payoff[1] - 1 == first_count + months - 1, case_id,
+          f"payoff {payoff} is not first_payment plus {months} - 1 months")
+    check(payoff == payment_date(first_payment, months), case_id, "payoff differs from the date of the last payment")
+
+    # (c) Section 13.3 month rows.
+    cumulative_interest = 0
+    cumulative_principal = 0
+    for row, source in zip(month_rows, rows):
+        check(row[:1] + row[3:8] == source, case_id, f"month {row[0]}: differs from the section 6 row")
+        cumulative_interest += row[4]
+        cumulative_principal += row[5] + row[6]
+        check(row[8:] == [cumulative_interest, cumulative_principal], case_id, f"month {row[0]}: running totals")
+        check(row[9] + row[7] == principal, case_id, f"month {row[0]}: cumulative principal plus balance is not P")
+    check(month_rows[-1][8] == total_interest and month_rows[-1][9] == principal, case_id, "last running totals")
+
+    # (c) Section 13.3 year rows.
+    first_year, first_month = first_payment
+    check([row[0] for row in year_rows] == list(range(first_year, payoff[0] + 1)), case_id,
+          "year rows are not the consecutive years from the first payment to the payoff")
+    expected_counts = []
+    remaining = months
+    room = 13 - first_month
+    while remaining > 0:
+        expected_counts.append(min(room, remaining))
+        remaining -= expected_counts[-1]
+        room = 12
+    check([row[1] for row in year_rows] == expected_counts, case_id,
+          f"payments per year {[row[1] for row in year_rows]}, expected {expected_counts}")
+    previous_end = principal
+    running_interest = 0
+    running_principal = 0
+    for year, payments, scheduled, principal_part, interest, extra, end, year_interest, year_principal in year_rows:
+        dated = [row for row in month_rows if row[1] == year]
+        check(len(dated) == payments, case_id, f"year {year}: {payments} payments, {len(dated)} dated in it")
+        check(scheduled == sum(row[3] for row in dated), case_id, f"year {year}: scheduled is not the sum of payment")
+        check(scheduled == principal_part + interest, case_id, f"year {year}: scheduled is not principal plus interest")
+        check(previous_end - principal_part - extra == end, case_id,
+              f"year {year}: previous end balance minus principal and extra is not the end balance")
+        check(end == dated[-1][7], case_id, f"year {year}: end balance is not the last row's")
+        running_interest += interest
+        running_principal += principal_part + extra
+        check([year_interest, year_principal] == [running_interest, running_principal], case_id,
+              f"year {year}: running totals")
+        check(year_principal + end == principal, case_id, f"year {year}: cumulative principal plus balance is not P")
+        previous_end = end
+    check(sum(row[3] + row[5] for row in year_rows) == principal, case_id, "years' principal plus extra is not P")
+    check(year_rows[-1][6] == 0, case_id, "the last end balance is not 0")
+    check(sum(row[4] for row in year_rows) == total_interest, case_id, "years' interest is not total_interest")
+    check(sum(row[1] for row in year_rows) == months, case_id, "years' payments are not the months")
+    check(sum(row[2] + row[5] for row in year_rows) == total_paid, case_id, "years' payments are not total_paid")
+
+    # (d) Section 13.4.
+    baseline_months = len(baseline_rows)
+    baseline_interest = sum(row[2] for row in baseline_rows)
+    months_saved = baseline_months - months
+    interest_saved = baseline_interest - total_interest
+    check(months_saved >= 0 and interest_saved >= 0, case_id,
+          f"extra payments increased months or interest: saved {months_saved} months, {interest_saved} cents")
+    for row, base in zip(rows, baseline_rows):
+        check(row[5] <= base[5], case_id, f"month {row[0]}: balance {row[5]} above the baseline's {base[5]}")
+    extra_paid = sum(row[4] for row in rows)
+    if extra_paid == 0:
+        check(rows == baseline_rows, case_id, "no extra was paid but the plan differs from the baseline")
+        check(months_saved == 0 and interest_saved == 0, case_id, "no extra was paid but something was saved")
+    if spec["extra_monthly_cents"] == 0 and not spec["one_time"]:
+        check(extra_paid == 0, case_id, "extra paid with none entered")
+
+    # (e) The restatement, for both plans.
+    restated_payment, restated_months, restated_years = without_audit(
+        loan_report_restated, spec, spec["extra_monthly_cents"], spec["one_time"])
+    check(restated_payment == payment, case_id, f"restated payment {restated_payment}, amortize {payment}")
+    check(restated_months == month_rows, case_id,
+          f"month rows differ from the restatement: {first_difference(month_rows, restated_months)}")
+    check(restated_years == year_rows, case_id,
+          f"year rows differ from the restatement: {first_difference(year_rows, restated_years)}")
+    _, baseline_restated, _ = without_audit(loan_report_restated, spec, 0, [])
+    check([row[:1] + row[3:8] for row in baseline_restated] == baseline_rows, case_id,
+          "baseline rows differ from the restatement")
+
+    # (f) Section 13.5.
+    breakdown = report["breakdown"]
+    for key, annual in (("property_tax_cents", spec["property_tax_annual_cents"]),
+                        ("insurance_cents", spec["insurance_annual_cents"])):
+        # Half away from zero of annual / 12 for a nonnegative integer: floor((annual + 6) / 12).
+        check(breakdown[key] == (annual + 6) // 12, case_id, f"{key} {breakdown[key]} for {annual} a year")
+        check(abs(12 * breakdown[key] - annual) <= 6, case_id, f"{key} is more than half a cent from annual / 12")
+    check(breakdown["mortgage_insurance_cents"] == spec["mortgage_insurance_monthly_cents"]
+          and breakdown["hoa_cents"] == spec["hoa_monthly_cents"], case_id, "monthly amounts not as entered")
+    others = sum(value for key, value in breakdown.items() if key != "total_monthly_cents")
+    check(breakdown["total_monthly_cents"] == payment + others, case_id, "total is not M plus the four amounts")
+    check(rows[0][1] == payment, case_id, f"the first month's payment {rows[0][1]} is not M = {payment} (13.5)")
+
+    # (g) The closed form for the baseline balance.
+    check_closed_form_balance(case_id, principal, spec["annual_rate"], payment, baseline_rows)
+
+    # Facts for the coverage check of build_loan_reports.
+    final_row = rows[-1]
+    applied = {}
+    for month, amount in spec["one_time"]:
+        applied.setdefault(month, []).append(amount)
+    # The last row is the final payment of section 6 step 2 exactly when it has no extra: after a
+    # scheduled payment the balance is still positive, so only an extra can bring it to 0.
+    scheduled_rows = rows if final_row[4] > 0 else rows[:-1]
+    capped = any(row[4] < spec["extra_monthly_cents"] + sum(applied.get(row[0], [])) for row in scheduled_rows)
+    return {
+        "first month": first_payment[1],
+        "zero rate": Decimal(spec["annual_rate"]) == 0,
+        "month rows": term <= LOAN_MONTH_ROWS_MAX_TERM,
+        "term": term,
+        "largest principal": principal == LOAN_AMOUNT_MAX,
+        "several one-time in one month": any(len(amounts) > 1 for amounts in applied.values()),
+        "one-time in month N": any(month == term for month in applied),
+        "one-time in the final payment month before N": any(
+            month == months < term and final_row[4] == 0 for month in applied),
+        "one-time after payoff": any(month > months for month in applied),
+        "paid off early by a one-time": final_row[4] > 0 and final_row[0] in applied,
+        "extra capped at the balance": capped,
+        "extra monthly": spec["extra_monthly_cents"] > 0,
+        "months saved": months_saved > 0,
+        "interest saved but no months": interest_saved > 0 and months_saved == 0,
+        "extra paid, nothing saved": extra_paid > 0 and months_saved == 0 and interest_saved == 0,
+        "extra entered, none paid": extra_paid == 0 and (spec["extra_monthly_cents"] > 0 or spec["one_time"]),
+        "baseline ends before N": baseline_months < term,
+        "final payment above M": final_row[1] > payment,
+        "exact half share": any(annual % 12 == 6 for annual in (spec["property_tax_annual_cents"],
+                                                                spec["insurance_annual_cents"])),
+        "share rounded down": any(annual % 12 in (1, 2, 3, 4, 5) for annual in (spec["property_tax_annual_cents"],
+                                                                                spec["insurance_annual_cents"])),
+        "share rounded up": any(annual % 12 in (7, 8, 9, 10, 11) for annual in (spec["property_tax_annual_cents"],
+                                                                               spec["insurance_annual_cents"])),
+        "all four housing costs": all(spec[key] > 0 for key in (
+            "property_tax_annual_cents", "insurance_annual_cents", "mortgage_insurance_monthly_cents",
+            "hoa_monthly_cents")),
+        "payoff after 2200": payoff[0] > FIRST_PAYMENT_YEARS[1],
+        "one-time out of month order": [month for month, _ in spec["one_time"]]
+        != sorted(month for month, _ in spec["one_time"]),
+    }
+
+
+def check_loan_report_fixture(case):
+    """Section 13.6 checked on the written case alone, as a reader of the fixture sees it.
+
+    The totals against the year rows, the payoff dates against the first
+    payment, the savings against the baseline, the month rows present exactly
+    for terms of at most 120 months (and then matching the year rows), and the
+    breakdown total.
+    """
+    case_id = case["id"]
+    yearly = case["yearly"]
+    first_count = 12 * case["first_payment"][0] + case["first_payment"][1] - 1
+
+    def date_count(date):
+        return 12 * date[0] + date[1] - 1
+
+    check(case["months"] == sum(row[1] for row in yearly), case_id, "fixture: months is not the years' payments")
+    check(case["total_interest_cents"] == sum(row[4] for row in yearly), case_id, "fixture: total interest")
+    check(case["total_paid_cents"] == sum(row[2] + row[5] for row in yearly)
+          == case["principal_cents"] + case["total_interest_cents"], case_id, "fixture: total paid")
+    check(date_count(case["payoff"]) == first_count + case["months"] - 1 and case["payoff"][0] == yearly[-1][0],
+          case_id, "fixture: payoff date")
+    baseline = case["baseline"]
+    check(date_count(baseline["payoff"]) == first_count + baseline["months"] - 1, case_id, "fixture: baseline payoff")
+    check(case["months_saved"] == baseline["months"] - case["months"]
+          and case["interest_saved_cents"] == baseline["total_interest_cents"] - case["total_interest_cents"],
+          case_id, "fixture: savings")
+    check(case["months_saved"] >= 0 and case["interest_saved_cents"] >= 0, case_id, "fixture: negative savings")
+    check(baseline["months"] <= case["term_months"], case_id, "fixture: baseline longer than the term")
+    check(("monthly" in case) == (case["term_months"] <= LOAN_MONTH_ROWS_MAX_TERM), case_id,
+          "fixture: month rows present or absent against 13.6")
+    if "monthly" in case:
+        monthly = case["monthly"]
+        check(len(monthly) == case["months"] and monthly[-1][1:3] == case["payoff"], case_id, "fixture: month rows")
+        check(loan_year_rows(monthly) == yearly, case_id, "fixture: month rows do not group into the year rows")
+    breakdown = case["breakdown"]
+    check(breakdown["total_monthly_cents"] == case["payment_cents"] + breakdown["property_tax_cents"]
+          + breakdown["insurance_cents"] + breakdown["mortgage_insurance_cents"] + breakdown["hoa_cents"], case_id,
+          "fixture: breakdown total")
+    check(list(breakdown) == ["property_tax_cents", "insurance_cents", "mortgage_insurance_cents", "hoa_cents",
+                              "total_monthly_cents"], case_id, "fixture: breakdown keys")
+    expected_keys = ["id", "principal_cents", "annual_rate", "term_months", "extra_monthly_cents", "one_time",
+                     "first_payment", "property_tax_annual_cents", "insurance_annual_cents",
+                     "mortgage_insurance_monthly_cents", "hoa_monthly_cents", "payment_cents", "months",
+                     "total_interest_cents", "total_paid_cents", "payoff", "yearly"]
+    expected_keys += ["monthly"] if "monthly" in case else []
+    expected_keys += ["baseline", "months_saved", "interest_saved_cents", "breakdown"]
+    check(list(case) == expected_keys, case_id, f"fixture: keys {list(case)}")
+    check(list(baseline) == ["months", "total_interest_cents", "payoff"], case_id, "fixture: baseline keys")
+    check(isinstance(case["annual_rate"], str), case_id, "fixture: the rate is not a decimal string")
+
+
+def loan_report_case(case_id, principal, rate, months, first_payment, extra=0, one_time=(), tax=0, insurance=0,
+                     mortgage_insurance=0, hoa=0):
+    """Section 13.6 inputs, in fixture order: the section 6 inputs, then those of 13.1."""
+    return {"id": case_id, "principal_cents": principal, "annual_rate": rate, "term_months": months,
+            "extra_monthly_cents": extra, "one_time": [[month, amount] for month, amount in one_time],
+            "first_payment": list(first_payment), "property_tax_annual_cents": tax, "insurance_annual_cents": insurance,
+            "mortgage_insurance_monthly_cents": mortgage_insurance, "hoa_monthly_cents": hoa}
+
+
+LOANS_SPECS = {}
+
+
+def loans_spec(loans_id):
+    """The inputs of a loans.json case, from loan_cases (computed once)."""
+    if not LOANS_SPECS:
+        LOANS_SPECS.update((spec["id"], spec) for spec in without_audit(loan_cases))
+    if loans_id not in LOANS_SPECS:
+        raise OracleError(f"no loans.json case {loans_id}")
+    return LOANS_SPECS[loans_id]
+
+
+def loans_inputs(loans_id):
+    """The section 6 inputs of a loans.json case, as (principal, rate, term, extra, one_time pairs)."""
+    spec = loans_spec(loans_id)
+    return (spec["principal_cents"], spec["annual_rate"], spec["term_months"], spec["extra_monthly_cents"],
+            [(item["month"], item["amount_cents"]) for item in spec["one_time"]])
+
+
+def from_loans(case_id, loans_id, first_payment, **costs):
+    """A loan report on the inputs of a loans.json case; LOAN_REPORT_SAME_AS records the pair."""
+    principal, rate, term, extra, one_time = loans_inputs(loans_id)
+    LOAN_REPORT_SAME_AS[case_id] = loans_id
+    return loan_report_case(case_id, principal, rate, term, first_payment, extra, one_time, **costs)
+
+
+# Report case -> loans.json case with the same section 6 inputs; their rows must be equal.
+LOAN_REPORT_SAME_AS = {}
+
+# Loans the section 6 check refuses (payment-does-not-cover-interest), from the examples in section
+# 6: they must be refused, so no fixture is written for them.
+LOAN_REPORT_REFUSED = [(1, "0.06", 3), (10_000_000, "0.30", 600), (10_000_000_000, "1", 280)]
+
+
+def loan_report_cases():
+    """Section 13 cases: 30- and 15-year mortgages, car loans and edge cases of dates, extras and costs."""
+    reference = (20_000_000, "0.06", 360)
+    # The balance left after month 120's scheduled payment: a one-time of exactly this pays the loan off.
+    payoff_120 = without_audit(balance_after, *reference, 120)
+    # The 15-year loan with $500 a month extra ends with a final payment (no extra) before month 180;
+    # a one-time due in that month is not paid (section 6).
+    fifteen = (30_000_000, "0.055", 180)
+    _, fifteen_rows = without_audit(amortize, fifteen[0], Decimal(fifteen[1]), fifteen[2], 50_000, [])
+    final_month = len(fifteen_rows)
+    if not (final_month < fifteen[2] and fifteen_rows[-1][4] == 0):
+        raise OracleError("the 15-year loan with extra does not end with a final payment before month 180")
+    return [
+        # FINANCIAL_MODEL_REQUIREMENTS 5.1 reference, 1,199.10 a month; the shares divide evenly.
+        from_loans("30-year-200000-6-percent-first-payment-june", "reference-30-year-6-percent", (2027, 6),
+                   tax=480_000, insurance=150_000),
+        # 360,006 / 12 = 30,000.5 exactly (rounded up to 30,001); 180,005 / 12 = 15,000.42 (down).
+        loan_report_case("30-year-6-percent-extra-200-monthly-first-payment-january", *reference, (2027, 1),
+                         extra=20_000, tax=360_006, insurance=180_005, mortgage_insurance=8_750, hoa=4_500),
+        # Three one-time payments in month 24 add up; 412,345 / 12 = 34,362.08 (down) and 210,011 / 12
+        # = 17,500.92 (up).
+        loan_report_case("30-year-6-percent-three-one-time-in-month-24-first-payment-december", *reference,
+                         (2026, 12), one_time=[(24, 100_000), (24, 250_000), (24, 50_000), (60, 500_000)],
+                         tax=412_345, insurance=210_011, hoa=35_000),
+        # Section 6 puts no order on the one-time list.
+        loan_report_case("30-year-6-percent-extra-and-one-time-listed-out-of-month-order", *reference, (2028, 4),
+                         extra=10_000, one_time=[(120, 2_000_000), (12, 1_000_000), (120, 500_000)]),
+        # Paid off in month 120 by a one-time of exactly the balance; the month-200 one is never paid.
+        loan_report_case("30-year-6-percent-one-time-pays-off-month-120-then-one-after-payoff", *reference,
+                         (2026, 9), one_time=[(120, payoff_120), (200, 1_000_000)]),
+        loan_report_case("30-year-6-percent-one-time-larger-than-balance-month-60", *reference, (2026, 2),
+                         one_time=[(60, 50_000_000)]),
+        # Month N is always the final payment, which carries no extra: the plan is the baseline.
+        loan_report_case("30-year-6-percent-one-time-in-final-scheduled-month-not-paid", *reference, (2026, 7),
+                         one_time=[(360, 1_000_000)]),
+        loan_report_case("30-year-6-percent-extra-1-cent-monthly", *reference, (2026, 5), extra=1),
+        # 198,006 / 12 = 16,500.5 exactly.
+        loan_report_case("15-year-5.5-percent-first-payment-march", *fifteen, (2026, 3), tax=540_000,
+                         insurance=198_006, mortgage_insurance=12_500),
+        loan_report_case("15-year-5.5-percent-extra-500-monthly", *fifteen, (2026, 3), extra=50_000, tax=540_000,
+                         insurance=198_006, mortgage_insurance=12_500),
+        loan_report_case("15-year-5.5-percent-extra-500-monthly-one-time-in-final-payment-month-not-paid", *fifteen,
+                         (2026, 3), extra=50_000, one_time=[(final_month, 5_000_000)]),
+        # The longest term at the largest principal, first paid in the last accepted month, with every
+        # housing cost at its maximum: 9,999,999,990 / 12 = 833,333,332.5 exactly. Payoff November 2250.
+        from_loans("max-principal-6-percent-600-months-first-payment-december-2200-max-housing-costs",
+                   "max-principal-6-percent-600-months", (2200, 12), tax=10_000_000_000, insurance=9_999_999_990,
+                   mortgage_insurance=10_000_000_000, hoa=10_000_000_000),
+        loan_report_case("600-months-7-percent-extra-and-one-time-first-payment-january-1970", 50_000_000, "0.07",
+                         600, (1970, 1), extra=25_000, one_time=[(1, 1_000_000), (300, 5_000_000)],
+                         tax=600_001, insurance=240_007, mortgage_insurance=1, hoa=99_999),
+        # M is rounded up by almost half a cent, so the baseline ends in month 262 of 279.
+        loan_report_case("max-principal-rate-1-279-months-baseline-ends-before-term-one-time", 10_000_000_000, "1",
+                         279, (2100, 7), one_time=[(100, 2_000_000_000)]),
+        from_loans("max-principal-rate-1-279-months-no-extra", "max-principal-rate-1-279-months-longest-accepted",
+                   (2099, 12)),
+        # M is rounded down, so the forced final payment in month 360 is above M.
+        from_loans("payment-rounded-down-final-payment-larger", "payment-rounded-down-final-payment-larger",
+                   (2026, 10), tax=300_000, insurance=96_000),
+        # One month over the limit of 13.6: no month rows.
+        loan_report_case("121-month-term-no-month-rows", 2_000_000, "0.05", 121, (2026, 6)),
+        # Car loans and short terms: month rows.
+        from_loans("car-loan-60-months-7.9-percent-first-payment-january", "5-year-7.9-percent", (2027, 1)),
+        loan_report_case("car-loan-72-months-8.49-percent-extra-and-one-time", 4_250_000, "0.0849", 72, (2026, 9),
+                         extra=15_000, one_time=[(13, 200_000)]),
+        # The two one-time payments of month 30 add up to more than the balance.
+        loan_report_case("car-loan-48-months-two-one-time-in-month-30-exceed-balance", 2_000_000, "0.06", 48,
+                         (2026, 11), one_time=[(30, 400_000), (30, 900_000)]),
+        from_loans("zero-rate-120-months", "zero-rate-120-months", (2026, 1)),
+        loan_report_case("zero-rate-48-months-extra-saves-months-not-interest", 2_400_000, "0", 48, (2026, 8),
+                         extra=10_000),
+        # A 1-cent one-time in month 1 is paid, but the last payment simply absorbs it.
+        loan_report_case("zero-rate-one-cent-one-time-saves-nothing", 1_200_000, "0", 120, (2026, 4),
+                         one_time=[(1, 1)]),
+        # 6 / 12 = 0.5 exactly (rounded up to 1) and 5 / 12 = 0.42 (down to 0).
+        from_loans("1-month-term-first-payment-december", "1-month-term", (2026, 12), tax=6, insurance=5,
+                   mortgage_insurance=1),
+        from_loans("1-month-term-half-cent-first-payment-january", "1-month-term-half-cent", (2027, 1)),
+        # The month-row boundary of 13.6: a 120-month term carries month rows.
+        from_loans("120-month-term-month-rows-one-time-month-1-and-extra", "one-time-month-1-and-extra", (2030, 1),
+                   tax=150_006, insurance=89_999),
+        from_loans("extra-ends-loan-in-month-2-across-december", "extra-ends-loan-in-month-2", (2026, 12)),
+        loan_report_case("max-principal-rate-1-extra-larger-than-balance-pays-off-month-1", 10_000_000_000, "1", 120,
+                         (2026, 6), extra=10_000_000_000),
+        from_loans("balance-plus-interest-equals-payment", "balance-plus-interest-equals-payment", (2026, 3)),
+        # January 2026 to January 2027: the last calendar year has one payment.
+        loan_report_case("13-months-12-percent-last-year-one-payment", 1_000_000, "0.12", 13, (2026, 1)),
+        # M = 0: a December payment of 0, then eleven more rows in the next year.
+        from_loans("one-cent-zero-rate-12-months-first-payment-december", "one-cent-zero-rate-12-months", (2026, 12)),
+        from_loans("half-cent-interest-month-1", "half-cent-interest-month-1", (2026, 6)),
+    ]
+
+
+def build_loan_reports():
+    """Section 13 for every case, with check_loan_report applied, the refused loans and a coverage check."""
+    for principal, rate, term in LOAN_REPORT_REFUSED:
+        where = f"refused loan {principal} at {rate} over {term} months"
+        check(without_audit(payment_refused, principal, Decimal(rate), term), where, "not refused by section 6")
+        restated = loan_report_case("refused", principal, rate, term, (2026, 1))
+        try:
+            without_audit(loan_report_restated, restated, 0, [])
+            check(False, where, "not refused by the restatement")
+        except OracleError:
+            pass
+    AUDIT.case = "loan_reports case setup"
+    specs = loan_report_cases()
+    cases = []
+    facts = []
+    for spec in specs:
+        case_id = spec["id"]
+        AUDIT.case = f"loan_reports {case_id}"
+        check_loan_report_inputs(spec)
+        report = loan_report(spec)
+        facts.append(check_loan_report(spec, report))
+        if case_id in LOAN_REPORT_SAME_AS:
+            twin = loans_spec(LOAN_REPORT_SAME_AS[case_id])
+            _, twin_rows = without_audit(amortize, twin["principal_cents"], Decimal(twin["annual_rate"]),
+                                         twin["term_months"], twin["extra_monthly_cents"], twin["one_time"])
+            check(report["rows"] == twin_rows, case_id, f"rows differ from loans.json {twin['id']}")
+        rows = report["rows"]
+        baseline_rows = report["baseline_rows"]
+        total_interest = sum(row[2] for row in rows)
+        baseline_interest = sum(row[2] for row in baseline_rows)
+        first_payment = spec["first_payment"]
+        case = {
+            **spec,
+            "payment_cents": report["payment"],
+            "months": len(rows),
+            "total_interest_cents": total_interest,
+            "total_paid_cents": sum(row[1] + row[4] for row in rows),
+            "payoff": payment_date(first_payment, len(rows)),
+            "yearly": report["year_rows"],
+        }
+        if spec["term_months"] <= LOAN_MONTH_ROWS_MAX_TERM:
+            case["monthly"] = report["month_rows"]
+        case.update({
+            "baseline": {
+                "months": len(baseline_rows),
+                "total_interest_cents": baseline_interest,
+                "payoff": payment_date(first_payment, len(baseline_rows)),
+            },
+            "months_saved": len(baseline_rows) - len(rows),
+            "interest_saved_cents": baseline_interest - total_interest,
+            "breakdown": report["breakdown"],
+        })
+        check_loan_report_fixture(case)
+        cases.append(case)
+    # A one-time due in the month that becomes the final payment is not paid (section 6): the plan
+    # with it equals the plan without it.
+    by_id = {case["id"]: case for case in cases}
+    with_one = by_id["15-year-5.5-percent-extra-500-monthly-one-time-in-final-payment-month-not-paid"]
+    without_one = by_id["15-year-5.5-percent-extra-500-monthly"]
+    outputs = ("payment_cents", "months", "total_interest_cents", "total_paid_cents", "payoff", "yearly", "baseline")
+    check(all(with_one[key] == without_one[key] for key in outputs), with_one["id"],
+          "the one-time in the final payment month changed the plan")
+
+    # Coverage: every situation the case grid is meant to reach is reached by some case.
+    wanted = [
+        ("first payment in January", lambda fact: fact["first month"] == 1),
+        ("first payment in December", lambda fact: fact["first month"] == 12),
+        ("first payment mid-year", lambda fact: 2 <= fact["first month"] <= 11),
+        ("a zero rate", lambda fact: fact["zero rate"]),
+        ("month rows", lambda fact: fact["month rows"]),
+        ("no month rows", lambda fact: not fact["month rows"]),
+        ("a 120-month term", lambda fact: fact["term"] == LOAN_MONTH_ROWS_MAX_TERM),
+        ("a 121-month term", lambda fact: fact["term"] == LOAN_MONTH_ROWS_MAX_TERM + 1),
+        ("a 1-month term", lambda fact: fact["term"] == 1),
+        ("a 600-month term", lambda fact: fact["term"] == LOAN_TERM_MAX),
+        ("a 360-month term", lambda fact: fact["term"] == 360),
+        ("a 180-month term", lambda fact: fact["term"] == 180),
+        ("a 60- or 72-month term", lambda fact: fact["term"] in (60, 72)),
+    ] + [(key, lambda fact, key=key: fact[key]) for key in (
+        "largest principal", "several one-time in one month", "one-time in month N",
+        "one-time in the final payment month before N", "one-time after payoff", "paid off early by a one-time",
+        "extra capped at the balance", "extra monthly", "months saved", "interest saved but no months",
+        "extra paid, nothing saved", "extra entered, none paid", "baseline ends before N", "final payment above M",
+        "exact half share", "share rounded down", "share rounded up", "all four housing costs", "payoff after 2200",
+        "one-time out of month order")]
+    for label, test in wanted:
+        check(any(test(fact) for fact in facts), "loan_reports.json", f"no case has {label}")
+    ids = [case["id"] for case in cases]
+    check(len(set(ids)) == len(ids), "loan_reports.json", "duplicate case ids")
+    check_loan_sweep()
+    return fixture(cases=cases)
+
+
+def check_loan_sweep():
+    """Section 13.4 on loans from a seeded generator (FINANCIAL_MODEL_REQUIREMENTS 8.2); nothing is written.
+
+    Each loan has a random principal, rate, term, first payment, monthly
+    extra and up to four one-time payments, drawn with integer arithmetic
+    only. Checks: the plan never takes more months or more interest than the
+    baseline, and its balance is never above the baseline's; a larger monthly
+    extra with the same one-time payments never takes more months or
+    interest either; with no extra paid the plan is the baseline; the
+    restatement in fractions gives the same month and year rows as
+    loan_report for the plan and for the baseline. Refused loans are counted
+    and skipped.
+    """
+    generator = random.Random(LOAN_SWEEP_SEED)
+    summary = {"loans": 0, "refused": 0, "extra paid": 0, "months saved": 0, "zero rate": 0}
+    while summary["loans"] < LOAN_SWEEP_COUNT:
+        digits = generator.randrange(1, 11)
+        principal = min(generator.randrange(10 ** (digits - 1), 10 ** digits + 1), LOAN_AMOUNT_MAX)
+        kind = generator.randrange(10)
+        if kind == 0:
+            rate = "0"
+        elif kind == 1:
+            rate = format(Decimal(generator.randrange(1, 10_001)) / 10_000, "f")
+        else:
+            rate = format(Decimal(generator.randrange(1, 2_501)) / 100_000, "f")
+        term = generator.randrange(1, LOAN_TERM_MAX + 1)
+        extra = 0 if generator.randrange(3) == 0 else generator.randrange(1, 10 ** generator.randrange(1, 10))
+        one_time = [(generator.randrange(1, term + 1), generator.randrange(1, 10 ** generator.randrange(1, 11)))
+                    for _ in range(generator.randrange(5))]
+        first_payment = (generator.randrange(FIRST_PAYMENT_YEARS[0], FIRST_PAYMENT_YEARS[1] + 1),
+                         generator.randrange(1, 13))
+        if without_audit(payment_refused, principal, Decimal(rate), term):
+            summary["refused"] += 1
+            continue
+        case_id = f"sweep loan {summary['loans']}: {principal} at {rate} over {term} months"
+        spec = loan_report_case(case_id, principal, rate, term, first_payment, extra, one_time)
+        report = without_audit(loan_report, spec)
+        rows = report["rows"]
+        baseline_rows = report["baseline_rows"]
+        interest = sum(row[2] for row in rows)
+        baseline_interest = sum(row[2] for row in baseline_rows)
+        check(len(rows) <= len(baseline_rows) and interest <= baseline_interest, case_id,
+              "extra payments increased months or interest")
+        for row, base in zip(rows, baseline_rows):
+            if row[5] > base[5]:
+                check(False, case_id, f"month {row[0]}: balance above the baseline's")
+                break
+        _, more_rows = without_audit(amortize, principal, Decimal(rate), term, extra + generator.randrange(1, 100_000),
+                                     one_time_entries(spec["one_time"]))
+        check(len(more_rows) <= len(rows) and sum(row[2] for row in more_rows) <= interest, case_id,
+              "a larger monthly extra increased months or interest")
+        if sum(row[4] for row in rows) == 0:
+            check(rows == baseline_rows, case_id, "no extra was paid but the plan differs from the baseline")
+        else:
+            summary["extra paid"] += 1
+        restated_payment, restated_months, restated_years = without_audit(loan_report_restated, spec, extra,
+                                                                          spec["one_time"])
+        check(restated_payment == report["payment"] and restated_months == report["month_rows"]
+              and restated_years == report["year_rows"], case_id, "differs from the restatement")
+        _, baseline_restated, _ = without_audit(loan_report_restated, spec, 0, [])
+        check([row[:1] + row[3:8] for row in baseline_restated] == baseline_rows, case_id,
+              "baseline differs from the restatement")
+        summary["months saved"] += len(rows) < len(baseline_rows)
+        summary["zero rate"] += rate == "0"
+        summary["loans"] += 1
+    LOAN_SWEEP_SUMMARY.update(summary)
+
+
 def main():
     builders = [
         ("regdd.json", build_regdd),
@@ -2419,6 +3221,7 @@ def main():
         ("hysa.json", build_hysa),
         ("schedules.json", build_schedules),
         ("illustration.json", build_illustration),
+        ("loan_reports.json", build_loan_reports),
     ]
     contents = []
     try:
@@ -2480,6 +3283,10 @@ def main():
           f"in {len(ILLUSTRATION_NEAR)} case(s)")
     for case_id, count, rows in ILLUSTRATION_NEAR:
         print(f"  {case_id}: {count} of {rows} rows")
+    sweep = LOAN_SWEEP_SUMMARY
+    print(f"loan reports sweep: {sweep['loans']} seeded loan(s) checked against 13.4 and the restatement "
+          f"({sweep['extra paid']} with extra paid, {sweep['months saved']} saving months, {sweep['zero rate']} at a "
+          f"zero rate; {sweep['refused']} refused and skipped)")
     return 0
 
 

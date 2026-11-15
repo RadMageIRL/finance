@@ -1,0 +1,168 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import CalcField from '../../components/calc/CalcField.astro';
+import CalcSelect from '../../components/calc/CalcSelect.astro';
+import ScheduleView from '../../components/calc/ScheduleView.astro';
+import ShareExport from '../../components/calc/ShareExport.astro';
+import { paymentBreakdown, payoffComparison } from '../../lib/engines/loan-report';
+import { LOAN_GROUPINGS, LOAN_SOURCES, ONE_TIME_SLOTS, PAYOFF_ASSUMPTIONS, PAYOFF_SERIES, TERM_UNITS, breakdownRows, loanScheduleNotes, loanTable, nextMonth, payoffChartSvg, payoffView } from '../../lib/calc/loan-view';
+import { formatUSD } from '../../lib/calc/format';
+import { MONTH_NAMES } from '../../lib/calc/schedule-view';
+import { href } from '../../lib/url';
+import '../../styles/report.css';
+
+// The example is computed at build time with the same engine and view code the browser
+// uses, so the page shows real results without JavaScript.
+const first = nextMonth(new Date());
+const LOAN = { principal: 30_000_000, annualRate: 0.065, termMonths: 360, extraMonthly: 20_000 };
+const COSTS = { propertyTaxAnnual: 360_000, insuranceAnnual: 150_000, mortgageInsuranceMonthly: 0, hoaMonthly: 0 };
+const computed = payoffComparison(LOAN, first);
+if (!computed.ok) throw new Error('mortgage example scenario is invalid');
+const c = computed.value;
+const brk = paymentBreakdown(c.accelerated.schedule.payment, COSTS);
+if (!brk.ok) throw new Error('mortgage example costs are invalid');
+const view = payoffView(c);
+const parts = breakdownRows(brk.value);
+const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
+---
+<BaseLayout
+  title="Mortgage Payoff Calculator"
+  description="See how extra monthly or one-time payments shorten a mortgage and cut its interest: payoff date, months saved and interest saved, with taxes, insurance and HOA dues kept apart from principal and interest."
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators', path: 'calculators/' }, { label: 'Mortgage payoff' }]} />
+      <h1>Mortgage payoff calculator</h1>
+      <p class="lead">
+        See what extra payments do to a mortgage: when it is paid off, how many payments you
+        skip, and how much interest you save, next to the same loan without them.
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap page-body">
+    <div class="calc" data-calc="mortgage" data-state="ok">
+      <form class="calc__inputs" novalidate aria-labelledby="mp-inputs-title">
+        <h2 class="calc__heading" id="mp-inputs-title">Your mortgage</h2>
+        <p class="calc__note" data-out="shared-note" hidden></p>
+        <CalcField id="mp-principal" label="Loan balance" unitLabel="in dollars" kind="money" value="300,000.00" hint="For a new loan, the amount borrowed. For a loan you have, today's balance." />
+        <CalcField id="mp-rate" label="Interest rate (note rate)" unitLabel="in percent" kind="percent" value="6.5" hint="The rate in the loan agreement, not the APR." />
+        <div class="calc-account__row">
+          <CalcField id="mp-term" label="Term" kind="whole" value="30" hint="For a loan you have, the time left." />
+          <CalcSelect id="mp-term-unit" label="Term in" value="years" options={TERM_UNITS.map((u) => ({ value: u.value, label: u.label }))} hint="Years or months." />
+        </div>
+        <div class="calc-account__row">
+          <CalcSelect id="mp-first-month" label="First payment month" value={String(first.month)} options={months} hint="Labels the payments." />
+          <CalcField id="mp-first-year" label="First payment year" kind="whole" value={String(first.year)} hint="For example 2027." />
+        </div>
+        <fieldset class="calc-account">
+          <legend>Extra payments</legend>
+          <CalcField id="mp-extra" label="Extra each month" unitLabel="in dollars" kind="money" value="200.00" hint="Added to every payment, all toward principal. 0 for none." />
+          <p class="hint">One-time payments: give the payment number they go with (1 is the first payment). Leave a row blank if you do not need it.</p>
+          {ONE_TIME_SLOTS.map((slot) => (
+            <div class="calc-account__row">
+              <CalcField id={`mp-o${slot}`} label={`One-time ${slot}: with payment number`} kind="whole" value="" hint="" />
+              <CalcField id={`mp-o${slot}a`} label="Amount" unitLabel="in dollars" kind="money" value="" hint="" />
+            </div>
+          ))}
+        </fieldset>
+        <fieldset class="calc-account">
+          <legend>Other housing costs <span class="calc-account__optional">(not part of the loan)</span></legend>
+          <div class="calc-account__row">
+            <CalcField id="mp-tax" label="Property tax per year" unitLabel="in dollars" kind="money" value="3,600.00" hint="" />
+            <CalcField id="mp-insurance" label="Homeowners insurance per year" unitLabel="in dollars" kind="money" value="1,500.00" hint="" />
+          </div>
+          <div class="calc-account__row">
+            <CalcField id="mp-mi" label="Mortgage insurance per month" unitLabel="in dollars" kind="money" value="0.00" hint="" />
+            <CalcField id="mp-hoa" label="HOA dues per month" unitLabel="in dollars" kind="money" value="0.00" hint="" />
+          </div>
+        </fieldset>
+        <p class="calc__nojs small muted">This calculator needs JavaScript to recalculate. Without it, the results show the example above.</p>
+      </form>
+
+      <section class="calc__results" aria-labelledby="mp-results-title">
+        <div class="calc__results-head">
+          <h2 class="calc__heading" id="mp-results-title">Interest saved</h2>
+          <ClaimLabel kind="forecast" />
+        </div>
+        <div class="calc__values">
+          <p class="calc__hero" data-out="hero">{view.hero}</p>
+          <p class="calc__hero-note" data-out="hero-note">{view.heroNote}</p>
+          <div class="table-wrap">
+            <table class="compare-table">
+              <caption class="vh">The loan with and without the extra payments</caption>
+              <thead><tr><th scope="col"></th><th scope="col" class="num">Without extra</th><th scope="col" class="num">With extra</th></tr></thead>
+              <tbody data-out="compare-rows">
+                {view.rows.map((r) => <tr><th scope="row">{r.label}</th><td class="num">{r.baseline}</td><td class="num">{r.accelerated}</td></tr>)}
+              </tbody>
+            </table>
+          </div>
+          <h3 class="calc__subheading">Monthly payment</h3>
+          <dl class="breakdown">
+            <div><dt>{parts[0]!.label}</dt><dd data-out="part-0">{parts[0]!.value}</dd></div>
+          </dl>
+          <p class="breakdown__group">Other housing costs, kept apart from the loan</p>
+          <dl class="breakdown">
+            {parts.slice(1).map((p, i) => <div><dt>{p.label}</dt><dd data-out={`part-${i + 1}`}>{p.value}</dd></div>)}
+            <div class="breakdown__total"><dt>Total monthly payment</dt><dd data-out="total-monthly">{formatUSD(brk.value.total)}</dd></div>
+          </dl>
+          <p class="calc__summary" data-out="summary">{view.summary}</p>
+        </div>
+        <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
+        <p class="calc__incomplete" data-out="incomplete">Enter your own dollar amounts to see results.</p>
+        <p class="vh" data-out="status" role="status" aria-live="polite"></p>
+        <ShareExport idPrefix="mp" />
+        <p class="small muted">A hypothetical schedule, not a loan offer, a payoff quote or a statement. <a href={href('disclaimer/')}>Disclaimer</a>.</p>
+      </section>
+    </div>
+
+    <div class="calc-sticky" data-sticky aria-hidden="true">
+      <span>Interest saved</span>
+      <strong data-out="hero-sticky">{view.hero}</strong>
+    </div>
+
+    <ScheduleView id="mp-schedule" heading="Balance and schedule" series={PAYOFF_SERIES} svg={payoffChartSvg(c, 'year')} table={loanTable(c.accelerated, 'year', { extra: true, baseline: c.baseline })} notes={loanScheduleNotes('year', true)} groupings={LOAN_GROUPINGS} chartHelp="the balance left with and without the extra payments" />
+
+    <div class="prose calc-notes">
+      <h2>Why extra payments save so much</h2>
+      <p>
+        Interest each month is charged on the balance still owed. An extra payment goes
+        entirely to principal, so every later month's interest is charged on a smaller
+        balance, and more of each regular payment goes to principal. The regular payment does
+        not change; the loan simply ends sooner. The savings are largest early in the loan,
+        when the balance is highest.
+      </p>
+      <p>
+        On a mortgage, the total monthly payment usually includes "additional costs like
+        homeowners insurance, taxes, and possibly mortgage insurance." <span class="cite">CFPB</span> Those
+        are shown apart here because extra payments do not change them.
+      </p>
+
+      <h2>Assumptions</h2>
+      <ul>
+        {PAYOFF_ASSUMPTIONS.map((a) => <li>{a}</li>)}
+      </ul>
+
+      <h2>How this is calculated</h2>
+      <p>
+        The calculator builds the loan twice: as entered, and without any extra payments. Each
+        month, interest is the balance times one twelfth of the interest rate, rounded to the
+        cent; the regular payment covers it and repays principal; then the extra payment, if
+        any, repays more principal. Interest saved and time saved are the differences between
+        the two. The calculation is checked against an independent implementation that uses
+        exact decimal arithmetic. See the <a href={href('calculators/amortization/')}>loan amortization calculator</a> for the payment formula, and the <a href={href('methodology/')}>Methodology</a>.
+      </p>
+
+      <h2>Sources</h2>
+      <ul class="small">
+        {LOAN_SOURCES.map((s) => <li>{s}</li>)}
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import '../../scripts/calc/mortgage';
+</script>

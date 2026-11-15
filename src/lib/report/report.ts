@@ -46,6 +46,8 @@ export interface Report {
   inputs: readonly ReportItem[];
   /** How the final balance splits into what was put in and interest, or null. */
   composition: readonly ReportShare[] | null;
+  /** Heading and caption for the composition; savings defaults apply when left out. */
+  compositionText?: { heading: string; caption: string; shareLabel: string };
   /** Each rate change, stated in words, or null when there are none to state. */
   rateChanges: readonly string[] | null;
   /** Further short tables, for example an account comparison. */
@@ -58,6 +60,8 @@ export interface Report {
 
 export const REPORT_NOTICE =
   'For illustration only. This is not a bank or account statement, not an offer of any product, and not financial, tax or legal advice. The results follow from the inputs and assumptions listed in this report; real accounts and rates will differ.';
+
+const COMPOSITION_DEFAULT = { heading: 'Interest versus what was put in', caption: 'How the final balance is made up', shareLabel: 'Share of the final balance' };
 
 export const REPORT_PRIVACY = 'Calculated in your browser. Nothing you entered or any result was sent to a server.';
 
@@ -147,13 +151,14 @@ export function reportBody(report: Report): string {
       `<p class="rmf-report__headline"><span>${e(report.headline.label)}</span> <strong>${e(report.headline.value)}</strong></p>${items(report.summary)}<p>${e(report.sentence)}</p>`,
     ),
   );
+  const composed = report.compositionText ?? COMPOSITION_DEFAULT;
   if (report.composition) {
     const rows = report.composition.map((c) => `<tr><th scope="row">${e(c.label)}</th><td>${e(c.value)}</td><td>${e(c.share)}</td></tr>`).join('');
     parts.push(
       section(
         'composition',
-        'Interest versus what was put in',
-        `<table><caption>How the final balance is made up</caption><colgroup><col><col class="num"><col class="num"></colgroup><thead><tr><th scope="col">Part</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Share of the final balance</th></tr></thead><tbody>${rows}</tbody></table>`,
+        composed.heading,
+        `<table><caption>${e(composed.caption)}</caption><colgroup><col><col class="num"><col class="num"></colgroup><thead><tr><th scope="col">Part</th><th scope="col" class="num">Amount</th><th scope="col" class="num">${e(composed.shareLabel)}</th></tr></thead><tbody>${rows}</tbody></table>`,
       ),
     );
   }
@@ -230,7 +235,7 @@ export function reportText(report: Report): string {
   for (const i of report.summary) out.push(`${i.label}: ${i.value}`);
   out.push('', ...wrap(report.sentence));
   if (report.composition) {
-    heading('Interest versus what was put in');
+    heading((report.compositionText ?? COMPOSITION_DEFAULT).heading);
     const width = Math.max(...report.composition.map((c) => c.label.length));
     for (const c of report.composition) out.push(`${c.label.padEnd(width)}  ${c.value.padStart(18)}  ${c.share.padStart(6)}`);
   }

@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import CalcField from '../../components/calc/CalcField.astro';
+import CalcSelect from '../../components/calc/CalcSelect.astro';
+import ScheduleView from '../../components/calc/ScheduleView.astro';
+import ShareExport from '../../components/calc/ShareExport.astro';
+import { loanPlan } from '../../lib/engines/loan-report';
+import { LOAN_ASSUMPTIONS, LOAN_GROUPINGS, LOAN_SERIES, LOAN_SOURCES, TERM_UNITS, loanChartSvg, loanScheduleNotes, loanTable, loanView, nextMonth } from '../../lib/calc/loan-view';
+import { MONTH_NAMES } from '../../lib/calc/schedule-view';
+import { href } from '../../lib/url';
+import '../../styles/report.css';
+
+// The example is computed at build time with the same engine and view code the browser
+// uses, so the page shows real results without JavaScript. The first payment defaults to
+// the month after the build.
+const first = nextMonth(new Date());
+const DEFAULT = { principal: 3_000_000, annualRate: 0.07, termMonths: 60 };
+const computed = loanPlan(DEFAULT, first);
+if (!computed.ok) throw new Error('loan example scenario is invalid');
+const plan = computed.value;
+const view = loanView(DEFAULT, plan);
+const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
+---
+<BaseLayout
+  title="Loan Amortization Calculator"
+  description="See the monthly payment on a loan, how each payment splits between principal and interest, and the full schedule by month or by year, with the payoff date and total interest."
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators', path: 'calculators/' }, { label: 'Loan amortization' }]} />
+      <h1>Loan amortization calculator</h1>
+      <p class="lead">
+        Find the monthly payment on a fixed-rate loan, then follow every payment: how much
+        goes to interest, how much repays the loan, and what is left to pay.
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap page-body">
+    <div class="calc" data-calc="loan" data-state="ok">
+      <form class="calc__inputs" novalidate aria-labelledby="la-inputs-title">
+        <h2 class="calc__heading" id="la-inputs-title">Your loan</h2>
+        <p class="calc__note" data-out="shared-note" hidden></p>
+        <CalcField id="la-principal" label="Loan amount" unitLabel="in dollars" kind="money" value="30,000.00" hint="The amount you borrow." />
+        <CalcField id="la-rate" label="Interest rate (note rate)" unitLabel="in percent" kind="percent" value="7" hint="The rate in the loan agreement, for example 6.5. Not the APR, which also counts fees." />
+        <div class="calc-account__row">
+          <CalcField id="la-term" label="Term" kind="whole" value="5" hint="Up to 50 years (600 months)." />
+          <CalcSelect id="la-term-unit" label="Term in" value="years" options={TERM_UNITS.map((u) => ({ value: u.value, label: u.label }))} hint="Years or months." />
+        </div>
+        <div class="calc-account__row">
+          <CalcSelect id="la-first-month" label="First payment month" value={String(first.month)} options={months} hint="Labels the payments." />
+          <CalcField id="la-first-year" label="First payment year" kind="whole" value={String(first.year)} hint="For example 2027." />
+        </div>
+        <p class="calc__nojs small muted">This calculator needs JavaScript to recalculate. Without it, the results show the example above.</p>
+      </form>
+
+      <section class="calc__results" aria-labelledby="la-results-title">
+        <div class="calc__results-head">
+          <h2 class="calc__heading" id="la-results-title">Monthly payment</h2>
+          <ClaimLabel kind="forecast" />
+        </div>
+        <div class="calc__values">
+          <p class="calc__hero" data-out="payment">{view.payment}</p>
+          <p class="calc__hero-note">principal and interest each month, paid off in <span data-out="payoff">{view.payoff}</span></p>
+          <dl class="breakdown">
+            {view.breakdown.map((b, i) => (
+              <div class:list={{ breakdown__total: i === 2 }}><dt>{b.label}</dt><dd data-out={`breakdown-${i}`}>{b.value}</dd></div>
+            ))}
+          </dl>
+          <p class="calc__summary" data-out="summary">{view.summary}</p>
+        </div>
+        <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
+        <p class="calc__incomplete" data-out="incomplete">Enter your own loan amount to see results.</p>
+        <p class="vh" data-out="status" role="status" aria-live="polite"></p>
+        <ShareExport idPrefix="la" />
+        <p class="small muted">A hypothetical schedule, not a loan offer or a statement. <a href={href('disclaimer/')}>Disclaimer</a>.</p>
+      </section>
+    </div>
+
+    <div class="calc-sticky" data-sticky aria-hidden="true">
+      <span>Monthly payment</span>
+      <strong data-out="payment-sticky">{view.payment}</strong>
+    </div>
+
+    <ScheduleView id="la-schedule" heading="Principal, interest and schedule" series={LOAN_SERIES} svg={loanChartSvg(plan, 'year', view.summary)} table={loanTable(plan, 'year', { extra: false })} notes={loanScheduleNotes('year', false)} groupings={LOAN_GROUPINGS} chartHelp="the principal and interest paid" />
+
+    <div class="prose calc-notes">
+      <h2>How a loan is paid down</h2>
+      <p>
+        Each month the loan charges interest on the balance still owed. The payment covers that
+        interest first, and the rest repays principal. Early on the balance is large, so most of
+        the payment is interest; as the balance falls, more and more goes to principal. The
+        payment stays the same, which is what makes the loan "amortizing."
+      </p>
+      <p>
+        On a mortgage, the total monthly payment usually includes more than principal and
+        interest: "additional costs like homeowners insurance, taxes, and possibly mortgage
+        insurance." <span class="cite">CFPB</span> The <a href={href('calculators/loan-payoff/')}>mortgage payoff calculator</a> keeps those apart and shows what extra payments save.
+      </p>
+
+      <h2>Assumptions</h2>
+      <ul>
+        {LOAN_ASSUMPTIONS.map((a) => <li>{a}</li>)}
+      </ul>
+
+      <h2>How this is calculated</h2>
+      <p>For a loan of P at a monthly rate i (the interest rate divided by 12) over N payments:</p>
+      <p class="formula"><code>payment = P × i / [1 − (1 + i)<sup>−N</sup>]</code></p>
+      <p>
+        rounded to the cent, or P / N at a zero rate. Each month, interest is the balance times i,
+        rounded to the cent; principal is the payment minus that interest. The last payment is
+        whatever balance is left plus its interest. Years in the schedule are calendar years of
+        the payment dates. The calculation is checked against an independent implementation
+        that uses exact decimal arithmetic. See the <a href={href('methodology/')}>Methodology</a>,
+        and the <a href={href('calculators/apr-apy/')}>APR and APY calculator</a> for why a loan's APR can differ from its note rate.
+      </p>
+
+      <h2>Sources</h2>
+      <ul class="small">
+        {LOAN_SOURCES.map((s) => <li>{s}</li>)}
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import '../../scripts/calc/loan';
+</script>

@@ -96,6 +96,14 @@ const MUTANTS = [
   ['calendar-53-weeks', `${E}calendar.ts`, '52: Array.from({ length: 52 }, (_, week) => 7 * week),', '52: Array.from({ length: 53 }, (_, week) => 7 * week),'],
   ['calendar-period-end-exclusive', `${E}calendar.ts`, 'starts[i]! <= offset', 'starts[i]! < offset'],
   ['calendar-day-month-late', `${E}calendar.ts`, 'MONTH_STARTS[month + 1]! <= offset', 'MONTH_STARTS[month + 1]! < offset'],
+  // Loan schedules, payoff comparison and payment breakdown (loan-report.ts, conventions 13)
+  ['loan-date-one-month-late', `${E}loan-report.ts`, 'const index = first.year * 12 + (first.month - 1) + (k - 1);', 'const index = first.year * 12 + (first.month - 1) + k;'],
+  ['loan-cumulative-principal-no-extra', `${E}loan-report.ts`, 'principal += row.principal + row.extra;', 'principal += row.principal;'],
+  ['loan-year-misses-extra', `${E}loan-report.ts`, 'y.extra += m.extra;', 'y.extra += 0;'],
+  ['loan-baseline-keeps-extras', `${E}loan-report.ts`, 'loanPlan({ principal: input.principal, annualRate: input.annualRate, termMonths: input.termMonths }, first)', 'loanPlan(input, first)'],
+  ['loan-months-saved-reversed', `${E}loan-report.ts`, 'monthsSaved: b.schedule.months - a.schedule.months,', 'monthsSaved: a.schedule.months - b.schedule.months,'],
+  ['loan-tax-truncated', `${E}loan-report.ts`, 'const propertyTax = roundCents(costs.propertyTaxAnnual / 12);', 'const propertyTax = Math.floor(costs.propertyTaxAnnual / 12);'],
+  ['loan-total-without-hoa', `${E}loan-report.ts`, '+ costs.mortgageInsuranceMonthly + costs.hoaMonthly,', '+ costs.mortgageInsuranceMonthly,'],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
   ['loan-months-per-year-13', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 13);'],

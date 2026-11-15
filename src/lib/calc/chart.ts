@@ -322,7 +322,7 @@ export function stackedAreaSvg(spec: SeriesOverTime): string {
  * Lines over many points, one per series, each with its name and final value written at its
  * end (direct labels, so identity never rests on color). Used by the rate illustration.
  */
-export function linesSvg(spec: SeriesOverTime): string {
+export function linesSvg(spec: SeriesOverTime & { endText?: (series: number) => string }): string {
   const W = Math.max(W_MIN, Math.round(spec.width ?? W_DEFAULT));
   const points = samplePoints(spec.count, W - AREA_M.left - AREA_M.right);
   let top = 0;
@@ -336,14 +336,16 @@ export function linesSvg(spec: SeriesOverTime): string {
     parts.push(`<path class="chart__line chart__line--${s + 1}" d="${d}"/>`);
   });
   parts.push(cursor());
-  // End labels, stacked upward from the lowest line so close lines never overlap.
+  // End labels, stacked upward from the lowest line so close lines never overlap. Custom end
+  // text (a payoff date, where every line ends at zero) goes in the top right corner instead.
   const last = spec.values(spec.count - 1);
   const order = spec.series.map((_s, i) => i).sort((a, b) => (last[a] ?? 0) - (last[b] ?? 0));
   let ceiling = Number.POSITIVE_INFINITY;
-  for (const s of order) {
-    const yText = Math.min(frame.y(last[s] ?? 0) - 8, ceiling - 15);
+  for (const [k, s] of order.entries()) {
+    const yText = spec.endText ? AREA_M.top + 4 + 16 * (order.length - 1 - k) : Math.min(frame.y(last[s] ?? 0) - 8, ceiling - 15);
     ceiling = yText;
-    parts.push(`<text class="chart__label" x="${f(W - AREA_M.right)}" y="${f(yText)}" text-anchor="end">${escapeXml(`${spec.series[s]!.label} ${spec.formatTotal(last[s] ?? 0)}`)}</text>`);
+    const text = spec.endText ? spec.endText(s) : `${spec.series[s]!.label} ${spec.formatTotal(last[s] ?? 0)}`;
+    parts.push(`<text class="chart__label" x="${f(W - AREA_M.right)}" y="${f(yText)}" text-anchor="end">${escapeXml(text)}</text>`);
   }
   parts.push('</svg>');
   return parts.join('');

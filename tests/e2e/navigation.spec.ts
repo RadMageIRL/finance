@@ -69,7 +69,15 @@ test.describe('More menu', () => {
 });
 
 test.describe('in-development items', () => {
-  for (const path of ['', 'learn/', 'calculators/']) {
+  test('/finance/calculators/ links every one of the five Phase 1 calculators', async ({ page }) => {
+    await page.goto(url('calculators/'));
+    await expect(page.locator('.badge', { hasText: 'In development' })).toHaveCount(0);
+    for (const path of ['compound-interest/', 'apr-apy/', 'savings-growth/', 'amortization/', 'loan-payoff/']) {
+      await expect(page.locator(`a[href="/finance/calculators/${path}"]`).first(), path).toBeVisible();
+    }
+  });
+
+  for (const path of ['', 'learn/']) {
     test(`/finance/${path} shows in-development cards that are not links`, async ({ page }) => {
       await page.goto(url(path));
       const cards = page.locator('.card').filter({ has: page.locator('.badge', { hasText: 'In development' }) });
