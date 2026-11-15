@@ -1,0 +1,782 @@
+{
+  "generator": "tests/oracle/generate.py",
+  "conventions": "v1.1",
+  "apy_from_nominal": [
+    {
+      "annual_rate": "0",
+      "periods_per_year": 1,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0",
+      "periods_per_year": 2,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0",
+      "periods_per_year": 4,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0",
+      "periods_per_year": 12,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0",
+      "periods_per_year": 52,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0",
+      "periods_per_year": 365,
+      "apy": "0",
+      "apy_percent": "0.00"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 1,
+      "apy": "0.0001000000000000000000000000",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 2,
+      "apy": "0.0001000025000000000000000000",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 4,
+      "apy": "0.0001000037500625003906250000",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 12,
+      "apy": "0.0001000045834606505353327549",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 52,
+      "apy": "0.0001000049040033321051050558",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.0001",
+      "periods_per_year": 365,
+      "apy": "0.0001000049864666732672976732",
+      "apy_percent": "0.01"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 1,
+      "apy": "0.005000000000000000000000000",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 2,
+      "apy": "0.005006250000000000000000000",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 4,
+      "apy": "0.005009382814941406250000000",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 12,
+      "apy": "0.005011474262614841353020509",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 52,
+      "apy": "0.005012279285367206130026512",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.005",
+      "periods_per_year": 365,
+      "apy": "0.005012486441478955563187929",
+      "apy_percent": "0.50"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 1,
+      "apy": "0.01000000000000000000000000",
+      "apy_percent": "1.00"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 2,
+      "apy": "0.01002500000000000000000000",
+      "apy_percent": "1.00"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 4,
+      "apy": "0.01003756253906250000000000",
+      "apy_percent": "1.00"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 12,
+      "apy": "0.01004596088718202262984124",
+      "apy_percent": "1.00"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 52,
+      "apy": "0.01004919600704625879743719",
+      "apy_percent": "1.00"
+    },
+    {
+      "annual_rate": "0.01",
+      "periods_per_year": 365,
+      "apy": "0.01005002872366807406678447",
+      "apy_percent": "1.01"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 1,
+      "apy": "0.03500000000000000000000000",
+      "apy_percent": "3.50"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 2,
+      "apy": "0.03530625000000000000000000",
+      "apy_percent": "3.53"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 4,
+      "apy": "0.03546206054931640625000000",
+      "apy_percent": "3.55"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 12,
+      "apy": "0.03556695294597047793355845",
+      "apy_percent": "3.56"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 52,
+      "apy": "0.03560751593705799917034331",
+      "apy_percent": "3.56"
+    },
+    {
+      "annual_rate": "0.035",
+      "periods_per_year": 365,
+      "apy": "0.03561797105717817449928281",
+      "apy_percent": "3.56"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 1,
+      "apy": "0.04250000000000000000000000",
+      "apy_percent": "4.25"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 2,
+      "apy": "0.04295156250000000000000000",
+      "apy_percent": "4.30"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 4,
+      "apy": "0.04318215434585571289062500",
+      "apy_percent": "4.32"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 12,
+      "apy": "0.04333771630961546199172864",
+      "apy_percent": "4.33"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 52,
+      "apy": "0.04339794456955449700643645",
+      "apy_percent": "4.34"
+    },
+    {
+      "annual_rate": "0.0425",
+      "periods_per_year": 365,
+      "apy": "0.04341347483719222272159681",
+      "apy_percent": "4.34"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 1,
+      "apy": "0.05000000000000000000000000",
+      "apy_percent": "5.00"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 2,
+      "apy": "0.05062500000000000000000000",
+      "apy_percent": "5.06"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 4,
+      "apy": "0.05094533691406250000000000",
+      "apy_percent": "5.09"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 12,
+      "apy": "0.05116189788173318980487389",
+      "apy_percent": "5.12"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 52,
+      "apy": "0.05124584192720030740278356",
+      "apy_percent": "5.12"
+    },
+    {
+      "annual_rate": "0.05",
+      "periods_per_year": 365,
+      "apy": "0.05126749646746255045496815",
+      "apy_percent": "5.13"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 1,
+      "apy": "0.05250000000000000000000000",
+      "apy_percent": "5.25"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 2,
+      "apy": "0.05318906250000000000000000",
+      "apy_percent": "5.32"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 4,
+      "apy": "0.05354266737075805664062500",
+      "apy_percent": "5.35"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 12,
+      "apy": "0.05378188672746103087863895",
+      "apy_percent": "5.38"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 52,
+      "apy": "0.05387465028229527351567336",
+      "apy_percent": "5.39"
+    },
+    {
+      "annual_rate": "0.0525",
+      "periods_per_year": 365,
+      "apy": "0.05389858326355142635185633",
+      "apy_percent": "5.39"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 1,
+      "apy": "0.06000000000000000000000000",
+      "apy_percent": "6.00"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 2,
+      "apy": "0.06090000000000000000000000",
+      "apy_percent": "6.09"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 4,
+      "apy": "0.06136355062500000000000000",
+      "apy_percent": "6.14"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 12,
+      "apy": "0.06167781186449956878970762",
+      "apy_percent": "6.17"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 52,
+      "apy": "0.06179981954938603395536244",
+      "apy_percent": "6.18"
+    },
+    {
+      "annual_rate": "0.06",
+      "periods_per_year": 365,
+      "apy": "0.06183131067785368935076848",
+      "apy_percent": "6.18"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 1,
+      "apy": "0.07500000000000000000000000",
+      "apy_percent": "7.50"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 2,
+      "apy": "0.07640625000000000000000000",
+      "apy_percent": "7.64"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 4,
+      "apy": "0.07713586578369140625000000",
+      "apy_percent": "7.71"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 12,
+      "apy": "0.07763259885603007017071605",
+      "apy_percent": "7.76"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 52,
+      "apy": "0.07782590943177232154499921",
+      "apy_percent": "7.78"
+    },
+    {
+      "annual_rate": "0.075",
+      "periods_per_year": 365,
+      "apy": "0.07787584644002577759605610",
+      "apy_percent": "7.79"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 1,
+      "apy": "0.1000000000000000000000000",
+      "apy_percent": "10.00"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 2,
+      "apy": "0.1025000000000000000000000",
+      "apy_percent": "10.25"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 4,
+      "apy": "0.1038128906250000000000000",
+      "apy_percent": "10.38"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 12,
+      "apy": "0.1047130674412972415905726",
+      "apy_percent": "10.47"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 52,
+      "apy": "0.1050647927797664216093807",
+      "apy_percent": "10.51"
+    },
+    {
+      "annual_rate": "0.1",
+      "periods_per_year": 365,
+      "apy": "0.1051557816162643739380116",
+      "apy_percent": "10.52"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 1,
+      "apy": "0.2499000000000000000000000",
+      "apy_percent": "24.99"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 2,
+      "apy": "0.2655125025000000000000000",
+      "apy_percent": "26.55"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 4,
+      "apy": "0.2743093792333320316406250",
+      "apy_percent": "27.43"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 12,
+      "apy": "0.2806061068716546940040455",
+      "apy_percent": "28.06"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 52,
+      "apy": "0.2831287560770881251659191",
+      "apy_percent": "28.31"
+    },
+    {
+      "annual_rate": "0.2499",
+      "periods_per_year": 365,
+      "apy": "0.2837872405971570246650532",
+      "apy_percent": "28.38"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 1,
+      "apy": "0.5000000000000000000000000",
+      "apy_percent": "50.00"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 2,
+      "apy": "0.5625000000000000000000000",
+      "apy_percent": "56.25"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 4,
+      "apy": "0.6018066406250000000000000",
+      "apy_percent": "60.18"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 12,
+      "apy": "0.6320941327229241763544067",
+      "apy_percent": "63.21"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 52,
+      "apy": "0.6447879215560917739134366",
+      "apy_percent": "64.48"
+    },
+    {
+      "annual_rate": "0.5",
+      "periods_per_year": 365,
+      "apy": "0.6481572517391195411326294",
+      "apy_percent": "64.82"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 1,
+      "apy": "1.000000000000000000000000",
+      "apy_percent": "100.00"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 2,
+      "apy": "1.250000000000000000000000",
+      "apy_percent": "125.00"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 4,
+      "apy": "1.441406250000000000000000",
+      "apy_percent": "144.14"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 12,
+      "apy": "1.613035290224678160299533",
+      "apy_percent": "161.30"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 52,
+      "apy": "1.692596954437177275561178",
+      "apy_percent": "169.26"
+    },
+    {
+      "annual_rate": "1",
+      "periods_per_year": 365,
+      "apy": "1.714567482021874303193886",
+      "apy_percent": "171.46"
+    }
+  ],
+  "nominal_from_apy": [
+    {
+      "apy": "0",
+      "periods_per_year": 1,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0",
+      "periods_per_year": 2,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0",
+      "periods_per_year": 4,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0",
+      "periods_per_year": 12,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0",
+      "periods_per_year": 52,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0",
+      "periods_per_year": 365,
+      "annual_rate": "0"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 1,
+      "annual_rate": "0.0001000000000000000000000000"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 2,
+      "annual_rate": "0.00009999750012499218804683399"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 4,
+      "annual_rate": "0.00009999625021873496206534040"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 12,
+      "annual_rate": "0.00009999541695946939065775663"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 52,
+      "annual_rate": "0.00009999509647760161376008299"
+    },
+    {
+      "apy": "0.0001",
+      "periods_per_year": 365,
+      "annual_rate": "0.00009999501403056998569403715"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 1,
+      "annual_rate": "0.01000000000000000000000000"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 2,
+      "annual_rate": "0.009975124224178054043852983"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 4,
+      "annual_rate": "0.009962717257284479795405110"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 12,
+      "annual_rate": "0.009954457372154834351197402"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 52,
+      "annual_rate": "0.009951282924318102950270402"
+    },
+    {
+      "apy": "0.01",
+      "periods_per_year": 365,
+      "annual_rate": "0.009950466483282870713872565"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 1,
+      "annual_rate": "0.04250000000000000000000000"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 2,
+      "annual_rate": "0.04205778566621370720813351"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 4,
+      "annual_rate": "0.04183897320634356536282654"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 12,
+      "annual_rate": "0.04169394004197125432689456"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 52,
+      "annual_rate": "0.04163833648025165906771870"
+    },
+    {
+      "apy": "0.0425",
+      "periods_per_year": 365,
+      "annual_rate": "0.04162404788212664027447888"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 1,
+      "annual_rate": "0.05000000000000000000000000"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 2,
+      "annual_rate": "0.04939015319191967664420774"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 4,
+      "annual_rate": "0.04908893771615708297305559"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 12,
+      "annual_rate": "0.04888948540377961926503523"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 52,
+      "annual_rate": "0.04881306056180963712349356"
+    },
+    {
+      "apy": "0.05",
+      "periods_per_year": 365,
+      "annual_rate": "0.04879342524640572793559512"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 1,
+      "annual_rate": "0.05390000000000000000000000"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 2,
+      "annual_rate": "0.05319263587224080029860325"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 4,
+      "annual_rate": "0.05284358037389920711534411"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 12,
+      "annual_rate": "0.05261256971270260373834234"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 52,
+      "annual_rate": "0.05252407782732982993506452"
+    },
+    {
+      "apy": "0.0539",
+      "periods_per_year": 365,
+      "annual_rate": "0.05250134447403048317866246"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 1,
+      "annual_rate": "0.1000000000000000000000000"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 2,
+      "annual_rate": "0.09761769634030309398290703"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 4,
+      "annual_rate": "0.09645475633778051761657984"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 12,
+      "annual_rate": "0.09568968514684489279238213"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 52,
+      "annual_rate": "0.09539757964011372791818089"
+    },
+    {
+      "apy": "0.1",
+      "periods_per_year": 365,
+      "annual_rate": "0.09532262476475143901563882"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 1,
+      "annual_rate": "0.5000000000000000000000000"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 2,
+      "annual_rate": "0.4494897427831780981972841"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 4,
+      "annual_rate": "0.4267276788012863696351611"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 12,
+      "annual_rate": "0.4123929975829988996372706"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 52,
+      "annual_rate": "0.4070500128300928816265283"
+    },
+    {
+      "apy": "0.5",
+      "periods_per_year": 365,
+      "annual_rate": "0.4056903996791726621651733"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 1,
+      "annual_rate": "1.000000000000000000000000"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 2,
+      "annual_rate": "0.8284271247461900976033774"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 4,
+      "annual_rate": "0.7568284600108842668699999"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 12,
+      "annual_rate": "0.7135571323115431747419035"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 52,
+      "annual_rate": "0.6977875163324164278998856"
+    },
+    {
+      "apy": "1",
+      "periods_per_year": 365,
+      "annual_rate": "0.6938057521907187130690600"
+    }
+  ]
+}

@@ -11,6 +11,9 @@ All notable changes to RadMage Finance are recorded here.
 - Responsive header with Home, News, Learn, Calculators and a More menu (About, Methodology, Sources, Corrections, Privacy, Disclaimer), a phone menu, breadcrumbs and a footer. More works without JavaScript.
 - News section preview at `/finance/news/`: the layout for Markets, Economy, Federal Reserve, Banking, Crypto and Regulation, with feed status, category links, a story layout key and related-coverage grouping. No stories are collected yet, nothing is invented, and the page is not indexed until feeds are live.
 - A Financial News section on the homepage linking into each news category.
+- Calculation engines, kept separate from the pages: money rounding (half away from zero, with interest postings computed exactly), rate and APY conversions, Regulation DD APY and APY earned, daily compounding with annual crediting, compound interest, loan payments and amortization schedules with extra and one-time payments, and a balance-sheet ledger with the transaction catalog and its accounting invariants. Invalid or unrepresentable input is reported, never computed.
+- An independent reference oracle in Python using decimal arithmetic, with fixtures for every published Regulation DD worked example, rate conversions, full loan schedules and compound interest tables. The engines match it to the cent.
+- Test-integrity audits: a check that test names match their assertions, and a mutation pass that perturbs every rounding rule, threshold and formula constant.
 - Learn and Calculators section pages listing the first three lessons and five calculators, which are in development.
 - Reference pages: About, Methodology, Sources, Corrections, Privacy and Disclaimer.
 - A strict Content Security Policy on every page, no third-party requests and no cookies.

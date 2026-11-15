@@ -25,7 +25,7 @@ It is not a trading-signal service, investment advice, a partisan outlet or a cr
 
 ## Development
 
-Requires Node.js 22.23.4 or later.
+Requires Node.js 22.23.4 or later, and Python 3 (standard library only) for the independent reference oracle in `tests/oracle/`.
 
 ```sh
 npm install
@@ -33,5 +33,5 @@ npx playwright install chromium   # once, for the browser tests
 npm run dev       # development server at http://localhost:4321/finance/
 npm run build     # static site in dist/
 npm run preview   # serve the build at http://127.0.0.1:4329/finance/
-npm run check     # full local check: text rules, types, unit tests, build, output checks, browser tests
+npm run check     # full local check: text rules, oracle fixtures, types, unit tests, test-integrity audits, build, output checks, browser tests
 ```

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// The full local check, run before every checkpoint commit:
-// house-style text scan, type check, unit tests, build, built-output checks, browser tests.
+// The full local check, run before every checkpoint commit: house-style text scan, oracle
+// fixture reproduction, type check, unit tests, the two test-integrity audits, build,
+// built-output checks, and browser tests.
 // Output is shown and also saved under local/checks/ (local only, never committed).
 
 import { spawnSync } from 'node:child_process';
@@ -9,8 +10,11 @@ import { join } from 'node:path';
 
 const STEPS = [
   ['Text scan (dashes, attribution)', 'node', ['tools/text-scan.mjs']],
+  ['Oracle fixtures reproduce (Python decimal)', 'node', ['tools/oracle-check.mjs']],
   ['Type check', 'npx', ['astro', 'check']],
-  ['Unit tests', 'npx', ['vitest', 'run']],
+  ['Unit tests (engines against the oracle and Regulation DD)', 'npx', ['vitest', 'run']],
+  ['Test integrity: names versus assertions', 'node', ['tools/audit/test-names.mjs']],
+  ['Test integrity: mutation pass', 'node', ['tools/audit/mutate.mjs']],
   ['Build', 'npx', ['astro', 'build']],
   ['Built output (links, origins, metadata, sitemap, weight)', 'node', ['tools/dist-check.mjs']],
   ['Browser tests (theme, accessibility, layout, privacy)', 'npx', ['playwright', 'test']],

@@ -1,0 +1,353 @@
+{
+  "generator": "tests/oracle/generate.py",
+  "conventions": "v1.1",
+  "apy_from_interest": [
+    {
+      "id": "I.A-1-now-account-365-days",
+      "interest_cents": 6168,
+      "principal_cents": 100000,
+      "days": 365,
+      "published_apy_percent": "6.17",
+      "oracle_apy_percent": "6.17",
+      "oracle_apy_unrounded": "6.168000000000000000000000"
+    },
+    {
+      "id": "I.A-2-six-month-certificate-182-days",
+      "interest_cents": 3037,
+      "principal_cents": 100000,
+      "days": 182,
+      "published_apy_percent": "6.18",
+      "oracle_apy_percent": "6.18",
+      "oracle_apy_unrounded": "6.183687197266667555970147"
+    }
+  ],
+  "daily_compounded": [
+    {
+      "id": "I.B-1-stepped-six-month-certificate",
+      "principal_cents": 100000,
+      "segments": [
+        {
+          "annual_rate": "0.05",
+          "days": 91
+        },
+        {
+          "annual_rate": "0.055",
+          "days": 92
+        }
+      ],
+      "term_days": 183,
+      "credits": [
+        {
+          "end_day": 183,
+          "unrounded_cents": "2667.648236192430195631782",
+          "credited_cents": 2668
+        }
+      ],
+      "published_interest_cents": 2668,
+      "oracle_interest_unrounded_cents": "2667.648236192430195631782",
+      "oracle_interest_cents": 2668,
+      "published_apy_percent": "5.39",
+      "oracle_apy_percent": "5.39"
+    },
+    {
+      "id": "I.B-2-stepped-two-year-certificate",
+      "principal_cents": 100000,
+      "segments": [
+        {
+          "annual_rate": "0.06",
+          "days": 365
+        },
+        {
+          "annual_rate": "0.065",
+          "days": 365
+        }
+      ],
+      "term_days": 730,
+      "credits": [
+        {
+          "end_day": 365,
+          "unrounded_cents": "6183.131067785368935076848",
+          "credited_cents": 6183
+        },
+        {
+          "end_day": 730,
+          "unrounded_cents": "7130.490940907175352710203",
+          "credited_cents": 7130
+        }
+      ],
+      "published_interest_cents": 13313,
+      "oracle_interest_unrounded_cents": "13313.63081026771374012488",
+      "oracle_interest_cents": 13313,
+      "published_apy_percent": "6.45",
+      "oracle_apy_percent": "6.45"
+    },
+    {
+      "id": "I.C-variable-introductory-rate",
+      "principal_cents": 100000,
+      "segments": [
+        {
+          "annual_rate": "0.07",
+          "days": 91
+        },
+        {
+          "annual_rate": "0.05",
+          "days": 274
+        }
+      ],
+      "term_days": 365,
+      "credits": [
+        {
+          "end_day": 365,
+          "unrounded_cents": "5652.165786033830485638526",
+          "credited_cents": 5652
+        }
+      ],
+      "published_interest_cents": 5652,
+      "oracle_interest_unrounded_cents": "5652.165786033830485638526",
+      "oracle_interest_cents": 5652,
+      "published_apy_percent": "5.65",
+      "oracle_apy_percent": "5.65"
+    },
+    {
+      "id": "I.D-method-a-tier-1",
+      "principal_cents": 100000,
+      "segments": [
+        {
+          "annual_rate": "0.0525",
+          "days": 365
+        }
+      ],
+      "term_days": 365,
+      "credits": [
+        {
+          "end_day": 365,
+          "unrounded_cents": "5389.858326355142635185633",
+          "credited_cents": 5390
+        }
+      ],
+      "published_interest_cents": 5390,
+      "oracle_interest_unrounded_cents": "5389.858326355142635185633",
+      "oracle_interest_cents": 5390,
+      "published_apy_percent": "5.39",
+      "oracle_apy_percent": "5.39"
+    },
+    {
+      "id": "I.D-method-a-tier-2",
+      "principal_cents": 800000,
+      "segments": [
+        {
+          "annual_rate": "0.055",
+          "days": 365
+        }
+      ],
+      "term_days": 365,
+      "credits": [
+        {
+          "end_day": 365,
+          "unrounded_cents": "45228.98959495742597054011",
+          "credited_cents": 45229
+        }
+      ],
+      "published_interest_cents": 45229,
+      "oracle_interest_unrounded_cents": "45228.98959495742597054011",
+      "oracle_interest_cents": 45229,
+      "published_apy_percent": "5.65",
+      "oracle_apy_percent": "5.65"
+    },
+    {
+      "id": "I.D-method-a-tier-3",
+      "principal_cents": 2000000,
+      "segments": [
+        {
+          "annual_rate": "0.0575",
+          "days": 365
+        }
+      ],
+      "term_days": 365,
+      "credits": [
+        {
+          "end_day": 365,
+          "unrounded_cents": "118360.9480063598623795101",
+          "credited_cents": 118361
+        }
+      ],
+      "published_interest_cents": 118361,
+      "oracle_interest_unrounded_cents": "118360.9480063598623795101",
+      "oracle_interest_cents": 118361,
+      "published_apy_percent": "5.92",
+      "oracle_apy_percent": "5.92"
+    }
+  ],
+  "tiered_method_b": [
+    {
+      "id": "I.D-method-b-tier-1",
+      "balance_cents": 100000,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 5390,
+      "oracle_interest_cents": 5390,
+      "apy_principal_cents": 100000,
+      "published_apy_percent": "5.39",
+      "oracle_apy_percent": "5.39"
+    },
+    {
+      "id": "I.D-method-b-tier-2-low",
+      "balance_cents": 250001,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 13475,
+      "oracle_interest_cents": 13475,
+      "apy_principal_cents": 250000,
+      "published_apy_percent": "5.39",
+      "oracle_apy_percent": "5.39"
+    },
+    {
+      "id": "I.D-method-b-tier-2-high",
+      "balance_cents": 1500000,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 84145,
+      "oracle_interest_cents": 84145,
+      "apy_principal_cents": 1500000,
+      "published_apy_percent": "5.61",
+      "oracle_apy_percent": "5.61"
+    },
+    {
+      "id": "I.D-method-b-tier-3-low",
+      "balance_cents": 1500001,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 84145,
+      "oracle_interest_cents": 84145,
+      "apy_principal_cents": 1500000,
+      "published_apy_percent": "5.61",
+      "oracle_apy_percent": "5.61"
+    },
+    {
+      "id": "I.D-method-b-tier-3-high-100000",
+      "balance_cents": 10000000,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 587179,
+      "oracle_interest_cents": 587179,
+      "apy_principal_cents": 10000000,
+      "published_apy_percent": "5.87",
+      "oracle_apy_percent": "5.87"
+    },
+    {
+      "id": "I.D-method-b-tier-3-high-1000000",
+      "balance_cents": 100000000,
+      "tiers": [
+        {
+          "up_to_cents": 250000,
+          "annual_rate": "0.0525"
+        },
+        {
+          "up_to_cents": 1500000,
+          "annual_rate": "0.055"
+        },
+        {
+          "up_to_cents": null,
+          "annual_rate": "0.0575"
+        }
+      ],
+      "days": 365,
+      "published_interest_cents": 5913422,
+      "oracle_interest_cents": 5913422,
+      "apy_principal_cents": 100000000,
+      "published_apy_percent": "5.91",
+      "oracle_apy_percent": "5.91"
+    }
+  ],
+  "apy_earned": [
+    {
+      "id": "II.A-1-statement-period-30-days",
+      "interest_cents": 525,
+      "balance_cents": 100000,
+      "days": 30,
+      "published_apy_earned_percent": "6.58",
+      "oracle_apy_earned_percent": "6.58"
+    },
+    {
+      "id": "II.A-2-calendar-month-30-days",
+      "interest_cents": 650,
+      "balance_cents": 150000,
+      "days": 30,
+      "published_apy_earned_percent": "5.40",
+      "oracle_apy_earned_percent": "5.40"
+    },
+    {
+      "id": "II.A-3-quarter-91-days",
+      "interest_cents": 2100,
+      "balance_cents": 200000,
+      "days": 91,
+      "published_apy_earned_percent": "4.28",
+      "oracle_apy_earned_percent": "4.28"
+    }
+  ]
+}

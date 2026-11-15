@@ -1,0 +1,20 @@
+// Deliberately wrong tests. tools/audit/test-names.mjs must flag every one of them before
+// its verdict on the real suite counts. This file is never run as a test.
+
+it('computes the payment', () => {
+  const payment = scheduledPayment(20_000_000, 0.06, 360);
+  console.log(payment);
+});
+
+it('rejects a negative principal', () => {
+  const result = amortize({ principal: -1, annualRate: 0.06, termMonths: 360 });
+  expect(result).toBeDefined();
+});
+
+it('$61.68 on $1,000 for 365 days is an APY of 6.17%', () => {
+  expect(apy(6168, 100000, 365)).toBe('6.18');
+});
+
+it('6% then 6.5% on $1,000 pays $133.13', () => {
+  expect(interest).toBe(13314);
+});
