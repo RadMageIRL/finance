@@ -36,10 +36,27 @@ export function wireExports(root: HTMLElement, source: ExportSource, settle: () 
   };
   const withheld = () => say('Fix the highlighted entries first; there are no results to export yet.');
 
+  // Each year's months in the exports: the visitor's choice, offered with the schedule by
+  // year. It never depends on which years are expanded on the page (section 14).
+  const monthsOption = $(root, '[data-out="months-option"]');
+  const monthsBox = $(root, '[data-action="months"]') as HTMLInputElement;
+  const scheduleSection = document.querySelector<HTMLElement>('[data-schedule]');
+  const syncMonthsOption = () => {
+    monthsOption.hidden = scheduleSection?.dataset.grouping !== 'year';
+  };
+  syncMonthsOption();
+  if (scheduleSection) new MutationObserver(syncMonthsOption).observe(scheduleSection, { attributes: true, attributeFilter: ['data-grouping'] });
+  const withMonths = () => monthsBox.checked && !monthsOption.hidden;
+  const build = (generated: Date): Report | null => {
+    const report = source.report(generated);
+    if (report?.schedule && withMonths()) report.schedule = { ...report.schedule, months: true };
+    return report;
+  };
+
   $(root, '[data-action="report"]').addEventListener('click', () => {
     settle();
     const now = new Date();
-    const report = source.report(now);
+    const report = build(now);
     if (!report) return withheld();
     const name = exportFilename(source.name, 'report', now, 'html');
     downloadText(name, reportDocument(report, REPORT_CSS), 'text/html;charset=utf-8');
@@ -50,15 +67,18 @@ export function wireExports(root: HTMLElement, source: ExportSource, settle: () 
     settle();
     const csv = source.csv();
     if (!csv) return withheld();
-    const name = exportFilename(source.name, csv.what, new Date(), 'csv');
-    downloadText(name, tableCsv(csv.table));
-    say(`CSV saved as ${name}, ${csv.table.count.toLocaleString('en-US')} rows.`);
+    const detail = withMonths() ? csv.table.detail : undefined;
+    const table = detail ? detail.all() : csv.table;
+    const what = detail ? csv.what.replace(/by year/i, detail.noun === 'payments' ? 'by payment' : 'by month') : csv.what;
+    const name = exportFilename(source.name, what, new Date(), 'csv');
+    downloadText(name, tableCsv(table));
+    say(`CSV saved as ${name}, ${table.count.toLocaleString('en-US')} rows.`);
   });
 
   $(root, '[data-action="summary"]').addEventListener('click', () => {
     settle();
     const now = new Date();
-    const report = source.report(now);
+    const report = build(now);
     if (!report) return withheld();
     const name = exportFilename(source.name, 'summary', now, 'txt');
     downloadText(name, reportText(report), 'text/plain;charset=utf-8');
@@ -67,7 +87,7 @@ export function wireExports(root: HTMLElement, source: ExportSource, settle: () 
 
   $(root, '[data-action="print"]').addEventListener('click', () => {
     settle();
-    const report = source.report(new Date());
+    const report = build(new Date());
     if (!report) return withheld();
     preparePrint(report);
     say('Opening the print dialog. Choose Save as PDF there to keep a PDF.');
@@ -78,7 +98,7 @@ export function wireExports(root: HTMLElement, source: ExportSource, settle: () 
   window.addEventListener('beforeprint', () => {
     if (document.querySelector(`.${PRINT_ROOT}`)) return;
     settle();
-    const report = source.report(new Date());
+    const report = build(new Date());
     if (report) preparePrint(report);
   });
   window.addEventListener('afterprint', () => document.querySelector(`.${PRINT_ROOT}`)?.remove());

@@ -29,8 +29,8 @@ function expectCloseRelative(actual: number, expected: number, tolerance = 1e-12
 }
 
 describe('oracle fixtures', () => {
-  it('were generated under the conventions this code implements (v1.6)', () => {
-    for (const f of [regdd, conversions, loans, compound, hysa, fixture('schedules'), fixture('illustration'), fixture('loan_reports')]) expect(f.conventions).toBe('v1.6');
+  it('were generated under the conventions this code implements (v1.7)', () => {
+    for (const f of [regdd, conversions, loans, compound, hysa, fixture('schedules'), fixture('illustration'), fixture('loan_reports')]) expect(f.conventions).toBe('v1.7');
   });
 
   it('cover every contribution frequency with every compounding frequency and both timings', () => {

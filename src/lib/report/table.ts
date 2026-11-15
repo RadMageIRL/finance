@@ -34,6 +34,17 @@ export interface TableSource {
   /** The label of a page (0-based) for the pager, for example "Year 3". */
   pageLabel: (page: number) => string;
   footer?: TableRow;
+  /** Year tables only: the months under each year (ENGINE_CONVENTIONS section 14). */
+  detail?: TableDetail;
+}
+
+export interface TableDetail {
+  /** The month table under row `index` (0-based), with a footer that totals the year. */
+  table: (index: number) => TableSource;
+  /** Every month of the term in one table: what the CSV holds when months are included. */
+  all: () => TableSource;
+  /** What the rows under a year are, for button names and headings: "months" or "payments". */
+  noun: string;
 }
 
 export function tableCsv(table: TableSource): string {

@@ -93,6 +93,10 @@ const MUTANTS = [
   ['illustration-cap-doubled', `${E}rate-illustration.ts`, '> Number.MAX_SAFE_INTEGER)', '> 2 * Number.MAX_SAFE_INTEGER)'],
   ['illustration-shown-truncated', `${E}rate-illustration.ts`, 'shown: balances.map(roundCents)', 'shown: balances.map(Math.floor)'],
   ['illustration-month-ends-shifted', `${E}rate-illustration.ts`, 'periodBoundaries(12, years).slice(1)', 'periodBoundaries(12, years).slice(0, -1)'],
+  // Interest accrued in illustration rows (conventions 12.5)
+  ['illustration-accrual-period-length-off-by-one', `${E}rate-illustration.ts`, '(overlap / (end - start))', '(overlap / (end - start + 1))'],
+  ['illustration-accrual-on-period-end-balance', `${E}rate-illustration.ts`, 'balanceAfter(deposit, account, p - 1) * account.annualRate', 'balanceAfter(deposit, account, p) * account.annualRate'],
+  ['illustration-year-accrual-misses-december', `${E}rate-illustration.ts`, 'months.slice(12 * y, 12 * y + 12)', 'months.slice(12 * y, 12 * y + 11)'],
   ['calendar-53-weeks', `${E}calendar.ts`, '52: Array.from({ length: 52 }, (_, week) => 7 * week),', '52: Array.from({ length: 53 }, (_, week) => 7 * week),'],
   ['calendar-period-end-exclusive', `${E}calendar.ts`, 'starts[i]! <= offset', 'starts[i]! < offset'],
   ['calendar-day-month-late', `${E}calendar.ts`, 'MONTH_STARTS[month + 1]! <= offset', 'MONTH_STARTS[month + 1]! < offset'],

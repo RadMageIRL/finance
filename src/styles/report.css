@@ -238,6 +238,28 @@
   font-weight: 700;
 }
 
+/* A year's months under its row (the visitor chose to include them). */
+.rmf-report tr.rmf-report__detail > td {
+  padding: 0 0 0.75rem 1.25rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.rmf-report tr.rmf-report__detail table {
+  margin: 0.25rem 0 0;
+  border-left: 3px solid var(--r-line-strong);
+  font-size: 0.85em;
+}
+
+.rmf-report tr.rmf-report__detail caption {
+  text-align: left;
+  font-weight: 600;
+}
+
+.rmf-report tr.rmf-report__detail {
+  break-inside: auto;
+}
+
 .rmf-report tbody tr.rmf-report__strong th,
 .rmf-report tbody tr.rmf-report__strong td {
   border-top: 1px solid var(--r-line-strong);

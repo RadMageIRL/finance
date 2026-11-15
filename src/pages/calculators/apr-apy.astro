@@ -22,6 +22,8 @@ if (!computed.ok) throw new Error('APR/APY example scenario is invalid');
 const view = ratesView(computed.value);
 const illustrated = rateIllustration(illustrationInput(computed.value, DEFAULT_RATES.years), 'year');
 if (!illustrated.ok) throw new Error('APR/APY example illustration is invalid');
+const illustratedMonths = rateIllustration(illustrationInput(computed.value, DEFAULT_RATES.years), 'month');
+if (!illustratedMonths.ok) throw new Error('APR/APY example illustration is invalid');
 const illustrationSeries = computed.value.accounts.map((a) => ({ key: String(a.index), label: ACCOUNT_NAMES[a.index]! }));
 const frequencyOptions = RATE_FREQUENCIES.map((f) => ({ value: String(f.value), label: f.label }));
 const hintFor = (kind: string) =>
@@ -150,7 +152,7 @@ const VERIFIED = 'November 15, 2026';
       </div>
     </ChartFigure>
 
-    <ScheduleView id="ra-schedule" heading="Balance illustration" series={illustrationSeries} svg={illustrationChartSvg(computed.value, illustrated.value, 'year')} table={illustrationTable(computed.value, illustrated.value, 'year')} notes={illustrationNotes()} chartHelp="each account's balance" />
+    <ScheduleView id="ra-schedule" heading="Balance illustration" series={illustrationSeries} svg={illustrationChartSvg(computed.value, illustrated.value, 'year')} table={illustrationTable(computed.value, illustrated.value, 'year', illustratedMonths.value)} notes={illustrationNotes()} chartHelp="each account's balance" />
 
     <div class="prose calc-notes">
       <h2>How compounding changes the APY</h2>

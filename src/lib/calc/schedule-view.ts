@@ -70,10 +70,45 @@ function periodCsv(grouping: Grouping, row: ScheduleRow): CsvCell[] {
   return [row.index, row.lastDay - row.firstDay + 1];
 }
 
+/**
+ * The months of year `year` (1-based) as their own table, for the expandable year rows
+ * (ENGINE_CONVENTIONS section 14). The rows are the engine's month rows; the footer totals
+ * them, so it reconciles with the year's row: deposits and credited add up exactly, and the
+ * year's accrued interest is by definition the sum of its months' in month order (11.3).
+ */
+export function yearMonthsTable(schedule: Schedule, year: number, config: ScheduleConfig): TableSource {
+  const months = schedule.rows('month').slice(12 * (year - 1), 12 * year);
+  const full = scheduleTable(schedule, 'month', config);
+  const offset = 12 * (year - 1);
+  const first = months[0]!;
+  const last = months[months.length - 1]!;
+  const extra = config.monthExtra;
+  const deposits = months.reduce((sum, m) => sum + m.deposits, 0);
+  const accrued = months.reduce((sum, m) => sum + m.accrued, 0);
+  const credited = months.reduce((sum, m) => sum + m.credited, 0);
+  return {
+    ...full,
+    caption: `Year ${year} by month: balances, ${config.depositsLabel.toLowerCase()}, interest accrued and credited`,
+    count: months.length,
+    row: (i) => full.row(offset + i),
+    csvRow: (i) => full.csvRow(offset + i),
+    pageSize: Math.max(1, months.length),
+    pageLabel: () => `Year ${year}`,
+    footer: {
+      head: `Year ${year} total`,
+      cells: [formatUSD(first.opening), formatUSD(deposits), formatUSD4(accrued), formatUSD(credited), '', formatUSD(last.closing), formatUSD(last.cumulativeInterest), ...(extra ? [''] : [])],
+    },
+  };
+}
+
 export function scheduleTable(schedule: Schedule, grouping: Grouping, config: ScheduleConfig): TableSource {
   const rows = schedule.rows(grouping);
   const extra = grouping === 'month' ? config.monthExtra : undefined;
   const option = groupingOption(grouping);
+  const detail: TableSource['detail'] =
+    grouping === 'year'
+      ? { table: (i) => yearMonthsTable(schedule, i + 1, config), all: () => scheduleTable(schedule, 'month', config), noun: 'months' }
+      : undefined;
   const columns: TableColumn[] = [
     { label: option.label, numeric: false },
     { label: 'Opening balance', numeric: true },
@@ -148,6 +183,7 @@ export function scheduleTable(schedule: Schedule, grouping: Grouping, config: Sc
       head: 'Total',
       cells: ['', formatUSD(totalDeposits), formatUSD4(totalAccrued), formatUSD(totalCredited), '', formatUSD(last.closing), formatUSD(last.cumulativeInterest), ...(extra ? [''] : [])],
     },
+    ...(detail ? { detail } : {}),
   };
 }
 

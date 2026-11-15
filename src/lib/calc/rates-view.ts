@@ -13,7 +13,7 @@ import { REPORT_ROW_LIMIT, type Report } from '../report/report';
 import { staticTable, type TableColumn, type TableSource } from '../report/table';
 import { horizontalBarsSvg, linesSvg } from './chart';
 import { centsToCsv, toCsv, type CsvCell } from './csv';
-import { formatUSD, formatUSDCompact } from './format';
+import { formatUSD, formatUSD4, formatUSDCompact } from './format';
 import { groupingOption, MONTH_NAMES, monthName, PAGE_SIZE } from './schedule-view';
 import { AMOUNTS_FIELD, type Schema } from './share';
 
@@ -262,8 +262,89 @@ function illustrationLabel(grouping: Grouping, row: IllustrationRow): string {
 
 const ILLUSTRATION_PERIOD_CSV: Readonly<Record<Grouping, readonly string[]>> = { day: ['day', 'year', 'month', 'day_of_month'], month: ['month', 'year', 'month_of_year'], year: ['year'] };
 
+/**
+ * Months of the illustration with each account's opening balance, interest accrued, interest
+ * credited and closing balance (ENGINE_CONVENTIONS 12.5), and with two or three accounts each
+ * later account's closing balance minus the first's. `from` and `to` are 0-based month
+ * indexes into `months` (every month of the term); a footer, when given, totals the rows.
+ */
+function illustrationMonths(comparison: RateComparison, months: readonly IllustrationRow[], from: number, to: number, caption: string, footerHead: string | null): TableSource {
+  const deposit = comparison.balance;
+  const names = comparison.accounts.map((a) => ACCOUNT_NAMES[a.index]!);
+  const letters = comparison.accounts.map((a) => ACCOUNT_LETTERS[a.index]!.toLowerCase());
+  const opening = (i: number, a: number) => (i === 0 ? deposit : months[i - 1]!.shown[a]!);
+  const columns: TableColumn[] = [{ label: 'Month', numeric: false }];
+  names.forEach((name) =>
+    columns.push(
+      { label: `${name} opening balance`, numeric: true },
+      { label: `${name} interest accrued`, numeric: true },
+      { label: `${name} interest credited`, numeric: true },
+      { label: `${name} closing balance`, numeric: true },
+    ),
+  );
+  names.slice(1).forEach((name) => columns.push({ label: `${name} minus ${names[0]}`, numeric: true }));
+  const csvHeader: string[] = ['month', 'year', 'month_of_year'];
+  letters.forEach((l) => csvHeader.push(`${l}_opening_usd`, `${l}_interest_accrued_usd`, `${l}_interest_credited_usd`, `${l}_closing_usd`));
+  letters.slice(1).forEach((l) => csvHeader.push(`${l}_minus_${letters[0]}_usd`));
+  const cells = (i: number) => {
+    const r = months[i]!;
+    return [
+      ...r.shown.flatMap((closing, a) => [formatUSD(opening(i, a)), formatUSD4(r.accrued[a]!), formatUSD(closing - opening(i, a)), formatUSD(closing)]),
+      ...r.shown.slice(1).map((closing) => formatUSD(closing - r.shown[0]!)),
+    ];
+  };
+  const count = to - from;
+  const accounts = comparison.accounts.map((_a, a) => a);
+  const sum = (pick: (r: IllustrationRow, i: number) => number) => {
+    let total = 0;
+    for (let i = from; i < to; i += 1) total += pick(months[i]!, i);
+    return total;
+  };
+  const last = months[to - 1]!;
+  return {
+    caption,
+    columns,
+    count,
+    row: (k) => ({ head: monthName(months[from + k]!.index), cells: cells(from + k) }),
+    csvHeader,
+    csvRow: (k) => {
+      const i = from + k;
+      const r = months[i]!;
+      const c = calendarDay(r.end - 1);
+      return [
+        r.index, c.year, c.month,
+        ...r.shown.flatMap((closing, a) => [centsToCsv(opening(i, a)), (r.accrued[a]! / 100).toFixed(6), centsToCsv(closing - opening(i, a)), centsToCsv(closing)]),
+        ...r.shown.slice(1).map((closing) => centsToCsv(closing - r.shown[0]!)),
+      ];
+    },
+    pageSize: PAGE_SIZE.month,
+    pageLabel: (page) => `Years ${page * 10 + 1} to ${Math.min(page * 10 + 10, Math.ceil(count / 12))}`,
+    ...(footerHead
+      ? {
+          footer: {
+            head: footerHead,
+            cells: [
+              ...accounts.flatMap((a) => [formatUSD(opening(from, a)), formatUSD4(sum((r) => r.accrued[a]!)), formatUSD(sum((r, i) => r.shown[a]! - opening(i, a))), formatUSD(last.shown[a]!)]),
+              ...accounts.slice(1).map((a) => formatUSD(last.shown[a]! - last.shown[0]!)),
+            ],
+          },
+        }
+      : {}),
+  };
+}
+
+/** Every month of the illustration with the detail columns: the CSV when months are included. */
+export function illustrationMonthsAll(comparison: RateComparison, months: readonly IllustrationRow[]): TableSource {
+  return illustrationMonths(comparison, months, 0, months.length, `Schedule by month: each account's interest accrued and credited from a single deposit of ${formatUSD(comparison.balance)}`, null);
+}
+
+/** The months of year `year` (1-based) under its row (ENGINE_CONVENTIONS 12.5 and 14). */
+export function illustrationYearMonths(comparison: RateComparison, months: readonly IllustrationRow[], year: number): TableSource {
+  return illustrationMonths(comparison, months, 12 * (year - 1), 12 * year, `Year ${year} by month: each account's opening balance, interest accrued and credited, and closing balance`, `Year ${year} total`);
+}
+
 /** The illustration as a table: each account's balance and interest to date at the end of each row. */
-export function illustrationTable(comparison: RateComparison, rows: readonly IllustrationRow[], grouping: Grouping): TableSource {
+export function illustrationTable(comparison: RateComparison, rows: readonly IllustrationRow[], grouping: Grouping, months?: readonly IllustrationRow[]): TableSource {
   const deposit = comparison.balance;
   const names = comparison.accounts.map((a) => ACCOUNT_NAMES[a.index]!);
   const letters = comparison.accounts.map((a) => ACCOUNT_LETTERS[a.index]!.toLowerCase());
@@ -293,6 +374,9 @@ export function illustrationTable(comparison: RateComparison, rows: readonly Ill
     },
     pageSize: PAGE_SIZE[grouping],
     pageLabel: (page) => (grouping === 'day' ? `Year ${page + 1}` : grouping === 'month' ? `Years ${page * 10 + 1} to ${Math.min(page * 10 + 10, years)}` : 'All years'),
+    ...(grouping === 'year' && months
+      ? { detail: { table: (i: number) => illustrationYearMonths(comparison, months, i + 1), all: () => illustrationMonthsAll(comparison, months), noun: 'months' } }
+      : {}),
   };
 }
 
@@ -387,7 +471,7 @@ export function ratesReport(input: RatesInput, result: RateComparison, rowsFor: 
     },
     schedule: {
       heading: illustrationHeading(grouping),
-      table: illustrationTable(result, rows, grouping),
+      table: illustrationTable(result, rows, grouping, rowsFor('month')),
       notes,
       ...(long ? { fallbackFrom: { heading: illustrationHeading('day'), rows: rowsFor('day').length } } : {}),
     },

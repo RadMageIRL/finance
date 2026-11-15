@@ -1,4 +1,4 @@
-// Rate illustration for the APR/APY page (ENGINE_CONVENTIONS section 12, v1.4). Pure.
+// Rate illustration for the APR/APY page (ENGINE_CONVENTIONS section 12, v1.4; 12.5 v1.7). Pure.
 //
 // What each account's APY means over time: a single deposit, left alone, compounding at the
 // account's periodic rate at the end of each compounding period on the calendar, with
@@ -34,6 +34,8 @@ export interface IllustrationRow {
   balances: number[];
   /** Per account: the balance rounded to the cent, as shown. */
   shown: Cents[];
+  /** Per account: interest accrued during the row, unrounded cents (conventions 12.5). */
+  accrued: number[];
 }
 
 export const ILLUSTRATION_LIMITS = {
@@ -75,6 +77,43 @@ function rowEnds(grouping: Grouping, years: number): number[] {
   return Array.from({ length: years * YEAR_DAYS }, (_, d) => d + 1);
 }
 
+/**
+ * Interest accrued in each row (conventions 12.5): each compounding period's interest
+ * B_(p-1) * r / n accrues evenly over its days, and a row takes the share of every period it
+ * overlaps. `ends` are the rows' end boundaries, in order, from the first row of the term.
+ */
+function accruedByRow(deposit: Cents, account: IllustrationAccount, ends: readonly number[], years: number): number[] {
+  const n = account.periodsPerYear;
+  const bounds = periodBoundaries(n, years);
+  const out: number[] = [];
+  let p = 1;
+  let t0 = 0;
+  for (const t1 of ends) {
+    let sum = 0;
+    // Bounded: p only grows, and there are bounds.length - 1 periods.
+    while (p < bounds.length && bounds[p - 1]! < t1) {
+      const start = bounds[p - 1]!;
+      const end = bounds[p]!;
+      const overlap = Math.min(end, t1) - Math.max(start, t0);
+      if (overlap > 0) sum += ((balanceAfter(deposit, account, p - 1) * account.annualRate) / n) * (overlap / (end - start));
+      if (end > t1) break;
+      p += 1;
+    }
+    out.push(sum);
+    t0 = t1;
+  }
+  return out;
+}
+
+/** Accrued interest per row for every account; a year's is the sum of its months' in month order. */
+function accrued(input: IllustrationInput, grouping: Grouping, ends: readonly number[]): number[][] {
+  return input.accounts.map((a) => {
+    if (grouping !== 'year') return accruedByRow(input.deposit, a, ends, input.years);
+    const months = accruedByRow(input.deposit, a, rowEnds('month', input.years), input.years);
+    return ends.map((_end, y) => months.slice(12 * y, 12 * y + 12).reduce((sum, m) => sum + m, 0));
+  });
+}
+
 /** Rows of the illustration by day, month or year (conventions 12.3). */
 export function rateIllustration(input: IllustrationInput, grouping: Grouping): Result<IllustrationRow[]> {
   const check = validateIllustration(input);
@@ -87,10 +126,12 @@ export function rateIllustration(input: IllustrationInput, grouping: Grouping): 
       return check.fail();
     }
   }
-  const rows = rowEnds(grouping, input.years).map((end, i) => {
+  const ends = rowEnds(grouping, input.years);
+  const byAccount = accrued(input, grouping, ends);
+  const rows = ends.map((end, i) => {
     const periods = input.accounts.map((a) => completedPeriods(a.periodsPerYear, end));
     const balances = input.accounts.map((a, j) => balanceAfter(input.deposit, a, periods[j]!));
-    return { index: i + 1, end, periods, balances, shown: balances.map(roundCents) };
+    return { index: i + 1, end, periods, balances, shown: balances.map(roundCents), accrued: byAccount.map((list) => list[i]!) };
   });
   return { ok: true, value: rows };
 }

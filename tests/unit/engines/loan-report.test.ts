@@ -63,7 +63,7 @@ describe('loan reports against the oracle', () => {
   const cases = fixture.cases as Case[];
 
   it('has cases with extra payments, monthly rows and housing costs', () => {
-    expect(fixture.conventions).toBe('v1.6');
+    expect(fixture.conventions).toBe('v1.7');
     expect(cases.some((c) => c.extra_monthly_cents > 0)).toBe(true);
     expect(cases.some((c) => c.one_time.length > 1)).toBe(true);
     expect(cases.some((c) => c.monthly)).toBe(true);

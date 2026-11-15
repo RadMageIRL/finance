@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.6",
+  "conventions": "v1.7",
   "cases": [
     {
       "id": "none-n1",

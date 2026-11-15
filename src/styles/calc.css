@@ -794,6 +794,118 @@ fieldset.calc-field {
   font-weight: 650;
 }
 
+/* Expandable year rows: each year's months under it (ENGINE_CONVENTIONS section 14). */
+.schedule__expand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.schedule__expand[hidden] {
+  display: none;
+}
+
+.schedule__expand-help {
+  margin: 0;
+}
+
+.schedule__expand .button-row {
+  margin: 0;
+}
+
+.sched-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sched-toggle:hover {
+  border-color: var(--accent);
+}
+
+.sched-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sched-toggle__icon {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+.sched-toggle[aria-expanded="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.sched-toggle[aria-expanded="true"] .sched-toggle__icon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sched-toggle__icon {
+    transition: none;
+  }
+}
+
+.sched-year.is-expanded > th,
+.sched-year.is-expanded > td {
+  border-bottom-color: transparent;
+  background: var(--bg-sunk);
+}
+
+.sched-detail > td {
+  padding: 0 0 var(--space-3) var(--space-4);
+  background: var(--bg-sunk);
+}
+
+.sched-sub {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--space-3);
+}
+
+.sched-sub table {
+  font-size: var(--step--1);
+}
+
+.sched-sub caption {
+  padding-top: var(--space-2);
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* The month table's header scrolls with it: only the year table's header sticks. */
+.schedule__wrap .sched-sub thead th {
+  position: static;
+}
+
+.calc-actions__months {
+  margin-bottom: var(--space-3);
+  font-size: var(--step--1);
+}
+
+.calc-actions__months[hidden] {
+  display: none;
+}
+
 .calc-actions__exports {
   margin-bottom: var(--space-2);
 }

@@ -134,7 +134,7 @@ if (root) {
     };
     shown = { input, result, rows };
     schedule.update({
-      table: (g: Grouping) => illustrationTable(result, rows(g), g),
+      table: (g: Grouping) => illustrationTable(result, rows(g), g, rows('month')),
       chart: (g: Grouping, width?: number) => illustrationChartSvg(result, rows(g), g, width ? { width } : {}),
       tooltip: (g: Grouping, i: number) => illustrationTooltip(result, rows(g), g, i),
       notes: () => illustrationNotes(),
@@ -264,7 +264,7 @@ if (root) {
         calc.current();
         if (!shown) return null;
         const g = schedule.grouping();
-        return { table: illustrationTable(shown.result, shown.rows(g), g), what: `balance illustration by ${groupingOption(g).noun}` };
+        return { table: illustrationTable(shown.result, shown.rows(g), g, shown.rows('month')), what: `balance illustration by ${groupingOption(g).noun}` };
       },
     },
     () => calc.settle(),

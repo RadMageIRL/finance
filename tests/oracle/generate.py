@@ -1,7 +1,7 @@
 """Independent reference oracle for the RadMage Finance calculation engines.
 
 Writes JSON fixtures to tests/oracle/fixtures/ from the rules in
-docs/ENGINE_CONVENTIONS.md (v1.6), sections 2 to 6 and 9 to 13. It uses only
+docs/ENGINE_CONVENTIONS.md (v1.7), sections 2 to 6 and 9 to 14. It uses only
 the Python standard library and exact decimal arithmetic (with exact fractions
 where section 2 allows them), and it is written from that specification alone,
 not from the TypeScript engines, so that a mistake shared by both is unlikely.
@@ -37,7 +37,18 @@ balance deposit * (1 + annual_rate / n)^k after the k compounding periods
 that have ended by the end of each day, month or year (with the weekly
 periods of section 5.2 for n = 52), and that balance rounded to the cent. It
 is checked against deposit * (1 + APY)^y at every year end and against an
-independent count of k.
+independent count of k. Each row also carries the interest accrued in it
+(12.5, v1.7): every period's interest spread evenly over its days, summed
+exactly over the days the period and the row share. It is checked against a
+day-by-day walk and against every identity of 12.5: a year's accrued interest
+is the sum of its months' and the growth of the balance over the year, and
+inside a year the accrued interest runs ahead of the credited interest by the
+accrued part of the period still open, never more.
+
+Section 14 (v1.7) shows the month rows under each year row. The month rows of
+schedules.json and loan_reports.json are checked, as written, to add up to
+their year rows, and those of illustration.json, with the day rows, to their
+year and month rows.
 
 The loan reports of section 13 date every payment of the section 6
 amortization (the first payment's calendar month plus k - 1 months), add the
@@ -65,7 +76,7 @@ from fractions import Fraction
 from pathlib import Path
 
 GENERATOR = "tests/oracle/generate.py"
-CONVENTIONS = "v1.6"
+CONVENTIONS = "v1.7"
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
 # Section 2 asks for at least 60 digits; 100 leaves a wide margin everywhere.
@@ -845,6 +856,23 @@ def sig(value):
     if rounded.adjusted() != value.adjusted():
         rounded = value.quantize(ONE.scaleb(exponent + 1), rounding=ROUND_HALF_UP)
     return format(rounded, "f")
+
+
+# A value written by sig() is within half a unit of its 25th significant digit, at most 5e-25 of its
+# magnitude. When the exact values add up, the written ones therefore miss by at most 5e-25 of the sum
+# of their magnitudes; the bound used is twice that.
+WRITTEN_ROUNDING = Decimal("1e-24")
+
+
+def written_sum_matches(total, parts):
+    """Written values that add up in exact arithmetic: total = sum of parts, as read back from a fixture.
+
+    `total` and `parts` are Decimals read from sig strings (or exact
+    integers, or their negatives). True when |total - sum| <= 1e-24 *
+    (|total| + sum of |part|), the rounding of the written strings.
+    """
+    bound = WRITTEN_ROUNDING * (abs(total) + sum(abs(part) for part in parts))
+    return abs(total - sum(parts)) <= bound
 
 
 def percent_text(value):
@@ -1959,6 +1987,33 @@ def check_schedule(case_id, spec, day_rows, day_balances, periods, credits, valu
     return months, years_rows
 
 
+def check_year_month_tables(case_id, schedule):
+    """Section 14 (v1.7) on a written schedule: the month rows under each year add up to the year row.
+
+    Under year y are the month rows 12(y - 1) + 1 to 12y. Deposits and credited
+    add up to the year's exactly; the opening of the first month and the
+    closing and cumulative interest of the last are the year's; the accrued
+    amounts, written to 25 significant digits, add up to the year's within the
+    rounding of the strings (inside the oracle they agree exactly or to
+    1e-80, check_schedule).
+    """
+    months = schedule["months"]
+    check(len(months) == 12 * len(schedule["years"]), case_id, "section 14: not twelve months a year")
+    for year in schedule["years"]:
+        number = year[0]
+        under = months[12 * (number - 1):12 * number]
+        where = f"section 14: year {number}"
+        check([row[0] for row in under] == list(range(12 * (number - 1) + 1, 12 * number + 1)), case_id,
+              f"{where}: month numbers")
+        check(under[0][1] == year[1], case_id, f"{where}: the first month's opening is not the year's")
+        check(sum(row[2] for row in under) == year[2], case_id, f"{where}: deposits do not add up")
+        check(sum(row[4] for row in under) == year[4], case_id, f"{where}: credited does not add up")
+        check(under[-1][5] == year[5] and under[-1][6] == year[6], case_id,
+              f"{where}: the last month's closing or cumulative interest is not the year's")
+        check(written_sum_matches(Decimal(year[3]), [Decimal(row[3]) for row in under]), case_id,
+              f"{where}: accrued {year[3]} is not the sum of its months'")
+
+
 def check_compound_inputs(spec):
     """Section 5 input rules, so that no schedule case is invalid by mistake."""
     case_id = spec["id"]
@@ -2155,6 +2210,7 @@ def build_schedules():
         schedule = {"months": schedule_output(months), "years": schedule_output(years_rows)}
         if spec["years"] <= SCHEDULE_DAY_YEARS:
             schedule["days"] = schedule_output(day_rows)
+        check_year_month_tables(case_id, schedule)
         cases.append({"id": case_id, "engine": engine, **inputs, "schedule": schedule})
     expected = {"n": set(COMPOUNDING_FREQUENCIES), "frequency": set(CONTRIBUTION_FREQUENCIES),
                 "timing": {"start", "end"}, "compounding": set(HYSA_COMPOUNDING), "entries": {1, 2, 3, 4}}
@@ -2165,7 +2221,7 @@ def build_schedules():
     return fixture(cases=cases)
 
 
-# illustration.json: section 12, the rate illustration (v1.4)
+# illustration.json: section 12, the rate illustration (v1.4; 12.5 v1.7)
 
 ILLUSTRATION_FREQUENCIES = [1, 2, 4, 12, 52, 365]
 # Section 5.2 (v1.4): weekly periods start at the year offsets 0, 7, ..., 357, and the last of each
@@ -2177,6 +2233,12 @@ ILLUSTRATION_NEAR_HALF = Decimal("1e-13")
 ILLUSTRATION_MAX_YEARS = 30
 # The cases with entries in near_half, as (case, count, rows checked).
 ILLUSTRATION_NEAR = []
+# Section 12.5: the oracle's balances B_k are 100-digit decimals, and each period's interest is taken
+# as B_p - B_(p-1) exactly, so that every 12.5 identity holds exactly; it must equal the defining
+# B_(p-1) * annual_rate / n to this fraction of B_(p-1).
+ILLUSTRATION_INTEREST_TOLERANCE = Fraction(1, 10**90)
+# Rows written with accrued, periods checked, and the largest |(B_p - B_(p-1)) - B_(p-1) r / n| / B_(p-1).
+ILLUSTRATION_ACCRUAL = {"rows": 0, "periods": 0, "deviation": Fraction(0)}
 
 
 def illustration_period_ends(n, years):
@@ -2213,6 +2275,44 @@ def illustration_k_counted(n, t):
         starts = {2: HALF_YEAR_STARTS, 4: QUARTER_STARTS, 12: MONTH_STARTS}[n]
         within = sum(1 for start in starts if 0 < start <= offset)
     return n * done + within
+
+
+def illustration_period_days(n, day):
+    """Section 5.2 restated from the calendar: the length in days of the compounding period that contains `day`.
+
+    A cross-check of the period boundaries for the day walk of 12.5: 1 day
+    for n = 365; for n = 52, 7 days, or 8 in the last week of the year
+    (offsets 357 to 364); for n = 1, 2, 4 and 12 the stretch between the
+    starts on either side of the day's offset in its year.
+    """
+    offset = day % YEAR_DAYS
+    if n == 365:
+        return 1
+    if n == 52:
+        return 8 if offset >= 357 else 7
+    starts = {1: YEAR_STARTS, 2: HALF_YEAR_STARTS, 4: QUARTER_STARTS, 12: MONTH_STARTS}[n] + [YEAR_DAYS]
+    index = bisect_right(starts, offset)
+    return starts[index] - starts[index - 1]
+
+
+def illustration_accrued(starts, ends, interests, t0, t1):
+    """Section 12.5: the interest accrued from boundary t0 to boundary t1, an exact fraction of a cent.
+
+    The sum over the periods p of I_p * overlap_p / L_p, where period p runs
+    from s_p to e_p (L_p = e_p - s_p days) and overlap_p = min(e_p, t1) -
+    max(s_p, t0) is the number of days it shares with the row. Only the
+    periods that overlap the row are visited: from the first whose end is
+    after t0 to the last that starts before t1.
+    """
+    total = Fraction(0)
+    index = bisect_right(ends, t0)
+    while index < len(ends) and starts[index] < t1:
+        overlap = min(ends[index], t1) - max(starts[index], t0)
+        if overlap <= 0:
+            raise OracleError(f"period {starts[index]} to {ends[index]} does not overlap the row {t0} to {t1}")
+        total += interests[index] * Fraction(overlap, ends[index] - starts[index])
+        index += 1
+    return total
 
 
 def illustration_limit(deposit_cents, accounts, years):
@@ -2318,10 +2418,22 @@ def build_illustration():
     separately; days, months and years agree where they end together; no
     balance exceeds 2^53 - 1 cents, and the longest accepted cases are refused
     one year later.
+
+    Section 12.5 (v1.7), for every row of every account: the accrued interest
+    from the periods the row overlaps equals the sum of a day-by-day walk; it
+    is positive at a positive rate and 0 at a zero rate; since the start of
+    the year it runs ahead of the credited interest (unrounded) by exactly the
+    accrued part of the period still open, which is in [0, I_open) and 0 at a
+    boundary that ends a period; each year's accrued is B_(ny) - B_(n(y-1)),
+    and the sum of its months' (with the credited, opening and closing of
+    section 14), and each month's the sum of its days', all exactly. Each
+    period's interest B_p - B_(p-1) is the defining B_(p-1) * annual_rate / n
+    to a relative 1e-90. The written case is checked again from its strings.
     """
     check_weekly_calendar()
     cases = []
     covered = set()
+    covered_accrual = set()
     for spec, sources in illustration_cases():
         case_id = spec["id"]
         AUDIT.case = f"illustration {case_id}"
@@ -2383,24 +2495,89 @@ def build_illustration():
                           f"n = {n}: year {year} balance {value}, deposit * (1 + {apy_source})^y = {stated}")
                 if rate == 0:
                     check(value == deposit, case_id, f"n = {n}: growth at a zero rate")
+            # Section 12.5: period p (index p - 1 here) runs from s_p to e_p. Its interest I_p is taken
+            # as B_p - B_(p-1), exact on the oracle's balances, so that the identities below hold
+            # exactly; it must be the defining B_(p-1) * annual_rate / n to a relative 1e-90.
+            starts = [0] + ends[:-1]
+            exact_balances = [Fraction(balance_after(k)) for k in range(n * years + 1)]
+            interests = [later - earlier for earlier, later in zip(exact_balances, exact_balances[1:])]
+            exact_rate = Fraction(account["annual_rate"])
+            for p, interest in enumerate(interests, start=1):
+                deviation = abs(interest - exact_balances[p - 1] * exact_rate / n) / exact_balances[p - 1]
+                if deviation > ILLUSTRATION_INTEREST_TOLERANCE:
+                    check(False, case_id, f"n = {n}: B_{p} - B_{p - 1} is not B_{p - 1} * annual_rate / n")
+                    break
+                ILLUSTRATION_ACCRUAL["deviation"] = max(ILLUSTRATION_ACCRUAL["deviation"], deviation)
+            ILLUSTRATION_ACCRUAL["periods"] += len(interests)
+            check(all(interest > 0 for interest in interests) if rate > 0 else not any(interests), case_id,
+                  f"n = {n}: a period's interest is not positive (or, at a zero rate, not 0)")
+            # The day walk, a cross-check of the overlap sums: day d lies in the period after the k(d)
+            # periods that have ended by boundary d, and accrues I_p / L_p, with L_p from the calendar.
+            day_accrued = []
+            for day in range(term):
+                index = ks[day]
+                length = illustration_period_days(n, day)
+                if not starts[index] <= day < ends[index] or length != ends[index] - starts[index]:
+                    check(False, case_id, f"n = {n}: day {day} is not in period {index + 1} of {length} days")
+                    break
+                day_accrued.append(interests[index] / length)
             result = {}
             by_end = {}
+            # Rows as (t0, t1, opening, closing, accrued) for the nesting checks of sections 12.5 and 14.
+            spans = {}
             for grouping, row_ends in groupings:
                 rows = []
+                spans[grouping] = []
                 previous = deposit
+                t0 = 0
                 for number, t in enumerate(row_ends, start=1):
                     k = ks[t]
                     value = balance_after(k)
                     shown = round_cents(value)
                     check(shown >= previous, case_id, f"n = {n}: {grouping} row {number}: shown value falls")
+                    where = f"n = {n}: {grouping} row {number}"
+                    # Section 12.5: the interest accrued from t0 (the previous row's end, 0 for the first
+                    # row) to t, from the periods the row overlaps; the day walk must give the same.
+                    accrued = illustration_accrued(starts, ends, interests, t0, t)
+                    check(accrued == sum(day_accrued[t0:t], Fraction(0)), case_id,
+                          f"{where}: accrued {as_decimal(accrued)} differs from the day walk")
+                    check(accrued > 0 if rate > 0 else accrued == 0, case_id,
+                          f"{where}: accrued {as_decimal(accrued)} at a rate of {rate}")
+                    # Accrued minus credited (unrounded, B_(k(t)) - B_(n(y-1))) since the start of the
+                    # year is the accrued part of the period still open at t: 0 at a boundary that ends a
+                    # period (the end of the term among them), else I_open * (t - s) / L, in [0, I_open).
+                    if t0 % YEAR_DAYS == 0:
+                        year_start_k = ks[t0]
+                        since_year_start = Fraction(0)
+                    since_year_start += accrued
+                    ahead = since_year_start - (exact_balances[k] - exact_balances[year_start_k])
+                    if k > 0 and ends[k - 1] == t:
+                        check(ahead == 0, case_id, f"{where}: accrued runs ahead of credited at a period end")
+                    else:
+                        open_start, open_end, open_interest = starts[k], ends[k], interests[k]
+                        check(open_start < t < open_end, case_id, f"{where}: no period is open at {t}")
+                        check(ahead == open_interest * Fraction(t - open_start, open_end - open_start), case_id,
+                              f"{where}: accrued runs ahead of credited by {as_decimal(ahead)}")
+                        check(0 <= ahead < open_interest if open_interest > 0 else ahead == 0, case_id,
+                              f"{where}: accrued minus credited {as_decimal(ahead)} is outside [0, I_open)")
+                        if grouping == "months" and ahead > 0:
+                            covered_accrual.add(("a period open at a month end", n))
+                    if grouping == "years":
+                        check(accrued == exact_balances[n * number] - exact_balances[n * (number - 1)], case_id,
+                              f"{where}: accrued is not B_(ny) - B_(n(y-1))")
+                    spans[grouping].append((t0, t, previous, shown, accrued))
                     previous = shown
+                    t0 = t
                     label = number - 1 if grouping == "days" else number
-                    row = [label, k, sig(value), shown]
+                    row = [label, k, sig(value), shown, sig(as_decimal(accrued))]
+                    # The rows of different groupings that end together share k, balance and shown_cents
+                    # (not accrued, which covers a different stretch of days).
                     if t in by_end:
-                        check(by_end[t] == row[1:], case_id, f"n = {n}: rows ending at {t} differ")
-                    by_end[t] = row[1:]
+                        check(by_end[t] == row[1:4], case_id, f"n = {n}: rows ending at {t} differ")
+                    by_end[t] = row[1:4]
                     rows.append(row)
                     rows_checked += 1
+                    ILLUSTRATION_ACCRUAL["rows"] += 1
                     # Section 2 restated for these positive values: half away from zero is floor(value + 1/2).
                     check(shown == math.floor(value + HALF), case_id, f"n = {n}: {value} shown as {shown}")
                     distance = abs(value - value.to_integral_value(rounding=ROUND_FLOOR) - HALF)
@@ -2413,14 +2590,101 @@ def build_illustration():
                     if near:
                         near_half.append([account_index, grouping, number])
                 result[grouping] = rows
+            # Sections 12.5 and 14: the month rows under each year, and the day rows under each month.
+            check_illustration_nesting(case_id, f"n = {n}: years", spans["years"], spans["months"])
+            if "days" in spans:
+                check_illustration_nesting(case_id, f"n = {n}: months", spans["months"], spans["days"])
+            if rate == 0:
+                covered_accrual.add(("a zero rate",))
+            elif years == 1:
+                # With day rows; for n = 52 these include the 8-day last week, days 357 to 364.
+                covered_accrual.add(("day rows", n))
+            else:
+                covered_accrual.add(("several years", n))
+            if apy_source is not None:
+                covered_accrual.add(("entered by APY",))
             results.append(result)
         if near_half:
             ILLUSTRATION_NEAR.append((case_id, len(near_half), rows_checked))
-        cases.append({**spec, "results": results, "near_half": near_half})
+        case = {**spec, "results": results, "near_half": near_half}
+        check_illustration_fixture(case)
+        cases.append(case)
     check(covered == set(ILLUSTRATION_FREQUENCIES), "illustration.json", f"n covered {sorted(covered)}")
+    # Section 12.5 coverage: every n at a positive rate with day rows and over several years, a period
+    # open at a month end for every n whose periods do not end at every month end, a zero rate, and an
+    # account entered by its APY.
+    wanted = ({("day rows", n) for n in ILLUSTRATION_FREQUENCIES}
+              | {("several years", n) for n in ILLUSTRATION_FREQUENCIES}
+              | {("a period open at a month end", n) for n in (1, 2, 4, 52)}
+              | {("a zero rate",), ("entered by APY",)})
+    check(covered_accrual == wanted, "illustration.json",
+          f"12.5 coverage: missing {sorted(wanted - covered_accrual)}, unexpected {sorted(covered_accrual - wanted)}")
     ids = [case["id"] for case in cases]
     check(len(set(ids)) == len(ids), "illustration.json", "duplicate case ids")
     return fixture(cases=cases)
+
+
+def check_illustration_nesting(case_id, label, outer, inner):
+    """Sections 12.5 and 14: the inner rows (months, or days) under each outer row (years, or months).
+
+    Rows are (t0, t1, opening, closing, accrued) with opening and closing the
+    shown_cents at t0 and t1 (the deposit at boundary 0) and accrued exact.
+    The inner rows under an outer row cover its days exactly, in order; their
+    accrued interest adds up to its accrued exactly, their credited (closing
+    minus opening, 12.3) to its credited; the first's opening and the last's
+    closing are its own.
+    """
+    position = 0
+    for number, (t0, t1, opening, closing, accrued) in enumerate(outer, start=1):
+        under = []
+        while position < len(inner) and inner[position][1] <= t1:
+            under.append(inner[position])
+            position += 1
+        where = f"{label} row {number}"
+        if not (under and under[0][0] == t0 and under[-1][1] == t1
+                and all(left[1] == right[0] for left, right in zip(under, under[1:]))):
+            check(False, case_id, f"{where}: the rows under it do not cover it")
+            continue
+        check(sum((row[4] for row in under), Fraction(0)) == accrued, case_id,
+              f"{where}: accrued is not the sum of the rows under it")
+        check(sum(row[3] - row[2] for row in under) == closing - opening, case_id,
+              f"{where}: credited is not the sum of the rows under it")
+        check(under[0][2] == opening and under[-1][3] == closing, case_id,
+              f"{where}: opening or closing differs from the rows under it")
+    check(position == len(inner), case_id, f"{label}: {len(inner) - position} row(s) under no row")
+
+
+def check_illustration_fixture(case):
+    """Sections 12.4 (v1.7 addition), 12.5 and 14 checked on the written case, as a reader of the fixture sees it.
+
+    Every row is [number, k, balance, shown_cents, accrued] with balance and
+    accrued as strings. For each account, each year's accrued is the growth of
+    the written balance over the year (from the previous year's, or the
+    deposit) and the sum of its months', and, where there are day rows, each
+    month's is the sum of its days', all within the rounding of the strings.
+    """
+    case_id = case["id"]
+    for index, result in enumerate(case["results"]):
+        where = f"fixture: account {index}"
+        for grouping, rows in result.items():
+            check(all(len(row) == 5 and isinstance(row[2], str) and isinstance(row[4], str) for row in rows),
+                  case_id, f"{where}: {grouping} rows are not [number, k, balance, shown_cents, accrued]")
+        months = result["months"]
+        previous = Decimal(case["deposit_cents"])
+        for year in result["years"]:
+            accrued = Decimal(year[4])
+            balance = Decimal(year[2])
+            check(written_sum_matches(accrued, [balance, -previous]), case_id,
+                  f"{where}: year {year[0]}: accrued {year[4]} is not the growth of the balance")
+            under = months[12 * (year[0] - 1):12 * year[0]]
+            check(written_sum_matches(accrued, [Decimal(row[4]) for row in under]), case_id,
+                  f"{where}: year {year[0]}: accrued {year[4]} is not the sum of its months'")
+            previous = balance
+        if "days" in result:
+            days = result["days"]
+            for (month, a, b), row in zip(month_ranges(case["years"]), months):
+                check(written_sum_matches(Decimal(row[4]), [Decimal(day[4]) for day in days[a:b]]), case_id,
+                      f"{where}: month {month}: accrued {row[4]} is not the sum of its days'")
 
 
 # loan_reports.json: section 13, loan schedules, payoff comparison and payment breakdown (v1.5; 13.5 and
@@ -2988,6 +3252,36 @@ def check_loan_report_fixture(case):
     check(isinstance(case["annual_rate"], str), case_id, "fixture: the rate is not a decimal string")
 
 
+def check_loan_year_months(case):
+    """Section 14 (v1.7) on a written loan case with month rows: the months under each calendar-year row.
+
+    Under each year row are the month rows dated in that calendar year, a run
+    of consecutive rows; together the runs are every month row. Their count is
+    the year's payments; their payment, principal, interest and extra add up to
+    the year's scheduled, principal, interest and extra; the last one's balance
+    and running totals are the year's end balance and running totals. Restated
+    here without loan_year_rows.
+    """
+    if "monthly" not in case:
+        return
+    case_id = case["id"]
+    monthly = case["monthly"]
+    position = 0
+    for year, payments, scheduled, principal, interest, extra, end, total_interest, total_principal in case["yearly"]:
+        where = f"section 14: year {year}"
+        under = [row for row in monthly if row[1] == year]
+        if not under or under != monthly[position:position + len(under)]:
+            check(False, case_id, f"{where}: its month rows are not the next run of rows")
+            continue
+        position += len(under)
+        check(len(under) == payments, case_id, f"{where}: {len(under)} month rows for {payments} payments")
+        check([sum(row[column] for row in under) for column in (3, 5, 4, 6)] == [scheduled, principal, interest, extra],
+              case_id, f"{where}: payment, principal, interest or extra does not add up")
+        check(under[-1][7:] == [end, total_interest, total_principal], case_id,
+              f"{where}: the last month's balance or running totals are not the year's")
+    check(position == len(monthly), case_id, f"section 14: {len(monthly) - position} month row(s) under no year")
+
+
 def loan_report_case(case_id, principal, rate, months, first_payment, extra=0, one_time=(), tax=0, insurance=0,
                      mortgage_insurance=0, hoa=0):
     """Section 13.6 inputs, in fixture order: the section 6 inputs, then those of 13.1."""
@@ -3187,6 +3481,7 @@ def build_loan_reports():
             "breakdown": report["breakdown"],
         })
         check_loan_report_fixture(case)
+        check_loan_year_months(case)
         cases.append(case)
     # A one-time due in the month that becomes the final payment is not paid (section 6): the plan
     # with it equals the plan without it.
@@ -3368,6 +3663,10 @@ def main():
           f"in {len(ILLUSTRATION_NEAR)} case(s)")
     for case_id, count, rows in ILLUSTRATION_NEAR:
         print(f"  {case_id}: {count} of {rows} rows")
+    accrual = ILLUSTRATION_ACCRUAL
+    print(f"illustration accrual (12.5): {accrual['rows']} row(s) with accrued, over {accrual['periods']} compounding "
+          f"period(s); each B_p - B_(p-1) within {float(accrual['deviation']):.1e} of B_(p-1) * r / n, relative to "
+          "B_(p-1)")
     sweep = LOAN_SWEEP_SUMMARY
     print(f"loan reports sweep: {sweep['loans']} seeded loan(s) checked against 13.4 and the restatement "
           f"({sweep['extra paid']} with extra paid, {sweep['months saved']} saving months, {sweep['zero rate']} at a "

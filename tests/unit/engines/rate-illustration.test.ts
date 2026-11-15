@@ -9,7 +9,7 @@ import type { Grouping } from '../../../src/lib/engines/schedule';
 
 const fixture = JSON.parse(readFileSync('tests/oracle/fixtures/illustration.json', 'utf8'));
 
-type Row = [number, number, string, number];
+type Row = [number, number, string, number, string];
 interface Case {
   id: string;
   deposit_cents: number;
@@ -38,6 +38,8 @@ describe('rate illustration against the oracle', () => {
     for (const n of [1, 2, 4, 12, 52, 365]) expect(cases.some((c) => c.accounts.some((a) => a.n === n)), `n=${n}`).toBe(true);
     expect(cases.some((c) => c.years === 1 && c.results[0]!.days)).toBe(true);
     expect(cases.some((c) => c.years >= 20)).toBe(true);
+    expect(fixture.conventions).toBe('v1.7');
+    expect(cases.every((c) => c.results.every((r) => r.years.every((row) => typeof row[4] === 'string')))).toBe(true);
   });
 
   for (const c of cases) {
@@ -60,6 +62,10 @@ describe('rate illustration against the oracle', () => {
             const balance = Number(e[2]);
             expect(Math.abs(row.balances[a]! - balance) / balance, label).toBeLessThanOrEqual(1e-12);
             if (!skip.has(`${a} ${key} ${i + 1}`)) expect(row.shown[a], label).toBe(e[3]);
+            // Interest accrued in the row (12.5): relative 1e-12, absolute 1e-15 cents where it is 0.
+            const accrued = Number(e[4]);
+            if (accrued === 0) expect(Math.abs(row.accrued[a]!), label).toBeLessThanOrEqual(1e-15);
+            else expect(Math.abs(row.accrued[a]! - accrued) / accrued, label).toBeLessThanOrEqual(1e-12);
           });
         });
       }

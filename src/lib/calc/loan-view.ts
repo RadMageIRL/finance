@@ -205,7 +205,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
     const rows = plan.months;
     const columns: TableColumn[] = [
       { label: 'Payment', numeric: false },
-      { label: 'Amount', numeric: true },
+      { label: 'Regular payment', numeric: true },
       { label: 'Principal', numeric: true },
       { label: 'Interest', numeric: true },
       ...(extraCol ? [{ label: 'Extra', numeric: true }] : []),
@@ -265,6 +265,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
   }
   const rows = plan.years;
   const baseByYear = new Map((base?.years ?? []).map((y) => [y.year, y.endBalance]));
+  const detail: TableSource['detail'] = { table: (i) => loanYearMonths(plan, rows[i]!.year, options), all: () => loanTable(plan, 'month', options), noun: 'payments' };
   const columns: TableColumn[] = [
     { label: 'Year', numeric: false },
     { label: 'Payments', numeric: true },
@@ -303,6 +304,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
     },
     pageSize: 100,
     pageLabel: () => 'All years',
+    detail,
     footer: {
       head: 'Total',
       cells: [
@@ -314,6 +316,42 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
         formatUSD(0),
         formatUSD(plan.schedule.totalInterest),
         ...(base ? [''] : []),
+      ],
+    },
+  };
+}
+
+/**
+ * The payments dated in calendar year `year` as their own table, for the expandable year rows
+ * (ENGINE_CONVENTIONS section 14). The rows are the engine's month rows; the footer totals
+ * them, so it reconciles with the year's row: regular payments add up to what was scheduled,
+ * and principal, interest and extra to the year's, exactly.
+ */
+export function loanYearMonths(plan: LoanPlan, year: number, options: TableOptions): TableSource {
+  const full = loanTable(plan, 'month', options);
+  const from = plan.months.findIndex((m) => m.date.year === year);
+  const months = plan.months.filter((m) => m.date.year === year);
+  const last = months[months.length - 1]!;
+  const sum = (pick: (m: LoanMonthRow) => number) => months.reduce((total, m) => total + pick(m), 0);
+  const baseEnd = options.baseline?.years.find((y) => y.year === year)?.endBalance;
+  return {
+    ...full,
+    caption: `${year} by payment: principal, interest and the balance left`,
+    count: months.length,
+    row: (i) => full.row(from + i),
+    csvRow: (i) => full.csvRow(from + i),
+    pageSize: Math.max(1, months.length),
+    pageLabel: () => String(year),
+    footer: {
+      head: `${year} total`,
+      cells: [
+        formatUSD(sum((m) => m.payment)),
+        formatUSD(sum((m) => m.principal)),
+        formatUSD(sum((m) => m.interest)),
+        ...(options.extra ? [formatUSD(sum((m) => m.extra))] : []),
+        formatUSD(last.balance),
+        formatUSD(last.cumulativeInterest),
+        ...(options.baseline ? [baseEnd === undefined ? '' : formatUSD(baseEnd)] : []),
       ],
     },
   };

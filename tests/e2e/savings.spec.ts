@@ -55,7 +55,7 @@ test.describe('high-yield savings calculator', () => {
       await expect(hero(page)).toHaveText(/^\$\d{2},\d{3}\.\d{2}$/);
       values.push((await hero(page).textContent())!);
       await expect(page.locator('[data-out="rates"] tr')).toHaveCount(1);
-      await expect(page.locator('#sg-schedule [data-out="table-rows"] tr')).toHaveCount(5);
+      await expect(page.locator('#sg-schedule [data-out="table-rows"] > tr:not(.sched-detail)')).toHaveCount(5);
       await context.close();
     }
     expect(values[0]).toBe(values[1]);
@@ -78,7 +78,7 @@ test.describe('high-yield savings calculator', () => {
       await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c!.total_interest_cents));
       // The first month's credited interest, from the month table.
       await page.check('input[name="sg-schedule-group"][value="month"]');
-      await expect(page.locator('#sg-schedule [data-out="table-rows"] tr').first().locator('td').nth(3)).toHaveText(dollars(c!.monthly[0]![4]!));
+      await expect(page.locator('#sg-schedule [data-out="table-rows"] > tr:not(.sched-detail)').first().locator('td').nth(3)).toHaveText(dollars(c!.monthly[0]![4]!));
     });
   }
 

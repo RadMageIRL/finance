@@ -11,7 +11,7 @@ const COMPOUND = url('calculators/compound-interest/');
 const RATES = url('calculators/apr-apy/');
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
-const rows = (page: Page, id: string) => page.locator(`#${id} [data-out="table-rows"] tr`);
+const rows = (page: Page, id: string) => page.locator(`#${id} [data-out="table-rows"] > tr:not(.sched-detail)`);
 const group = (page: Page, id: string, value: 'day' | 'month' | 'year') => page.check(`input[name="${id}-group"][value="${value}"]`);
 
 async function download(page: Page, action: string): Promise<{ name: string; text: string; file: Download }> {

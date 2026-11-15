@@ -39,14 +39,14 @@ test.describe('loan amortization calculator', () => {
     await loan(page, 'la', { principal: '200,000', rate: '6', term: '30', month: '1', year: '2027' });
     await expect(page.locator('[data-out="payment"]')).toHaveText('$1,199.10');
     await expect(page.locator('[data-out="payoff"]')).toHaveText('Dec 2056');
-    await expect(page.locator('#la-schedule [data-out="table-rows"] tr')).toHaveCount(30);
+    await expect(page.locator('#la-schedule [data-out="table-rows"] > tr:not(.sched-detail)')).toHaveCount(30);
     await expect(page.locator('#la-schedule tfoot td').nth(4)).toHaveText('$0.00');
   });
 
   test('groups by payment, paging a long loan, and by calendar year with partial first and last years', async ({ page }) => {
     await page.goto(AMORTIZATION);
     await loan(page, 'la', { principal: '200,000', rate: '6', term: '360', unit: 'months', month: '7', year: '2027' });
-    const rows = page.locator('#la-schedule [data-out="table-rows"] tr');
+    const rows = page.locator('#la-schedule [data-out="table-rows"] > tr:not(.sched-detail)');
     await expect(rows).toHaveCount(31);
     await expect(rows.first().locator('td').first()).toHaveText('6');
     await page.check('input[name="la-schedule-group"][value="month"]');
@@ -137,7 +137,7 @@ test.describe('mortgage payoff calculator', () => {
     await page.fill('#mp-o1a', '5,000');
     await expect(page.locator('#mp-o1-hint')).toHaveText('Payment 13 is in Jan 2028.');
     await page.check('input[name="mp-schedule-group"][value="month"]');
-    await expect(page.locator('#mp-schedule [data-out="table-rows"] tr').nth(12).locator('td').nth(3)).toHaveText('$5,000.00');
+    await expect(page.locator('#mp-schedule [data-out="table-rows"] > tr:not(.sched-detail)').nth(12).locator('td').nth(3)).toHaveText('$5,000.00');
     await page.fill('#mp-o1a', '');
     await expect(page.locator('#mp-o1a-error')).toContainText('Enter both');
   });

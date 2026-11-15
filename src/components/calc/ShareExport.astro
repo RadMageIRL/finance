@@ -14,9 +14,11 @@ interface Props {
   subject?: string;
   /** The calculator offers a view by day, which a report shows by month when it is too long. */
   dayLimit?: boolean;
+  /** What the schedule by year can show under each year: "months" or "payments". */
+  months?: string;
 }
 
-const { idPrefix, subject = 'the schedule below', dayLimit = false } = Astro.props;
+const { idPrefix, subject = 'the schedule below', dayLimit = false, months = 'months' } = Astro.props;
 const dayNote = ` Grouped by day, anything longer than ${formatInteger(REPORT_ROW_LIMIT)} rows (about 10 years) appears by month in the report and the printout; the CSV always has every day.`;
 const modes = [
   { value: 'exact', label: 'Exact amounts' },
@@ -25,6 +27,10 @@ const modes = [
 ];
 ---
 <div class="calc-actions" data-js-only>
+  <label class="choice calc-actions__months" data-out="months-option">
+    <input type="checkbox" id={`${idPrefix}-export-months`} data-action="months" />
+    Include each year's {months}: under each year in the report and the printout, and as the full schedule by {months === 'payments' ? 'payment' : 'month'} in the CSV
+  </label>
   <div class="button-row calc-actions__exports" role="group" aria-label="Export">
     <button class="button button--secondary" type="button" data-action="report">Download report</button>
     <button class="button button--secondary" type="button" data-action="csv">Download CSV</button>

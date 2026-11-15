@@ -89,6 +89,14 @@ const noun = groupings.find((g) => g.value === grouping)?.label.toLowerCase() ??
       </p>
     </div>
     <div class="schedule__table" data-part="table">
+      <div class="schedule__expand" data-out="expand-controls" data-js-only hidden={!table.detail}>
+        <p class="small muted schedule__expand-help">Select a year to show its <span data-out="expand-noun">{table.detail?.noun ?? 'months'}</span> underneath.</p>
+        <div class="button-row">
+          <button class="button button--secondary" type="button" data-action="expand-all">Expand all</button>
+          <button class="button button--secondary" type="button" data-action="collapse-all">Collapse all</button>
+        </div>
+        <p class="vh" data-out="expand-status" role="status" aria-live="polite"></p>
+      </div>
       <div class="pager" data-pager data-js-only hidden>
         <button class="button button--secondary pager__step" type="button" data-page="first">First</button>
         <button class="button button--secondary pager__step" type="button" data-page="previous">Previous</button>

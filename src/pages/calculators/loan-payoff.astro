@@ -119,7 +119,7 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
         <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
         <p class="calc__incomplete" data-out="incomplete">Enter your own dollar amounts to see results.</p>
         <p class="vh" data-out="status" role="status" aria-live="polite"></p>
-        <ShareExport idPrefix="mp" />
+        <ShareExport idPrefix="mp" months="payments" />
         <p class="small muted">A hypothetical schedule, not a loan offer, a payoff quote or a statement. <a href={href('disclaimer/')}>Disclaimer</a>.</p>
       </section>
     </div>

@@ -58,7 +58,7 @@ test.describe('compound interest calculator', () => {
       // $10,000 at 5% monthly for 10 years, $100 at the end of each month (engine and oracle agree).
       await expect(hero(page)).toHaveText(EXAMPLE_FINAL);
       await expect(page.locator('#ci-schedule tfoot td').nth(5)).toHaveText(EXAMPLE_FINAL);
-      await expect(page.locator('#ci-schedule [data-out="table-rows"] tr')).toHaveCount(10);
+      await expect(page.locator('#ci-schedule [data-out="table-rows"] > tr:not(.sched-detail)')).toHaveCount(10);
       await context.close();
     }
   });
@@ -89,7 +89,7 @@ test.describe('compound interest calculator', () => {
       });
       await expect(hero(page)).toHaveText(dollars(c!.final_balance_cents));
       await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c!.total_interest_cents));
-      const lastRow = page.locator('#ci-schedule [data-out="table-rows"] tr').last();
+      const lastRow = page.locator('#ci-schedule [data-out="table-rows"] > tr:not(.sched-detail)').last();
       await expect(lastRow.locator('td').nth(5)).toHaveText(dollars(c!.yearly.at(-1)![4]!));
     });
   }
@@ -236,7 +236,7 @@ test.describe('compound interest calculator', () => {
 
   test('the chart has a table equivalent and a keyboard-readable tooltip', async ({ page }) => {
     await page.goto(PAGE);
-    await expect(page.locator('#ci-schedule [data-out="table-rows"] tr')).toHaveCount(10);
+    await expect(page.locator('#ci-schedule [data-out="table-rows"] > tr:not(.sched-detail)')).toHaveCount(10);
     await page.locator('.chart-box').focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.locator('.chart-tooltip')).toBeVisible();

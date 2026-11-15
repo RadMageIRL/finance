@@ -40,7 +40,12 @@ export interface ReportSchedule {
    * schedule's heading and row count. The CSV still has every row of the chosen schedule.
    */
   fallbackFrom?: { heading: string; rows: number };
+  /** Show each year's month table under the year (the visitor's export choice; section 14). */
+  months?: boolean;
 }
+
+/** Whether a report schedule includes the month tables: asked for, and the table has them. */
+export const scheduleMonths = (schedule: ReportSchedule): boolean => Boolean(schedule.months && schedule.table.detail);
 
 export interface Report {
   /** The calculator's name, for example "High-yield savings calculator". */
@@ -127,12 +132,17 @@ function rowHtml(row: TableRow): string {
 }
 
 /** The whole table, every row, with the numeric columns marked for alignment. */
-export function tableHtml(table: TableSource, limit = Number.POSITIVE_INFINITY): string {
+export function tableHtml(table: TableSource, limit = Number.POSITIVE_INFINITY, options: { detail?: boolean } = {}): string {
   const numeric = table.columns.map((c) => c.numeric);
   const cols = numeric.map((n) => `<col${n ? ' class="num"' : ''}>`).join('');
   const head = table.columns.map((c, i) => `<th scope="col"${numeric[i] ? ' class="num"' : ''}>${e(c.label)}</th>`).join('');
   const body: string[] = [];
-  for (let i = 0; i < Math.min(table.count, limit); i += 1) body.push(rowHtml(table.row(i)));
+  const detail = options.detail ? table.detail : undefined;
+  for (let i = 0; i < Math.min(table.count, limit); i += 1) {
+    body.push(rowHtml(table.row(i)));
+    // The year's months as their own table, in a row that spans the year table (section 14).
+    if (detail) body.push(`<tr class="rmf-report__detail"><td colspan="${table.columns.length}">${tableHtml(detail.table(i))}</td></tr>`);
+  }
   const foot = table.footer ? `<tfoot>${rowHtml(table.footer)}</tfoot>` : '';
   return `<table><caption>${e(table.caption)}</caption><colgroup>${cols}</colgroup><thead><tr>${head}</tr></thead><tbody>${body.join('')}</tbody>${foot}</table>`;
 }
@@ -181,8 +191,11 @@ export function reportBody(report: Report): string {
   parts.push(section('assumptions', 'Assumptions', `<ul>${report.assumptions.map((a) => `<li>${e(a)}</li>`).join('')}</ul>`));
   if (report.schedule) {
     const { table, notes, heading } = report.schedule;
-    const notesHtml = notes.map((n) => `<p class="rmf-report__small">${e(n)}</p>`).join('');
-    parts.push(section('schedule', heading, `${notesHtml}${tableHtml(table)}`));
+    const months = scheduleMonths(report.schedule);
+    const notesHtml = [...notes, ...(months ? [`Each year is followed by its ${table.detail!.noun}, taken from the same schedule; each ${table.detail!.noun} table ends with the year's totals.`] : [])]
+      .map((n) => `<p class="rmf-report__small">${e(n)}</p>`)
+      .join('');
+    parts.push(section('schedule', months ? `${heading}, with each year's ${table.detail!.noun}` : heading, `${notesHtml}${tableHtml(table, Number.POSITIVE_INFINITY, { detail: months })}`));
   }
   if (report.sources.length) parts.push(section('sources', 'Sources', `<ul>${report.sources.map((s) => `<li>${e(s)}</li>`).join('')}</ul>`));
   parts.push(`<footer class="rmf-report__foot"><p>RadMage Finance, published by RadMage Labs. A hypothetical calculation. ${e(REPORT_NOTICE)}</p></footer>`);
@@ -272,6 +285,10 @@ export function reportText(report: Report): string {
       out.push(...wrap(`You chose the ${chosen.heading.toLowerCase()}, which has ${chosen.rows.toLocaleString('en-US')} rows: too many for a readable report, so the HTML report and the printout show the ${report.schedule.heading.toLowerCase()} instead (${rows.toLocaleString('en-US')} ${rows === 1 ? 'row' : 'rows'}). Download the CSV to get every row of the ${chosen.heading.toLowerCase()}.`));
     } else {
       out.push(...wrap(`The ${report.schedule.heading.toLowerCase()} has ${rows.toLocaleString('en-US')} ${rows === 1 ? 'row' : 'rows'}${pageCount(report.schedule.table) > 1 ? `, in ${pageCount(report.schedule.table).toLocaleString('en-US')} pages on the calculator page` : ''}. Download the CSV or the HTML report to see every row.`));
+    }
+    if (scheduleMonths(report.schedule)) {
+      const noun = report.schedule.table.detail!.noun;
+      out.push(...wrap(`With each year's ${noun} included, the HTML report and the printout show the ${noun} of every year under that year, and the CSV holds every one of the ${report.schedule.table.detail!.all().count.toLocaleString('en-US')} ${noun}.`));
     }
   }
   if (report.sources.length) {
