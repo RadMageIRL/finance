@@ -54,6 +54,17 @@ test.describe('layout', () => {
     });
   }
 
+  test('every page reflows at 200 percent zoom (640 CSS px on a 1280 px screen)', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 640, height: 400 } });
+    const page = await context.newPage();
+    for (const path of PAGES) {
+      await page.goto(url(path));
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, path).toBeLessThanOrEqual(0);
+    }
+    await context.close();
+  });
+
   test('pages reflow at 400 percent zoom (320 CSS px) with the menu available', async ({ browser }) => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
     const page = await context.newPage();
