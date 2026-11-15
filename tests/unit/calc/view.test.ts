@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { niceTicks, stackedColumnsSvg } from '../../../src/lib/calc/chart';
-import { compoundCsv, compoundShareState, compoundView, DEFAULT_INPUT } from '../../../src/lib/calc/compound-view';
+import { compoundSchedule, compoundScheduleConfig, compoundShareState, compoundView, DEFAULT_INPUT } from '../../../src/lib/calc/compound-view';
+import { scheduleTable, scheduleTooltip } from '../../../src/lib/calc/schedule-view';
+import { tableCsv } from '../../../src/lib/report/table';
 import { contributionHint } from '../../../src/lib/calc/frequency';
 import { compoundInterest } from '../../../src/lib/engines/compound';
 
@@ -75,21 +77,30 @@ describe('stacked column chart', () => {
 });
 
 describe('compound interest view', () => {
-  it('shows the engine result: breakdown adds up and the table ends at the final balance', () => {
+  it('shows the engine result: breakdown adds up and the yearly schedule ends at the final balance', () => {
     const result = example();
     const view = compoundView(DEFAULT_INPUT, result);
     expect(view.final).toBe('$31,998.39');
     expect(view.breakdown.map((b) => b.value)).toEqual(['$10,000.00', '$12,000.00', '$9,998.39']);
-    expect(view.rows).toHaveLength(10);
-    expect(view.rows.at(-1)!.end).toBe(view.final);
-    expect(view.tooltips[9]![0]).toBe('Year 10: $31,998.39');
+    const schedule = compoundSchedule(DEFAULT_INPUT, result);
+    const table = scheduleTable(schedule, 'year', compoundScheduleConfig(DEFAULT_INPUT));
+    expect(table.count).toBe(10);
+    expect(table.row(9).cells[5]).toBe(view.final);
+    expect(table.footer!.cells[5]).toBe(view.final);
+    expect(scheduleTooltip(schedule, 'year', DEFAULT_INPUT.principal, 'Contributions', 9)[0]).toBe('Year 10: $31,998.39');
   });
 
-  it('exports the yearly table as CSV matching the engine to the cent', () => {
+  it('exports the yearly schedule as CSV matching the engine to the cent', () => {
     const result = example();
-    const lines = compoundCsv(result).trim().split('\r\n');
-    expect(lines[0]).toBe('year,start_balance_usd,contributions_usd,interest_usd,end_balance_usd');
-    expect(lines[10]).toBe(`10,${(result.years[9]!.startBalance / 100).toFixed(2)},1200.00,${(result.years[9]!.interest / 100).toFixed(2)},31998.39`);
+    const schedule = compoundSchedule(DEFAULT_INPUT, result);
+    const lines = tableCsv(scheduleTable(schedule, 'year', compoundScheduleConfig(DEFAULT_INPUT))).trim().split(/\r\n/);
+    expect(lines[0]).toBe('year,days,opening_balance_usd,contributions_usd,interest_accrued_usd,interest_credited_usd,annual_rate_percent,closing_balance_usd,cumulative_interest_usd');
+    const y = result.years[9]!;
+    const fields = lines[10]!.split(',');
+    expect(fields).toHaveLength(9);
+    expect(fields.slice(0, 4)).toEqual(['10', '365', (y.startBalance / 100).toFixed(2), '1200.00']);
+    expect(fields[4]).toMatch(/^\d+\.\d{6}$/);
+    expect(fields.slice(5)).toEqual([(y.interest / 100).toFixed(2), '5.0000000000', '31998.39', '9998.39']);
   });
 });
 

@@ -1,10 +1,10 @@
 """Independent reference oracle for the RadMage Finance calculation engines.
 
 Writes JSON fixtures to tests/oracle/fixtures/ from the rules in
-docs/ENGINE_CONVENTIONS.md (v1.3), sections 2 to 6, 9 and 10. It uses only the
-Python standard library and exact decimal arithmetic, and it is written from
-that specification alone, not from the TypeScript engines, so that a mistake
-shared by both is unlikely.
+docs/ENGINE_CONVENTIONS.md (v1.4), sections 2 to 6 and 9 to 12. It uses only
+the Python standard library and exact decimal arithmetic (with exact fractions
+where section 2 allows them), and it is written from that specification alone,
+not from the TypeScript engines, so that a mistake shared by both is unlikely.
 
 Run from the repository root:
 
@@ -25,17 +25,34 @@ with a daily rate of 1/365 of that rate and credited, rounded to the cent, at
 the end of each month, with the APY earned of each month. It is checked
 against a day-by-day restatement and against the calibration identity.
 
+The schedules of section 11 walk every day of the term for both engines: the
+deposits of the day, the interest accrued on it (unrounded) and the interest
+credited on the last day of each crediting period, then group the days into
+month and year rows. They are checked against the ledgers above: every
+credit is within half a cent of its period's accrued interest, and the month
+and year rows equal the ledgers' rows.
+
+The rate illustration of section 12 gives, for each account, the unrounded
+balance deposit * (1 + annual_rate / n)^k after the k compounding periods
+that have ended by the end of each day, month or year (with the weekly
+periods of section 5.2 for n = 52), and that balance rounded to the cent. It
+is checked against deposit * (1 + APY)^y at every year end and against an
+independent count of k.
+
 If any check fails, the generator prints the failing cases, writes nothing
 and exits with status 1.
 """
 
 import json
+import math
 import sys
+from bisect import bisect_right
 from decimal import ROUND_FLOOR, ROUND_HALF_UP, Context, Decimal, setcontext
+from fractions import Fraction
 from pathlib import Path
 
 GENERATOR = "tests/oracle/generate.py"
-CONVENTIONS = "v1.3"
+CONVENTIONS = "v1.4"
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
 # Section 2 asks for at least 60 digits; 100 leaves a wide margin everywhere.
@@ -375,15 +392,17 @@ def compound_ledger(principal_cents, annual_rate, n, years, frequency, contribut
     Returns a dict with the yearly table as section 5.5 rows [year,
     start_balance, contributions, interest, end_balance], the number of
     contributions belonging to each year, contribution_count (|S|), the
-    interest summed over every period, and the periods (a, b, value,
+    interest summed over every period, the periods (a, b, value,
     interest) where the step 4 value is an exact half cent while a
-    contribution lies strictly inside the period.
+    contribution lies strictly inside the period, and every period as (a,
+    b, cent_days, interest, end_balance) for the schedules of section 11.
     """
     contributions = contribution_boundaries(frequency, years, timing)
     yearly = []
     year_counts = []
     total_interest = 0
     mid_period_halves = []
+    periods = []
     balance = principal_cents
     position = 0
     for year, a, b in compounding_periods(n, years):
@@ -410,6 +429,7 @@ def compound_ledger(principal_cents, annual_rate, n, years, frequency, contribut
         if value - value.to_integral_value(rounding=ROUND_FLOOR) == HALF and any(a < t < b for t in members):
             mid_period_halves.append((a, b, value, interest))
         # Step 5.
+        cent_days = balance * length + contribution_cents * weighted_days
         added = contribution_cents * len(members)
         balance += added + interest
         row[2] += added
@@ -417,6 +437,7 @@ def compound_ledger(principal_cents, annual_rate, n, years, frequency, contribut
         row[4] = balance
         year_counts[-1] += len(members)
         total_interest += interest
+        periods.append((a, b, cent_days, interest, balance))
     if position != len(contributions):
         raise OracleError(f"{len(contributions) - position} contribution(s) belong to no compounding period")
     return {
@@ -425,6 +446,7 @@ def compound_ledger(principal_cents, annual_rate, n, years, frequency, contribut
         "contribution_count": len(contributions),
         "total_interest": total_interest,
         "mid_period_halves": mid_period_halves,
+        "periods": periods,
     }
 
 
@@ -1731,6 +1753,663 @@ def build_hysa():
     return fixture(cases=cases)
 
 
+# schedules.json: section 11, day, month and year rows (v1.4)
+
+# Section 11.3: day rows are written only for cases of at most this many years.
+SCHEDULE_DAY_YEARS = 2
+HALF_FRACTION = Fraction(1, 2)
+# Savings credits whose distance from a half is below 1e-9 of the value, as the hysa audit lists.
+SCHEDULE_NEAR = []
+
+
+def as_decimal(value):
+    """An accrued amount (an exact Fraction, or a Decimal) as a Decimal in the 100-digit context."""
+    if isinstance(value, Fraction):
+        return Decimal(value.numerator) / value.denominator
+    return Decimal(value)
+
+
+def schedule_days(principal_cents, years, periods, credits, contributions, contribution_cents, timing, accrual):
+    """Section 11.1: one row per day of the term, days 0 to T - 1, in order.
+
+    `periods` are the crediting periods (a, b) in order, covering the term;
+    `credits` the engine's credited interest of each (5.4 step 4 or 10.4);
+    `contributions` the set S of 5.3; and accrual(index, day_balance, so_far,
+    length) the unrounded interest accrued on a day of period `index`, with
+    `so_far` the amount accrued on the earlier days of that period (step 4).
+
+    Returns the rows [day, opening, deposits, accrued, credited, closing,
+    cumulative_interest] (accrued unrounded) and the day balances of step 3.
+    """
+    term = YEAR_DAYS * years
+    boundaries = set(contributions)
+    rows, day_balances = [], []
+    closing = principal_cents
+    cumulative = 0
+    index = 0
+    so_far = 0
+    for day in range(term):
+        a, b = periods[index]
+        if day >= b:
+            index += 1
+            a, b = periods[index]
+            so_far = 0
+        if not a <= day < b:
+            raise OracleError(f"day {day} lies in no crediting period")
+        length = b - a
+        # Step 1: start timing takes the contribution at boundary d, end timing the one at d + 1.
+        made = day if timing == "start" else day + 1
+        deposits = contribution_cents * (1 if made in boundaries else 0)
+        # Step 2.
+        opening = closing
+        # Step 3: an end-timing deposit is made at the end of the day and earns from the next.
+        day_balance = opening + deposits if timing == "start" else opening
+        # Step 4.
+        accrued = accrual(index, day_balance, so_far, length)
+        so_far += accrued
+        # Step 5: a credit only on the last day of a crediting period.
+        credited = credits[index] if day == b - 1 else 0
+        # Steps 6 and 7.
+        closing = opening + deposits + credited
+        cumulative += credited
+        rows.append([day, opening, deposits, accrued, credited, closing, cumulative])
+        day_balances.append(day_balance)
+    if index != len(periods) - 1 or periods[-1][1] != term:
+        raise OracleError("the crediting periods do not end with the term")
+    return rows, day_balances
+
+
+def schedule_group(day_rows, ranges):
+    """Section 11.2: one row per run of consecutive days, given as (number, first day, last day + 1)."""
+    rows = []
+    for number, low, high in ranges:
+        days = day_rows[low:high]
+        rows.append([number, days[0][1], sum(row[2] for row in days), sum(row[3] for row in days),
+                     sum(row[4] for row in days), days[-1][5], days[-1][6]])
+    return rows
+
+
+def month_ranges(years):
+    """Section 11.2: month m is days a_m to b_m - 1 of the 5.1 calendar."""
+    boundaries = calendar_boundaries(MONTH_STARTS, years)
+    return [(month, a, b) for month, (a, b) in enumerate(zip(boundaries, boundaries[1:]), start=1)]
+
+
+def year_ranges(years):
+    """Section 11.2: year y is days 365(y - 1) to 365y - 1."""
+    return [(year, YEAR_DAYS * (year - 1), YEAR_DAYS * year) for year in range(1, years + 1)]
+
+
+def schedule_output(rows):
+    """Section 11.3: money in integer cents, accrued as a decimal string of 25 significant digits."""
+    return [[number, opening, deposits, sig(as_decimal(accrued)), credited, closing, cumulative]
+            for number, opening, deposits, accrued, credited, closing, cumulative in rows]
+
+
+def check_schedule_grouping(case_id, label, rows, numbers, principal, final, total_interest, total_deposits):
+    """Section 11.2 identities for one grouping (days, months or years), and 11.1's final values."""
+    check([row[0] for row in rows] == numbers, case_id, f"{label} rows are not numbered {numbers[0]} to {numbers[-1]}")
+    check(rows[0][1] == principal, case_id, f"{label}: the first opening is not the principal")
+    cumulative = 0
+    for index, (number, opening, deposits, accrued, credited, closing, row_cumulative) in enumerate(rows):
+        where = f"{label} {number}"
+        check(closing == opening + deposits + credited, case_id, f"{where}: closing differs from the sum")
+        if index > 0:
+            check(opening == rows[index - 1][5], case_id, f"{where}: opening differs from the last closing")
+        cumulative += credited
+        check(row_cumulative == cumulative, case_id, f"{where}: cumulative interest does not add up")
+        check(min(opening, deposits, credited, closing) >= 0 and accrued >= 0, case_id, f"{where}: negative value")
+    check(rows[-1][5] == final, case_id, f"{label}: the last closing differs from the final balance")
+    check(rows[-1][6] == total_interest, case_id, f"{label}: the last cumulative differs from the total interest")
+    check(sum(row[2] for row in rows) == total_deposits, case_id, f"{label}: deposits do not add up")
+
+
+def check_schedule(case_id, spec, day_rows, day_balances, periods, credits, values, cent_days, end_balances,
+                   period_ends, final, total_interest, total_deposits, exact):
+    """The cross-checks of section 11 shared by both engines. Returns the month and year rows.
+
+    (a) every crediting period's credit is within half a cent of the sum of
+    its days' accrued amounts, and is that sum rounded half up; that sum is
+    the engine's unrounded value (exactly when `exact`, else to a relative
+    1e-80) and the sum of the day balances is the engine's cent-days; the
+    period's last closing is the engine's end balance. (b) and (d) the
+    identities of 11.2 for days, months and years. Also: every day balance
+    equals the principal, the contributions at boundaries up to that day and
+    the credits of the periods already ended, counted independently of the
+    walk; a credit falls only on the last day of a crediting period; a year's
+    accrued is the sum of its months'; a year's credits differ from its
+    accrued amounts by at most half a cent per crediting period ending in it.
+    """
+    principal = spec["principal_cents"]
+    years = spec["years"]
+    contribution = spec["contribution_cents"]
+    contributions = contribution_boundaries(spec["contribution_frequency"], years, spec["timing"])
+    half = HALF_FRACTION if exact else HALF
+    for index, (a, b) in enumerate(periods):
+        accrued = sum(row[3] for row in day_rows[a:b])
+        credited = credits[index]
+        where = f"crediting period {a} to {b}"
+        check(-half <= credited - accrued <= half, case_id, f"{where}: credited {credited}, accrued {accrued}")
+        check(credited == math.floor(accrued + half), case_id, f"{where}: credit is not the accrued sum rounded")
+        value = values[index]
+        if exact:
+            check(accrued == value, case_id, f"{where}: accrued {accrued}, engine {value}")
+        else:
+            check(abs(accrued - value) <= max(abs(value), ONE) * HYSA_TOLERANCE, case_id,
+                  f"{where}: accrued {accrued}, engine {value}")
+        check(sum(day_balances[a:b]) == cent_days[index], case_id, f"{where}: day balances differ from cent-days")
+        check(day_rows[b - 1][5] == end_balances[index], case_id, f"{where}: closing differs from the engine")
+    # The day balance restated: principal + C * |{t in S : t <= d}| + credits of periods with b <= d.
+    credited_before = 0
+    next_period = 0
+    for day, balance in enumerate(day_balances):
+        while next_period < len(periods) and periods[next_period][1] <= day:
+            credited_before += credits[next_period]
+            next_period += 1
+        expected = principal + contribution * bisect_right(contributions, day) + credited_before
+        if balance != expected:
+            check(False, case_id, f"day {day}: day balance {balance}, restated {expected}")
+            break
+    ends = {b for _, b in periods}
+    contribution_set = set(contributions)
+    for row in day_rows:
+        if row[4] != 0:
+            check(row[0] + 1 in ends, case_id, f"day {row[0]}: a credit on a day that ends no crediting period")
+        if spec["contribution_frequency"] != "none":
+            made = row[0] if spec["timing"] == "start" else row[0] + 1
+            check(row[2] == (contribution if made in contribution_set else 0), case_id, f"day {row[0]}: deposits")
+    term = YEAR_DAYS * years
+    check_schedule_grouping(case_id, "day", day_rows, list(range(term)), principal, final, total_interest,
+                            total_deposits)
+    ranges = month_ranges(years)
+    months = schedule_group(day_rows, ranges)
+    years_rows = schedule_group(day_rows, year_ranges(years))
+    check_schedule_grouping(case_id, "month", months, list(range(1, 12 * years + 1)), principal, final,
+                            total_interest, total_deposits)
+    check_schedule_grouping(case_id, "year", years_rows, list(range(1, years + 1)), principal, final,
+                            total_interest, total_deposits)
+    for row, (_, _, b) in zip(months, ranges):
+        if row[4] != 0:
+            check(b in ends, case_id, f"month {row[0]}: a credit in a month that ends no crediting period")
+    for row in years_rows:
+        in_months = months[12 * (row[0] - 1):12 * row[0]]
+        from_months = sum(month[3] for month in in_months)
+        if exact:
+            check(row[3] == from_months, case_id, f"year {row[0]}: accrued differs from its months")
+        else:
+            check(abs(row[3] - from_months) <= max(abs(row[3]), ONE) * HYSA_TOLERANCE, case_id,
+                  f"year {row[0]}: accrued differs from its months")
+        ending = sum(1 for b in ends if YEAR_DAYS * (row[0] - 1) < b <= YEAR_DAYS * row[0])
+        check(ending == period_ends, case_id, f"year {row[0]}: {ending} crediting periods end in it")
+        check(abs(row[4] - row[3]) <= half * ending, case_id,
+              f"year {row[0]}: credited {row[4]} and accrued {row[3]} differ by more than half a cent a period")
+    return months, years_rows
+
+
+def check_compound_inputs(spec):
+    """Section 5 input rules, so that no schedule case is invalid by mistake."""
+    case_id = spec["id"]
+    check(0 <= spec["principal_cents"] <= 10_000_000_000, case_id, "principal out of range")
+    check(0 <= Decimal(spec["annual_rate"]) <= 1, case_id, "rate out of range")
+    check(spec["periods_per_year"] in COMPOUNDING_FREQUENCIES, case_id, "unsupported compounding frequency")
+    check(1 <= spec["years"] <= 100, case_id, "years out of range")
+    check(spec["contribution_frequency"] in CONTRIBUTION_FREQUENCIES, case_id, "unknown contribution frequency")
+    check(0 <= spec["contribution_cents"] <= 10_000_000_000, case_id, "contribution out of range")
+    if spec["contribution_frequency"] == "none":
+        check(spec["contribution_cents"] == 0 and spec["timing"] == "end", case_id, "a none case records 0 and end")
+
+
+def compound_schedule(spec):
+    """Section 11 for the section 5 engine: days, months and years, every check applied."""
+    case_id = spec["id"]
+    check_compound_inputs(spec)
+    principal = spec["principal_cents"]
+    rate_text = spec["annual_rate"]
+    n = spec["periods_per_year"]
+    years = spec["years"]
+    frequency = spec["contribution_frequency"]
+    contribution = spec["contribution_cents"]
+    timing = spec["timing"]
+    ledger = compound_ledger(principal, Decimal(rate_text), n, years, frequency, contribution, timing)
+    periods = [(a, b) for a, b, _, _, _ in ledger["periods"]]
+    credits = [interest for _, _, _, interest, _ in ledger["periods"]]
+    cent_days = [days for _, _, days, _, _ in ledger["periods"]]
+    end_balances = [end for _, _, _, _, end in ledger["periods"]]
+    # Section 2 allows exact fractions: the rate is a short decimal, so every accrued amount is exact.
+    rate = Fraction(rate_text)
+    values = [Fraction(days) * rate / (n * (b - a)) for (a, b), days in zip(periods, cent_days)]
+
+    def accrual(index, day_balance, so_far, length):
+        # Section 11.1 step 4, section 5: day_balance * annual_rate / (n * L).
+        return Fraction(day_balance) * rate / (n * length)
+
+    contributions = contribution_boundaries(frequency, years, timing)
+    day_rows, day_balances = schedule_days(principal, years, periods, credits, contributions, contribution, timing,
+                                           accrual)
+    final = ledger["yearly"][-1][4]
+    total_interest = ledger["total_interest"]
+    total_deposits = contribution * ledger["contribution_count"]
+    months, years_rows = check_schedule(case_id, spec, day_rows, day_balances, periods, credits, values, cent_days,
+                                        end_balances, n, final, total_interest, total_deposits, exact=True)
+    # (c) The year rows equal the yearly table of 5.5, and the day-by-day restatement of 5.4.
+    as_yearly = [[row[0], row[1], row[2], row[4], row[5]] for row in years_rows]
+    check(as_yearly == ledger["yearly"], case_id,
+          f"year rows differ from 5.5: {first_difference(as_yearly, ledger['yearly'])}")
+    daily = without_audit(compound_daily_balances, principal, Decimal(rate_text), n, years, frequency, contribution,
+                          timing)
+    check(as_yearly == daily, case_id,
+          f"year rows differ from the day-by-day sum: {first_difference(as_yearly, daily)}")
+    # Section 11.2: with n = 1, 2 or 4 a month that ends no compounding period credits nothing.
+    ends = {b for _, b in periods}
+    for month, a, b in month_ranges(years):
+        if b not in ends:
+            check(months[month - 1][4] == 0, case_id, f"month {month}: credit without a compounding period end")
+    if rate == 0:
+        check(all(row[3] == 0 and row[4] == 0 for row in day_rows), case_id, "interest at a zero rate")
+    return day_rows, months, years_rows
+
+
+def savings_schedule(spec):
+    """Section 11 for the section 10 engine: days, months and years, every check applied."""
+    case_id = spec["id"]
+    check_hysa_inputs(spec)
+    principal = spec["principal_cents"]
+    years = spec["years"]
+    compounding = spec["compounding"]
+    rates = spec["rates"]
+    frequency = spec["contribution_frequency"]
+    contribution = spec["contribution_cents"]
+    timing = spec["timing"]
+    args = (principal, years, compounding, rates, frequency, contribution, timing)
+    ledger = hysa_ledger(*args)
+    monthly = ledger["monthly"]
+    entries = hysa_rate_entries(rates, compounding)
+    periods = [(a, b) for _, a, b in month_ranges(years)]
+    credits = [row[4] for row in monthly]
+    in_effect = [rate_in_effect(entries, month) for month in range(1, 12 * years + 1)]
+
+    def accrual(index, day_balance, so_far, length):
+        entry = in_effect[index]
+        if compounding == "monthly":
+            # Section 11.1 step 4, section 10 monthly compounding: day_balance * r / 365.
+            return Decimal(day_balance) * entry["rate"] / YEAR_DAYS
+        # Daily compounding: (day_balance + A) * (g - 1), A accrued earlier in the period.
+        return (day_balance + so_far) * (entry["growth"] - ONE)
+
+    contributions = contribution_boundaries(frequency, years, timing)
+    day_rows, day_balances = schedule_days(principal, years, periods, credits, contributions, contribution, timing,
+                                           accrual)
+    final = monthly[-1][5]
+    total_interest = sum(credits)
+    total_deposits = contribution * ledger["contribution_count"]
+    months, years_rows = check_schedule(case_id, spec, day_rows, day_balances, periods, credits, ledger["unrounded"],
+                                        ledger["cent_days"], [row[5] for row in monthly], 12, final, total_interest,
+                                        total_deposits, exact=False)
+    # (c) The month rows equal the monthly rows of 10.6 and the year rows its yearly rows.
+    as_monthly = [[row[0], b - a, row[1], row[2], row[4], row[5]] for row, (a, b) in zip(months, periods)]
+    check(as_monthly == monthly, case_id, f"month rows differ from 10.6: {first_difference(as_monthly, monthly)}")
+    as_yearly = [[row[0], row[1], row[2], row[4], row[5]] for row in years_rows]
+    check(as_yearly == ledger["yearly"], case_id,
+          f"year rows differ from 10.6: {first_difference(as_yearly, ledger['yearly'])}")
+    # The day-by-day restatement of 10.4 gives the same rows and the same accrued amounts.
+    restated, unrounded = without_audit(hysa_daily_restatement, *args)
+    check(restated == monthly, case_id,
+          f"differs from the day-by-day restatement: {first_difference(monthly, restated)}")
+    for row, value in zip(months, unrounded):
+        if abs(row[3] - value) > max(abs(value), ONE) * HYSA_TOLERANCE:
+            check(False, case_id, f"month {row[0]}: accrued {row[3]}, day by day {value}")
+            break
+    for row, entry in zip(months, in_effect):
+        if entry["apy"] == 0:
+            check(row[3] == 0 and row[4] == 0, case_id, f"month {row[0]}: interest at an APY of 0")
+    # Audit, as for hysa.json: credits a double-precision engine could round differently.
+    for month, value in enumerate(ledger["unrounded"], start=1):
+        distance = abs(value - value.to_integral_value(rounding=ROUND_FLOOR) - HALF)
+        if distance < abs(value) * HYSA_NEAR_HALF:
+            SCHEDULE_NEAR.append((case_id, month, value))
+    return day_rows, months, years_rows
+
+
+def schedule_cases():
+    """Section 11 cases: (engine, inputs). Terms of one or two years carry day rows."""
+    compound = [
+        # Every compounding frequency, every contribution frequency, both timings, with days.
+        compound_case("compound-n1-weekly-start-1-year", 1_000_000, "0.05", 1, 1, "weekly", 5_000, "start"),
+        compound_case("compound-n2-biweekly-end-1-year", 250_000, "0.0425", 2, 1, "biweekly", 15_000, "end"),
+        compound_case("compound-n4-monthly-start-2-years", 5_000_000, "0.07", 4, 2, "monthly", 25_000, "start"),
+        compound_case("compound-n12-quarterly-end-1-year", 1_234_567, "0.035", 12, 1, "quarterly", 100_000, "end"),
+        compound_case("compound-n365-annually-start-1-year", 75_000, "0.06", 365, 1, "annually", 600_000, "start"),
+        compound_case("compound-zero-principal-n365-weekly-end-1-year", 0, "0.04", 365, 1, "weekly", 3_500, "end"),
+        compound_case("compound-zero-rate-n4-biweekly-start-1-year", 500_000, "0", 4, 1, "biweekly", 20_000,
+                      "start"),
+        # January's credit is 59 on exactly 58.5 accrued (compound.json's exact-half case, one year).
+        compound_case("compound-exact-half-mid-period-weekly-monthly-start-1-year", 10_000, "0.06", 12, 1, "weekly",
+                      620, "start"),
+        # Every input at its maximum, daily compounding.
+        compound_case("compound-max-principal-max-contribution-rate-1-weekly-daily-1-year-start", 10_000_000_000,
+                      "1", 365, 1, "weekly", 10_000_000_000, "start"),
+        # Longer terms: months and years only.
+        compound_case("compound-n2-weekly-end-5-years", 1_500_000, "0.045", 2, 5, "weekly", 7_500, "end"),
+        compound_case("compound-n1-biweekly-start-10-years", 2_000_000, "0.06", 1, 10, "biweekly", 20_000, "start"),
+        no_contribution_case("compound-n12-none-10-years", 2_000_000, "0.0525", 12, 10),
+        compound_case("compound-n12-monthly-start-30-years", 1_000_000, "0.05", 12, 30, "monthly", 25_000, "start"),
+        compound_case("compound-zero-principal-n365-quarterly-end-20-years", 0, "0.0525", 365, 20, "quarterly",
+                      100_000, "end"),
+    ]
+    savings = [
+        hysa_case("savings-daily-weekly-start-1-year", 1_000_000, 1, "daily", "0.045", "weekly", 2_500, "start"),
+        hysa_case("savings-monthly-biweekly-end-two-entries-1-year", 250_000, 1, "monthly",
+                  [(1, "0.0525"), (4, "0.04")], "biweekly", 10_000, "end"),
+        hysa_case("savings-daily-four-entries-rate-falls-monthly-end-2-years", 2_000_000, 2, "daily", FALLING_RATES,
+                  "monthly", 25_000, "end"),
+        hysa_case("savings-monthly-three-entries-through-zero-quarterly-start-1-year", 1_000_000, 1, "monthly",
+                  [(1, "0.045"), (5, "0"), (9, "0.03")], "quarterly", 150_000, "start"),
+        hysa_case("savings-daily-zero-principal-monthly-end-1-year", 0, 1, "daily", "0.045", "monthly", 10_000,
+                  "end"),
+        hysa_case("savings-monthly-max-principal-max-contribution-weekly-apy-1-1-year", 10_000_000_000, 1,
+                  "monthly", "1", "weekly", 10_000_000_000, "start"),
+        # Longer terms: months and years only.
+        hysa_case("savings-daily-annually-start-10-years", 500_000, 10, "daily", "0.0435", "annually", 500_000,
+                  "start"),
+        hysa_case("savings-monthly-weekly-end-four-entries-10-years", 750_000, 10, "monthly",
+                  [(1, "0.05"), (25, "0.04"), (61, "0.035"), (100, "0.0425")], "weekly", 5_000, "end"),
+        # The longest savings term: 18,250 days of daily accrual, grouped into 600 months.
+        hysa_case("savings-daily-biweekly-start-50-years", 100_000, 50, "daily", "0.04", "biweekly", 20_000, "start"),
+    ]
+    return [("compound", spec) for spec in compound] + [("savings", spec) for spec in savings]
+
+
+def build_schedules():
+    """Section 11 schedules for both engines, with the cross-checks of check_schedule and the engine comparisons."""
+    cases = []
+    covered = {"n": set(), "frequency": set(), "timing": set(), "compounding": set(), "entries": set()}
+    for engine, spec in schedule_cases():
+        case_id = spec["id"]
+        AUDIT.case = f"schedules {case_id}"
+        if engine == "compound":
+            day_rows, months, years_rows = compound_schedule(spec)
+            covered["n"].add(spec["periods_per_year"])
+        else:
+            day_rows, months, years_rows = savings_schedule(spec)
+            covered["compounding"].add(spec["compounding"])
+            covered["entries"].add(len(spec["rates"]))
+        covered["frequency"].add(spec["contribution_frequency"])
+        if spec["contribution_frequency"] != "none":
+            covered["timing"].add(spec["timing"])
+        inputs = {key: value for key, value in spec.items() if key != "id"}
+        # Section 11.3 names the year rows `years`, which is also the name of the input Y, so the
+        # rows go in their own object under `schedule`; the inputs stay exactly as in 5.6 and 10.7.
+        schedule = {"months": schedule_output(months), "years": schedule_output(years_rows)}
+        if spec["years"] <= SCHEDULE_DAY_YEARS:
+            schedule["days"] = schedule_output(day_rows)
+        cases.append({"id": case_id, "engine": engine, **inputs, "schedule": schedule})
+    expected = {"n": set(COMPOUNDING_FREQUENCIES), "frequency": set(CONTRIBUTION_FREQUENCIES),
+                "timing": {"start", "end"}, "compounding": set(HYSA_COMPOUNDING), "entries": {1, 2, 3, 4}}
+    for key, values in expected.items():
+        check(covered[key] == values, "schedules.json", f"{key} covered {sorted(covered[key])}, expected all")
+    ids = [case["id"] for case in cases]
+    check(len(set(ids)) == len(ids), "schedules.json", "duplicate case ids")
+    return fixture(cases=cases)
+
+
+# illustration.json: section 12, the rate illustration (v1.4)
+
+ILLUSTRATION_FREQUENCIES = [1, 2, 4, 12, 52, 365]
+# Section 5.2 (v1.4): weekly periods start at the year offsets 0, 7, ..., 357, and the last of each
+# year (days 357 to 364) has 8 days. They restart every year.
+WEEKLY_STARTS = list(range(0, 358, 7))
+ILLUSTRATION_OFFSETS = {**COMPOUNDING_OFFSETS, 52: WEEKLY_STARTS}
+# Section 12.4: near_half lists shown values within this relative distance of a half cent.
+ILLUSTRATION_NEAR_HALF = Decimal("1e-13")
+ILLUSTRATION_MAX_YEARS = 30
+# The cases with entries in near_half, as (case, count, rows checked).
+ILLUSTRATION_NEAR = []
+
+
+def illustration_period_ends(n, years):
+    """Sections 5.2 and 12.2: the end boundary of every compounding period for n, in order.
+
+    Each period lies inside one year, as section 5.2 requires.
+    """
+    boundaries = calendar_boundaries(ILLUSTRATION_OFFSETS[n], years)
+    ends = []
+    for a, b in zip(boundaries, boundaries[1:]):
+        year = a // YEAR_DAYS + 1
+        if not YEAR_DAYS * (year - 1) <= a < b <= YEAR_DAYS * year:
+            raise OracleError(f"n = {n}: period {a} to {b} is not inside one year")
+        ends.append(b)
+    return ends
+
+
+def illustration_k_counted(n, t):
+    """Section 12.2 k(t) counted from the calendar directly, a cross-check of the period ends.
+
+    Each completed year has n periods. Inside a year, at day offset o: none
+    have ended for n = 1; o for n = 365; for n = 52 the periods end at 7, 14,
+    ..., 357 (7j for j = 1 to 51) and at 365, so min(o // 7, 51); for n = 2,
+    4 and 12 the starts after 0 that are at most o.
+    """
+    done, offset = divmod(t, YEAR_DAYS)
+    if n == 1:
+        within = 0
+    elif n == 365:
+        within = offset
+    elif n == 52:
+        within = min(offset // 7, 51)
+    else:
+        starts = {2: HALF_YEAR_STARTS, 4: QUARTER_STARTS, 12: MONTH_STARTS}[n]
+        within = sum(1 for start in starts if 0 < start <= offset)
+    return n * done + within
+
+
+def illustration_limit(deposit_cents, accounts, years):
+    """Section 12.2: the first year up to `years` whose end balance exceeds 2^53 - 1 cents for some account, or None."""
+    for year in range(1, years + 1):
+        for account in accounts:
+            n = account["n"]
+            if deposit_cents * (ONE + Decimal(account["annual_rate"]) / n) ** (n * year) > MAX_SAFE_INTEGER:
+                return year
+    return None
+
+
+def check_weekly_calendar():
+    """Section 5.2 (v1.4): 52 weekly starts, 51 periods of 7 days and a last of 8, every year."""
+    where = "section 5.2 weekly periods"
+    check(len(WEEKLY_STARTS) == 52 and WEEKLY_STARTS[-1] == 357, where,
+          f"starts {WEEKLY_STARTS[:3]} ... {WEEKLY_STARTS[-1]}")
+    for years in (1, 3):
+        ends = illustration_period_ends(52, years)
+        lengths = [b - a for a, b in zip([0] + ends, ends)]
+        check(lengths == ([7] * 51 + [8]) * years, where, f"{years} year(s): period lengths differ")
+
+
+def illustration_case(case_id, deposit_cents, years, accounts):
+    """Section 12.4 inputs. Each account is (annual_rate, n) or ("apy", APY, n) for an account entered by its APY.
+
+    An APY account's rate is section 3's n((1 + APY)^(1/n) - 1), written to 25
+    significant digits; the APY is kept (outside the fixture) for a check.
+    """
+    entries, sources = [], []
+    for account in accounts:
+        if account[0] == "apy":
+            _, apy, n = account
+            entries.append({"annual_rate": sig(nominal_from_apy(Decimal(apy), n)), "n": n})
+            sources.append(apy)
+        else:
+            rate, n = account
+            entries.append({"annual_rate": rate, "n": n})
+            sources.append(None)
+    return {"id": case_id, "deposit_cents": deposit_cents, "years": years, "accounts": entries}, sources
+
+
+def illustration_cases():
+    """Section 12 cases: every n, 1 to 3 accounts, one-year cases with days, and up to 30 years."""
+    return [
+        # One year: day, month and year rows.
+        illustration_case("three-accounts-one-year-apy-4.5-daily-monthly-weekly", 1_000_000, 1,
+                          [("apy", "0.045", 365), ("0.045", 12), ("0.0435", 52)]),
+        illustration_case("annual-semiannual-quarterly-one-year", 250_000, 1, [("0.05", 1), ("0.05", 2), ("0.05", 4)]),
+        illustration_case("max-deposit-rate-1-weekly-daily-annual-one-year", 10_000_000_000, 1,
+                          [("1", 52), ("1", 365), ("1", 1)]),
+        # 1 * (1 + 1/2) = 1.5 cents exactly after the first half year: an exact half, rounded up.
+        illustration_case("one-cent-rate-1-semiannual-monthly-one-year", 1, 1, [("1", 2), ("1", 12)]),
+        illustration_case("zero-rate-daily-weekly-one-year", 500_000, 1, [("0", 365), ("0", 52)]),
+        # Several years: month and year rows.
+        illustration_case("thirty-years-monthly-daily-annual", 1_000_000, 30, [("0.05", 12), ("0.0499", 365),
+                                                                             ("0.0512", 1)]),
+        # 14 years would take the daily account to about 1.19e16 cents, above 2^53 - 1 (refused).
+        illustration_case("max-deposit-rate-1-thirteen-years-longest-accepted", 10_000_000_000, 13,
+                          [("1", 1), ("1", 52), ("1", 365)]),
+        # 10,000,000,000 * 2^19 is below 2^53 - 1 and * 2^20 above it.
+        illustration_case("max-deposit-rate-1-annual-nineteen-years-longest-accepted", 10_000_000_000, 19,
+                          [("1", 1)]),
+        illustration_case("max-deposit-thirty-years-daily", 10_000_000_000, 30, [("apy", "0.05", 365)]),
+        illustration_case("one-cent-rate-1-thirty-years-quarterly-semiannual", 1, 30, [("1", 4), ("1", 2)]),
+        illustration_case("one-cent-zero-rate-five-years-weekly-annual", 1, 5, [("0", 52), ("0", 1)]),
+        illustration_case("ten-years-weekly-daily-apy-4.25", 10_000_000, 10, [("apy", "0.0425", 52),
+                                                                              ("apy", "0.0425", 365)]),
+        illustration_case("two-years-semiannual-quarterly-monthly", 123_457, 2, [("0.035", 2), ("0.035", 4),
+                                                                                ("0.035", 12)]),
+        # 3 * 1.5 = 4.5 cents exactly from June to November of year 1: half away from zero gives 5,
+        # where rounding half to even would give 4.
+        illustration_case("three-cents-rate-1-semiannual-two-years-exact-half", 3, 2, [("1", 2)]),
+    ]
+
+
+# The longest accepted cases: (case, the first refused year).
+ILLUSTRATION_LIMITS = {
+    "max-deposit-rate-1-thirteen-years-longest-accepted": 14,
+    "max-deposit-rate-1-annual-nineteen-years-longest-accepted": 20,
+}
+
+
+def check_illustration_inputs(spec):
+    """Section 12.1 input rules, so that no case is invalid by mistake."""
+    case_id = spec["id"]
+    check(1 <= spec["deposit_cents"] <= 10_000_000_000, case_id, "deposit out of range")
+    check(1 <= spec["years"] <= ILLUSTRATION_MAX_YEARS, case_id, "years out of range")
+    check(1 <= len(spec["accounts"]) <= 3, case_id, "1 to 3 accounts")
+    for account in spec["accounts"]:
+        check(0 <= Decimal(account["annual_rate"]) <= 1, case_id, "rate out of range")
+        check(account["n"] in ILLUSTRATION_FREQUENCIES, case_id, f"unsupported n {account['n']}")
+
+
+def build_illustration():
+    """Section 12 rows for every account, with the year-end, k and cap checks.
+
+    Checks: the weekly periods of 5.2; k(t) from the period ends equals an
+    independent count at every boundary of the term, and over each year takes
+    every value from n(y - 1) to ny; every year-end balance is deposit * (1 +
+    APY)^y with APY from section 3 (and, for an account entered by its APY,
+    that APY); every balance equals deposit * exp(k ln(1 + r/n)) computed
+    separately; days, months and years agree where they end together; no
+    balance exceeds 2^53 - 1 cents, and the longest accepted cases are refused
+    one year later.
+    """
+    check_weekly_calendar()
+    cases = []
+    covered = set()
+    for spec, sources in illustration_cases():
+        case_id = spec["id"]
+        AUDIT.case = f"illustration {case_id}"
+        check_illustration_inputs(spec)
+        deposit = spec["deposit_cents"]
+        years = spec["years"]
+        term = YEAR_DAYS * years
+        limit = illustration_limit(deposit, spec["accounts"], ILLUSTRATION_MAX_YEARS + 1)
+        if case_id in ILLUSTRATION_LIMITS:
+            check(limit == ILLUSTRATION_LIMITS[case_id], case_id, f"first refused year {limit}")
+        check(limit is None or limit > years, case_id, f"refused (result-too-large) from year {limit}")
+        # Section 12.3: rows end at boundary t: day d at d + 1, month m at b_m, year y at 365y.
+        groupings = [("years", [YEAR_DAYS * year for year in range(1, years + 1)]),
+                     ("months", calendar_boundaries(MONTH_STARTS, years)[1:])]
+        if years == 1:
+            groupings.append(("days", [day + 1 for day in range(YEAR_DAYS)]))
+        results, near_half = [], []
+        rows_checked = 0
+        for account_index, (account, apy_source) in enumerate(zip(spec["accounts"], sources)):
+            rate = Decimal(account["annual_rate"])
+            n = account["n"]
+            covered.add(n)
+            growth = ONE + rate / n
+            log_growth = growth.ln()
+            ends = illustration_period_ends(n, years)
+            check(len(ends) == n * years and ends[-1] == term, case_id, f"n = {n}: {len(ends)} periods")
+            ks = [bisect_right(ends, t) for t in range(term + 1)]
+            for t, k in enumerate(ks):
+                if k != illustration_k_counted(n, t):
+                    check(False, case_id, f"n = {n}: k({t}) = {k}, counted {illustration_k_counted(n, t)}")
+                    break
+            for year in range(1, years + 1):
+                within = ks[YEAR_DAYS * (year - 1):YEAR_DAYS * year + 1]
+                check(within == sorted(within) and sorted(set(within)) == list(range(n * (year - 1), n * year + 1)),
+                      case_id, f"n = {n}: k over year {year} does not run from 0 to n")
+            balances = {}
+            apy = apy_from_nominal(rate, n)
+
+            def balance_after(k):
+                if k not in balances:
+                    # Section 12.2: B_k = deposit * (1 + annual_rate / n)^k, unrounded.
+                    value = deposit * growth ** k
+                    separate = deposit * (log_growth * k).exp()
+                    check(abs(value - separate) <= value * Decimal("1e-85"), case_id,
+                          f"n = {n}: B_{k} is {value}, exp form {separate}")
+                    check(value <= MAX_SAFE_INTEGER, case_id, f"n = {n}: B_{k} exceeds 2^53 - 1")
+                    balances[k] = value
+                return balances[k]
+
+            for year in range(1, years + 1):
+                value = balance_after(ks[YEAR_DAYS * year])
+                check(ks[YEAR_DAYS * year] == n * year, case_id, f"n = {n}: k at the end of year {year}")
+                expected = deposit * (ONE + apy) ** year
+                check(abs(value - expected) <= expected * Decimal("1e-80"), case_id,
+                      f"n = {n}: year {year} balance {value}, deposit * (1 + APY)^y = {expected}")
+                if apy_source is not None:
+                    stated = deposit * (ONE + Decimal(apy_source)) ** year
+                    check(abs(value - stated) <= stated * Decimal("1e-22"), case_id,
+                          f"n = {n}: year {year} balance {value}, deposit * (1 + {apy_source})^y = {stated}")
+                if rate == 0:
+                    check(value == deposit, case_id, f"n = {n}: growth at a zero rate")
+            result = {}
+            by_end = {}
+            for grouping, row_ends in groupings:
+                rows = []
+                previous = deposit
+                for number, t in enumerate(row_ends, start=1):
+                    k = ks[t]
+                    value = balance_after(k)
+                    shown = round_cents(value)
+                    check(shown >= previous, case_id, f"n = {n}: {grouping} row {number}: shown value falls")
+                    previous = shown
+                    label = number - 1 if grouping == "days" else number
+                    row = [label, k, sig(value), shown]
+                    if t in by_end:
+                        check(by_end[t] == row[1:], case_id, f"n = {n}: rows ending at {t} differ")
+                    by_end[t] = row[1:]
+                    rows.append(row)
+                    rows_checked += 1
+                    # Section 2 restated for these positive values: half away from zero is floor(value + 1/2).
+                    check(shown == math.floor(value + HALF), case_id, f"n = {n}: {value} shown as {shown}")
+                    distance = abs(value - value.to_integral_value(rounding=ROUND_FLOOR) - HALF)
+                    near = distance <= value * ILLUSTRATION_NEAR_HALF
+                    # The same test restated: the interval value * (1 -+ 1e-13) contains a half cent j + 1/2.
+                    low = value * (ONE - ILLUSTRATION_NEAR_HALF)
+                    high = value * (ONE + ILLUSTRATION_NEAR_HALF)
+                    check(near == (math.floor(high - HALF) >= math.ceil(low - HALF)), case_id,
+                          f"n = {n}: {grouping} row {number}: near_half tests disagree")
+                    if near:
+                        near_half.append([account_index, grouping, number])
+                result[grouping] = rows
+            results.append(result)
+        if near_half:
+            ILLUSTRATION_NEAR.append((case_id, len(near_half), rows_checked))
+        cases.append({**spec, "results": results, "near_half": near_half})
+    check(covered == set(ILLUSTRATION_FREQUENCIES), "illustration.json", f"n covered {sorted(covered)}")
+    ids = [case["id"] for case in cases]
+    check(len(set(ids)) == len(ids), "illustration.json", "duplicate case ids")
+    return fixture(cases=cases)
+
+
 def main():
     builders = [
         ("regdd.json", build_regdd),
@@ -1738,6 +2417,8 @@ def main():
         ("loans.json", build_loans),
         ("compound.json", build_compound),
         ("hysa.json", build_hysa),
+        ("schedules.json", build_schedules),
+        ("illustration.json", build_illustration),
     ]
     contents = []
     try:
@@ -1784,6 +2465,21 @@ def main():
         ratio, case_id, month, value = HYSA_CLOSEST[0]
         print(f"hysa audit: closest to a half relative to its value: {case_id}: month {month}: {sig(value)} "
               f"(distance {float(ratio):.2e} of the value)")
+    print(f"schedules audit: {len(SCHEDULE_NEAR)} savings credit(s) whose distance from a half is below 1e-9 "
+          "of the value")
+    large = {}
+    for case_id, month, value in SCHEDULE_NEAR:
+        if abs(value) >= HYSA_NEAR_HALF_ALWAYS:
+            large[case_id] = large.get(case_id, 0) + 1
+        else:
+            print(f"  {case_id}: month {month}: {sig(value)}")
+    for case_id, count in large.items():
+        print(f"  {case_id}: {count} point(s) of 5e8 cents or more, where every value is that close to a half")
+    near_total = sum(count for _, count, _ in ILLUSTRATION_NEAR)
+    print(f"illustration audit: {near_total} near_half entr(ies) (within 1e-13 of the value of a half cent) "
+          f"in {len(ILLUSTRATION_NEAR)} case(s)")
+    for case_id, count, rows in ILLUSTRATION_NEAR:
+        print(f"  {case_id}: {count} of {rows} rows")
     return 0
 
 

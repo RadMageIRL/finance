@@ -5,18 +5,23 @@ import ClaimLabel from '../../components/ClaimLabel.astro';
 import CalcChoice from '../../components/calc/CalcChoice.astro';
 import CalcField from '../../components/calc/CalcField.astro';
 import CalcSelect from '../../components/calc/CalcSelect.astro';
-import ChartFigure from '../../components/calc/ChartFigure.astro';
+import ScheduleView from '../../components/calc/ScheduleView.astro';
 import ShareExport from '../../components/calc/ShareExport.astro';
 import { compoundInterest } from '../../lib/engines/compound';
-import { DEFAULT_INPUT, FREQUENCIES, SERIES, compoundView } from '../../lib/calc/compound-view';
+import { COMPOUND_ASSUMPTIONS, DEFAULT_INPUT, FREQUENCIES, SERIES, compoundChartSvg, compoundSchedule, compoundScheduleConfig, compoundScheduleNotes, compoundView } from '../../lib/calc/compound-view';
+import { scheduleTable } from '../../lib/calc/schedule-view';
 import { CONTRIBUTION_OPTIONS, contributionHint, contributionOption } from '../../lib/calc/frequency';
 import { href } from '../../lib/url';
+import '../../styles/report.css';
 
 // The example scenario is computed at build time with the same engine and view code the
 // browser uses, so the page shows real results even without JavaScript.
 const computed = compoundInterest(DEFAULT_INPUT);
 if (!computed.ok) throw new Error('compound interest example scenario is invalid');
 const view = compoundView(DEFAULT_INPUT, computed.value);
+const schedule = compoundSchedule(DEFAULT_INPUT, computed.value);
+const table = scheduleTable(schedule, 'year', compoundScheduleConfig(DEFAULT_INPUT));
+const chartSvg = compoundChartSvg(DEFAULT_INPUT, schedule, 'year', view.summary);
 const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interval;
 ---
 <BaseLayout
@@ -81,55 +86,12 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
       <strong data-out="final-sticky">{view.final}</strong>
     </div>
 
-    <ChartFigure id="ci-chart" heading="Balance by year" series={SERIES} svg={view.chartSvg} tableSummary="Show the numbers as a table">
-      <div class="table-wrap">
-        <table>
-          <caption>End-of-year balances for the scenario above</caption>
-          <thead>
-            <tr>
-              <th scope="col">Year</th>
-              <th scope="col" class="num">Start balance</th>
-              <th scope="col" class="num">Contributions</th>
-              <th scope="col" class="num">Interest</th>
-              <th scope="col" class="num">End balance</th>
-            </tr>
-          </thead>
-          <tbody data-out="rows">
-            {view.rows.map((r) => (
-              <tr>
-                <th scope="row">{r.year}</th>
-                <td class="num">{r.start}</td>
-                <td class="num">{r.contributions}</td>
-                <td class="num">{r.interest}</td>
-                <td class="num">{r.end}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">Total</th>
-              <td class="num"></td>
-              <td class="num" data-out="total-contributions">{view.totals.contributions}</td>
-              <td class="num" data-out="total-interest">{view.totals.interest}</td>
-              <td class="num" data-out="total-end">{view.totals.end}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </ChartFigure>
+    <ScheduleView id="ci-schedule" heading="Balance and schedule" series={SERIES} svg={chartSvg} table={table} notes={compoundScheduleNotes(DEFAULT_INPUT, 'year')} chartHelp="the balance" />
 
     <div class="prose calc-notes">
       <h2>Assumptions</h2>
       <ul>
-        <li>The interest rate stays the same for the whole period. Real savings rates change.</li>
-        <li>Interest is credited at the end of each compounding period and rounded to the cent when it is credited, as a bank would.</li>
-        <li>Each compounding period earns the annual rate divided by the number of periods in a year, whatever its length: February earns the same monthly rate as January.</li>
-        <li>Contributions follow their own schedule, separate from compounding. A contribution earns interest from the day it is made. One made part way through a compounding period earns that period's interest in proportion to the days it was in the account.</li>
-        <li>The calendar: every year has 365 days and starts on January 1, months have their real lengths (31 days in January, 28 in February, and so on), quarters start in January, April, July and October, and leap days are ignored. Months are never treated as 30 days.</li>
-        <li>Monthly, quarterly and yearly contributions are made on the first day of each month, quarter or year (start), or on its last day (end). Weekly and biweekly contributions are made every 7 or 14 days, counted from the first day.</li>
-        <li>A 365-day year is 52 weeks and 1 day, so the number of weekly or biweekly contributions changes a little from year to year. With contributions at the start of each week, the first year has 53.</li>
-        <li>A contribution at the end of the last interval is added on the final day and earns no interest.</li>
-        <li>No taxes, fees or withdrawals, and amounts are not adjusted for inflation.</li>
+        {COMPOUND_ASSUMPTIONS.map((a) => <li>{a}</li>)}
       </ul>
 
       <h2>How this is calculated</h2>
@@ -160,8 +122,8 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
       <p>
         This is the textbook model. A bank figures savings interest a little differently: with
         a daily rate of 1/365 of the interest rate on each day's balance, so a 31-day month
-        earns slightly more than a 28-day one. The <a href={href('calculators/savings-growth/')}>high-yield savings calculator</a>
-        works that way, starting from the APY a bank advertises.
+        earns slightly more than a 28-day one. The <a href={href('calculators/savings-growth/')}>high-yield savings calculator</a> works
+        that way, starting from the APY a bank advertises.
       </p>
       <p>
         The calculation is checked against an independent implementation that uses exact

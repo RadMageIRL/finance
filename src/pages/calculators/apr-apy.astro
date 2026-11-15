@@ -6,16 +6,22 @@ import CalcChoice from '../../components/calc/CalcChoice.astro';
 import CalcField from '../../components/calc/CalcField.astro';
 import CalcSelect from '../../components/calc/CalcSelect.astro';
 import ChartFigure from '../../components/calc/ChartFigure.astro';
+import ScheduleView from '../../components/calc/ScheduleView.astro';
 import ShareExport from '../../components/calc/ShareExport.astro';
 import { compareRates } from '../../lib/engines/rate-compare';
-import { ACCOUNT_NAMES, BLANK_ACCOUNT, DEFAULT_RATES, RATE_FREQUENCIES, percentText, ratesView } from '../../lib/calc/rates-view';
+import { rateIllustration } from '../../lib/engines/rate-illustration';
+import { ACCOUNT_NAMES, BLANK_ACCOUNT, DEFAULT_RATES, RATE_FREQUENCIES, RATES_ASSUMPTIONS, illustrationChartSvg, illustrationInput, illustrationNotes, illustrationTable, percentText, ratesView } from '../../lib/calc/rates-view';
 import { href } from '../../lib/url';
+import '../../styles/report.css';
 
 // The example is computed at build time with the same engine and view code the browser
 // uses, so the page shows real results without JavaScript.
 const computed = compareRates(DEFAULT_RATES.accounts, DEFAULT_RATES.balance);
 if (!computed.ok) throw new Error('APR/APY example scenario is invalid');
 const view = ratesView(computed.value);
+const illustrated = rateIllustration(illustrationInput(computed.value, DEFAULT_RATES.years), 'year');
+if (!illustrated.ok) throw new Error('APR/APY example illustration is invalid');
+const illustrationSeries = computed.value.accounts.map((a) => ({ key: String(a.index), label: ACCOUNT_NAMES[a.index]! }));
 const frequencyOptions = RATE_FREQUENCIES.map((f) => ({ value: String(f.value), label: f.label }));
 const hintFor = (kind: string) =>
   kind === 'apy' ? 'The annual percentage yield, which already includes compounding.' : 'The rate before compounding, for example 4.5.';
@@ -56,6 +62,7 @@ const VERIFIED = 'November 15, 2026';
             </fieldset>
           );
         })}
+        <CalcField id="ra-years" label="Years to illustrate" kind="whole" value={String(DEFAULT_RATES.years)} hint="For the balance illustration below: a single deposit of the balance, left in each account. From 1 to 30." />
         <p class="calc__nojs small muted">This calculator needs JavaScript to recalculate. Without it, the results show the example above.</p>
       </form>
 
@@ -139,6 +146,8 @@ const VERIFIED = 'November 15, 2026';
       </div>
     </ChartFigure>
 
+    <ScheduleView id="ra-schedule" heading="Balance illustration" series={illustrationSeries} svg={illustrationChartSvg(computed.value, illustrated.value, 'year')} table={illustrationTable(computed.value, illustrated.value, 'year')} notes={illustrationNotes()} chartHelp="each account's balance" />
+
     <div class="prose calc-notes">
       <h2>How compounding changes the APY</h2>
       <p>The same interest rate gives a higher APY the more often interest is added, because each addition starts earning interest too. For <span data-out="by-frequency-rate">{view.byFrequencyRate}</span>:</p>
@@ -173,8 +182,8 @@ const VERIFIED = 'November 15, 2026';
       <h2>A loan's APR is a different measure</h2>
       <p>
         For loans, the Truth in Lending rules, Regulation Z, use APR for something else: "a
-        measure of the cost of credit, expressed as a yearly rate." <span class="cite">12 CFR 1026.22(a)(1)</span>
-        It is built from the finance charge, "the cost of consumer credit as a dollar amount,"
+        measure of the cost of credit, expressed as a yearly rate." <span class="cite">12 CFR 1026.22(a)(1)</span> It
+        is built from the finance charge, "the cost of consumer credit as a dollar amount,"
         which includes interest and also charges such as "points, loan fees, assumption fees,
         finder's fees, and similar charges." <span class="cite">12 CFR 1026.4(a), (b)(3)</span>
       </p>
@@ -189,10 +198,7 @@ const VERIFIED = 'November 15, 2026';
 
       <h2>Assumptions</h2>
       <ul>
-        <li>Each rate stays the same for a full year. Savings rates change.</li>
-        <li>The interest for a year is the balance times the APY, rounded once to the cent. It assumes the balance stays in the account all year with no deposits or withdrawals, the same assumption the APY itself makes. A bank rounds each interest payment, so its total can differ by a cent or two.</li>
-        <li>A year has 365 days. Weekly compounding means 52 times a year.</li>
-        <li>No fees, minimum balances, balance tiers or introductory rates, and no taxes.</li>
+        {RATES_ASSUMPTIONS.map((a) => <li>{a}</li>)}
       </ul>
 
       <h2>How this is calculated</h2>

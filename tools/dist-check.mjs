@@ -86,6 +86,11 @@ for (const file of pages) {
   for (const match of html.matchAll(/[A-Za-z0-9,;]<a\s/g)) {
     fail(page, `missing space before a link: "${html.slice(match.index - 20, match.index + 3)}"`);
   }
+  // The same after a link or a citation ("calculator</a>for", "(c)</span>Behind"). An empty
+  // span (a legend key) is a mark, not a word, and may touch its label.
+  for (const match of html.matchAll(/[^>]<\/(a|span)>[A-Za-z]/g)) {
+    fail(page, `missing space after an inline element: "${html.slice(match.index - 20, match.index + 12)}"`);
+  }
 
   // Every tag that references a URL.
   const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));

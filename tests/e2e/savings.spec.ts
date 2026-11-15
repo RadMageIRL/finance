@@ -55,7 +55,7 @@ test.describe('high-yield savings calculator', () => {
       await expect(hero(page)).toHaveText(/^\$\d{2},\d{3}\.\d{2}$/);
       values.push((await hero(page).textContent())!);
       await expect(page.locator('[data-out="rates"] tr')).toHaveCount(1);
-      await expect(page.locator('[data-out="month-rows"] tr')).toHaveCount(60);
+      await expect(page.locator('#sg-schedule [data-out="table-rows"] tr')).toHaveCount(5);
       await context.close();
     }
     expect(values[0]).toBe(values[1]);
@@ -77,7 +77,8 @@ test.describe('high-yield savings calculator', () => {
       await expect(hero(page)).toHaveText(dollars(c!.final_balance_cents));
       await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c!.total_interest_cents));
       // The first month's credited interest, from the month table.
-      await expect(page.locator('[data-out="month-rows"] tr').first().locator('td').nth(4)).toHaveText(dollars(c!.monthly[0]![4]!));
+      await page.check('input[name="sg-schedule-group"][value="month"]');
+      await expect(page.locator('#sg-schedule [data-out="table-rows"] tr').first().locator('td').nth(3)).toHaveText(dollars(c!.monthly[0]![4]!));
     });
   }
 
@@ -123,10 +124,11 @@ test.describe('high-yield savings calculator', () => {
     await expect(other.locator('.calc')).toHaveAttribute('data-state', 'incomplete');
   });
 
-  test('downloads the month-by-month table as CSV', async ({ page }) => {
+  test('downloads the month-by-month schedule as CSV', async ({ page }) => {
     await page.goto(PAGE);
+    await page.check('input[name="sg-schedule-group"][value="month"]');
     const [download] = await Promise.all([page.waitForEvent('download'), page.click('[data-action="csv"]')]);
-    expect(download.suggestedFilename()).toBe('savings-by-month.csv');
+    expect(download.suggestedFilename()).toMatch(/^radmage-finance-savings-schedule-by-month-[\d-]+\.csv$/);
     const lines = readFileSync((await download.path())!, 'utf8').trim().split('\r\n');
     expect(lines).toHaveLength(61);
     expect(lines[0]).toContain('apy_earned_percent');
@@ -138,8 +140,7 @@ test.describe('high-yield savings calculator', () => {
       await storeTheme(context, theme);
       const page = await context.newPage();
       await page.goto(PAGE);
-      await page.locator('.calc-months summary').click();
-      await page.locator('.calc-table summary').first().click();
+      await page.check('input[name="sg-schedule-group"][value="month"]');
       const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
       expect((await new AxeBuilder({ page }).withTags(tags).analyze()).violations.map((v) => v.id)).toEqual([]);
       await page.fill('#sg-apy', '200');

@@ -127,7 +127,13 @@ describe('calendar (conventions 5.1 to 5.3)', () => {
   });
 
   it('rejects a frequency that does not follow the calendar', () => {
-    expect(() => periodBoundaries(52 as 12, 1)).toThrow(RangeError);
+    expect(() => periodBoundaries(3 as 12, 1)).toThrow(RangeError);
+  });
+
+  it('keeps weekly compounding out of the compound engine (weekly periods serve the rate illustration only)', () => {
+    const r = compoundInterest({ principal: 100, annualRate: 0.05, periodsPerYear: 52 as 12, years: 1, contributionFrequency: 'none', contribution: 0, timing: 'end' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.issues[0]).toMatchObject({ field: 'periodsPerYear', code: 'unsupported-value' });
   });
 });
 

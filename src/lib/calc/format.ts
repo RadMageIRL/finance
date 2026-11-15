@@ -17,6 +17,19 @@ export function formatUSD(cents: Cents): string {
   return negative ? `-${text}` : text;
 }
 
+const usd4 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
+/**
+ * An unrounded amount of cents in dollars to four decimals (a hundredth of a cent), for
+ * interest accrued but not yet credited: 3745.678 cents gives $37.4568.
+ */
+export function formatUSD4(cents: number): string {
+  if (!Number.isFinite(cents)) throw new RangeError(`formatUSD4: ${cents} is not finite`);
+  const text = usd4.format(cents / 100);
+  // A value that rounds to zero shows no sign.
+  return text === '-$0.0000' ? '$0.0000' : text;
+}
+
 /** $1,235 from 123456 cents, for chart axes and compact summaries. */
 export function formatUSDWhole(cents: Cents): string {
   return usdWhole.format(Math.round(cents / 100));

@@ -57,8 +57,8 @@ test.describe('compound interest calculator', () => {
       await page.goto(PAGE);
       // $10,000 at 5% monthly for 10 years, $100 at the end of each month (engine and oracle agree).
       await expect(hero(page)).toHaveText(EXAMPLE_FINAL);
-      await expect(page.locator('tfoot [data-out="total-end"]')).toHaveText(EXAMPLE_FINAL);
-      await expect(page.locator('.calc-table tbody tr')).toHaveCount(10);
+      await expect(page.locator('#ci-schedule tfoot td').nth(5)).toHaveText(EXAMPLE_FINAL);
+      await expect(page.locator('#ci-schedule [data-out="table-rows"] tr')).toHaveCount(10);
       await context.close();
     }
   });
@@ -89,8 +89,8 @@ test.describe('compound interest calculator', () => {
       });
       await expect(hero(page)).toHaveText(dollars(c!.final_balance_cents));
       await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c!.total_interest_cents));
-      const lastRow = page.locator('.calc-table tbody tr').last();
-      await expect(lastRow.locator('td').last()).toHaveText(dollars(c!.yearly.at(-1)![4]!));
+      const lastRow = page.locator('#ci-schedule [data-out="table-rows"] tr').last();
+      await expect(lastRow.locator('td').nth(5)).toHaveText(dollars(c!.yearly.at(-1)![4]!));
     });
   }
 
@@ -223,21 +223,20 @@ test.describe('compound interest calculator', () => {
     await expect(hero(fresh)).toBeVisible();
   });
 
-  test('downloads the yearly table as CSV with unformatted numbers', async ({ page }) => {
+  test('downloads the yearly schedule as CSV with unformatted numbers and no amount in its name', async ({ page }) => {
     await page.goto(PAGE);
     const [download] = await Promise.all([page.waitForEvent('download'), page.click('[data-action="csv"]')]);
-    expect(download.suggestedFilename()).toBe('compound-interest.csv');
+    expect(download.suggestedFilename()).toMatch(/^radmage-finance-compound-interest-schedule-by-year-\d{4}-\d{2}-\d{2}\.csv$/);
     const csv = readFileSync((await download.path())!, 'utf8');
     const lines = csv.trim().split('\r\n');
-    expect(lines[0]).toBe('year,start_balance_usd,contributions_usd,interest_usd,end_balance_usd');
+    expect(lines[0]).toBe('year,days,opening_balance_usd,contributions_usd,interest_accrued_usd,interest_credited_usd,annual_rate_percent,closing_balance_usd,cumulative_interest_usd');
     expect(lines).toHaveLength(11);
-    expect(lines[10]).toMatch(/^10,\d+\.\d{2},1200\.00,\d+\.\d{2},\d+\.\d{2}$/);
+    expect(lines[10]).toMatch(/^10,365,\d+\.\d{2},1200\.00,\d+\.\d{6},\d+\.\d{2},5\.0000000000,31998\.39,9998\.39$/);
   });
 
   test('the chart has a table equivalent and a keyboard-readable tooltip', async ({ page }) => {
     await page.goto(PAGE);
-    await page.locator('.calc-table summary').click();
-    await expect(page.locator('.calc-table tbody tr')).toHaveCount(10);
+    await expect(page.locator('#ci-schedule [data-out="table-rows"] tr')).toHaveCount(10);
     await page.locator('.chart-box').focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.locator('.chart-tooltip')).toBeVisible();
@@ -296,7 +295,7 @@ test.describe('compound interest calculator', () => {
       await storeTheme(context, theme);
       const page = await context.newPage();
       await page.goto(PAGE);
-      await page.locator('.calc-table summary').click();
+      await page.check('input[name="ci-schedule-group"][value="month"]');
       await page.click('[data-action="share"]');
       await page.locator('.calc-share__privacy summary').click();
       const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];

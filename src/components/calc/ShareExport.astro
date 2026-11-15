@@ -1,8 +1,10 @@
 ---
-// CSV download and share link controls. Both need JavaScript and are hidden without it.
-// The share link carries the scenario in the URL fragment (after #). The visitor chooses
-// whether dollar amounts go into it exactly, rounded, or not at all, and the panel says
-// plainly what a link can and cannot keep private.
+// Export and share controls: an HTML report, the schedule as CSV, a plain-text summary,
+// printing (Save as PDF), and the share link. All need JavaScript and are hidden without
+// it. Every file is made in the browser; nothing is uploaded, and no file name contains an
+// amount the visitor entered. The share link carries the scenario in the URL fragment
+// (after #); the visitor chooses whether dollar amounts go into it exactly, rounded, or not
+// at all, and the panel says plainly what a link can and cannot keep private.
 interface Props {
   idPrefix: string;
 }
@@ -15,8 +17,15 @@ const modes = [
 ];
 ---
 <div class="calc-actions" data-js-only>
-  <div class="button-row">
+  <div class="button-row calc-actions__exports" role="group" aria-label="Export">
+    <button class="button button--secondary" type="button" data-action="report">Download report</button>
     <button class="button button--secondary" type="button" data-action="csv">Download CSV</button>
+    <button class="button button--secondary" type="button" data-action="summary">Download summary</button>
+    <button class="button button--secondary" type="button" data-action="print">Print or save as PDF</button>
+  </div>
+  <p class="small muted" data-out="export-note">The report and the CSV follow the schedule below, grouped by <span data-out="export-grouping">year</span>. Files are made in your browser and never uploaded, and their names leave out your amounts.</p>
+  <p class="small" data-out="export-status" role="status" aria-live="polite"></p>
+  <div class="button-row">
     <button class="button button--secondary" type="button" data-action="share" aria-expanded="false" aria-controls={`${idPrefix}-share`}>Share link</button>
   </div>
   <div class="calc-share" id={`${idPrefix}-share`} hidden>

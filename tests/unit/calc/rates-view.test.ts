@@ -64,7 +64,7 @@ describe('APR/APY view', () => {
   });
 
   it('puts only the filled accounts in the share state, rates as entered', () => {
-    expect(ratesShareState(DEFAULT_RATES)).toEqual({ b: 1_000_000, k0: 'rate', v0: '4.5', n0: '365', k1: 'apy', v1: '4.55', n1: '12' });
+    expect(ratesShareState(DEFAULT_RATES)).toEqual({ b: 1_000_000, k0: 'rate', v0: '4.5', n0: '365', k1: 'apy', v1: '4.55', n1: '12', y: 5 });
   });
 
   it('maps engine issues to the field that shows them', () => {

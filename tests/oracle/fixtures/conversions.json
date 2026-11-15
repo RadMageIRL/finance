@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.3",
+  "conventions": "v1.4",
   "apy_from_nominal": [
     {
       "annual_rate": "0",

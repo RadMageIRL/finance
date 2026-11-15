@@ -1,12 +1,31 @@
-// APR/APY calculator: reads up to three accounts, runs the comparison engine, renders it.
+// APR/APY calculator: reads up to three accounts, runs the comparison engine, renders it,
+// with the balance illustration (its schedule) and the exports.
 
 import { formatUSD } from '../../lib/calc/format';
-import { parseMoney, parsePercent } from '../../lib/calc/parse';
-import { RATES_MONEY_KEYS, RATES_SHARE_SCHEMA, ratesCsv, ratesIssueMessage, ratesShareState, ratesView, type RatesInput } from '../../lib/calc/rates-view';
+import { parseMoney, parsePercent, parseWhole } from '../../lib/calc/parse';
+import {
+  illustrationChartSvg,
+  illustrationInput,
+  illustrationNotes,
+  illustrationTable,
+  illustrationTooltip,
+  RATES_MONEY_KEYS,
+  RATES_SHARE_SCHEMA,
+  ratesIssueMessage,
+  ratesReport,
+  ratesShareState,
+  ratesView,
+  type RatesInput,
+} from '../../lib/calc/rates-view';
+import { groupingOption } from '../../lib/calc/schedule-view';
 import { decodeShare, encodeShare, shareAmounts } from '../../lib/calc/share';
 import { compareRates, type RateAccountInput, type RateComparison, type RateKind } from '../../lib/engines/rate-compare';
+import { rateIllustration, type IllustrationRow } from '../../lib/engines/rate-illustration';
 import type { CompoundingFrequency } from '../../lib/engines/rates';
-import { $, debounce, downloadText, wireCalculator, wireChartTooltip, wireShare, wireSticky, type Evaluation } from './kit';
+import type { Grouping } from '../../lib/engines/schedule';
+import { wireExports } from './exports';
+import { $, debounce, wireCalculator, wireChartTooltip, wireShare, wireSticky, type Evaluation } from './kit';
+import { wireSchedule } from './schedule';
 
 const root = document.querySelector<HTMLElement>('[data-calc="rates"]');
 
@@ -14,13 +33,15 @@ if (root) {
   const page = document.body;
   const form = $(root, 'form') as HTMLFormElement;
   const SLOTS = [0, 1, 2] as const;
-  const fields: Record<string, HTMLInputElement> = { balance: $(root, '#ra-balance') as HTMLInputElement };
+  const fields: Record<string, HTMLInputElement> = { balance: $(root, '#ra-balance') as HTMLInputElement, years: $(root, '#ra-years') as HTMLInputElement };
   for (const i of SLOTS) fields[`value${i}`] = $(root, `#ra-value-${i}`) as HTMLInputElement;
   const frequency = (i: number) => $(root, `#ra-n-${i}`) as HTMLSelectElement;
   const kind = (i: number) => (form.querySelector<HTMLInputElement>(`input[name="ra-kind-${i}"]:checked`)?.value ?? 'rate') as RateKind;
   const out = (name: string) => $(page, `[data-out="${name}"]`);
   const sharedNote = out('shared-note');
   let tooltips: string[][] = [];
+  /** The illustration of the result on screen, each grouping built once on first use. */
+  let shown: { input: RatesInput; result: RateComparison; rows: (g: Grouping) => readonly IllustrationRow[] } | null = null;
 
   /** Keeps each account's hint in step with what its rate means. */
   function syncHints(): void {
@@ -41,6 +62,8 @@ if (root) {
     const errors = new Map<string, string>();
     const balance = parseMoney(fields.balance!.value);
     if (!balance.ok) errors.set('balance', balance.reason === 'empty' ? 'Enter a balance.' : balance.reason === 'too-many-decimals' ? 'Use at most two decimal places (cents).' : 'Enter the balance as a number.');
+    const years = parseWhole(fields.years!.value);
+    if (!years.ok) errors.set('years', years.reason === 'empty' ? 'Enter the years to illustrate.' : 'Years must be a whole number from 1 to 30.');
     const accounts: (RateAccountInput | null)[] = SLOTS.map((i) => {
       const parsed = parsePercent(fields[`value${i}`]!.value);
       if (!parsed.ok) {
@@ -50,8 +73,8 @@ if (root) {
       }
       return { kind: kind(i), value: parsed.value, periodsPerYear: Number(frequency(i).value) as CompoundingFrequency };
     });
-    if (errors.size || !balance.ok) return { input: null, errors };
-    return { input: { balance: balance.value, accounts }, errors };
+    if (errors.size || !balance.ok || !years.ok) return { input: null, errors };
+    return { input: { balance: balance.value, accounts, years: years.value }, errors };
   }
 
   function evaluate(): Evaluation<RatesInput, RateComparison> {
@@ -65,8 +88,21 @@ if (root) {
       }
       return { input: null, result: null, errors };
     }
+    // The illustration has its own limits: years 1 to 30, and the result cap.
+    const illustrated = rateIllustration(illustrationInput(computed.value, input.years), 'year');
+    if (!illustrated.ok) {
+      for (const issue of illustrated.issues) {
+        if (issue.field !== 'years') continue;
+        errors.set('years', issue.code === 'result-too-large' ? `A balance passes $90 trillion by year ${issue.limit}, beyond what this calculator can show to the cent. Choose fewer years.` : 'Years must be a whole number from 1 to 30.');
+      }
+      if (errors.size) return { input: null, result: null, errors };
+    }
     return { input, result: computed.value, errors };
   }
+
+  const schedule = wireSchedule($(page, '#ra-schedule'), (g) => {
+    out('export-grouping').textContent = groupingOption(g).noun;
+  });
 
   const chartBox = $(page, '[data-chart]');
   const chartWidth = () => Math.round(chartBox.clientWidth) || undefined;
@@ -84,8 +120,25 @@ if (root) {
     return th;
   };
 
-  function render(_input: RatesInput, result: RateComparison): void {
+  function render(input: RatesInput, result: RateComparison): void {
     const view = ratesView(result, chartWidth());
+    const cache = new Map<Grouping, readonly IllustrationRow[]>();
+    const rows = (g: Grouping) => {
+      let r = cache.get(g);
+      if (!r) {
+        const computed = rateIllustration(illustrationInput(result, input.years), g);
+        r = computed.ok ? computed.value : [];
+        cache.set(g, r);
+      }
+      return r;
+    };
+    shown = { input, result, rows };
+    schedule.update({
+      table: (g: Grouping) => illustrationTable(result, rows(g), g),
+      chart: (g: Grouping, width?: number) => illustrationChartSvg(result, rows(g), g, width ? { width } : {}),
+      tooltip: (g: Grouping, i: number) => illustrationTooltip(result, rows(g), g, i),
+      notes: () => illustrationNotes(),
+    });
     out('hero').textContent = view.hero;
     out('hero-note').textContent = view.heroNote;
     out('hero-sticky').textContent = view.hero;
@@ -140,7 +193,10 @@ if (root) {
     status: out('status'),
     announce: (_input, result) => `${ratesView(result).hero}. ${ratesView(result).heroNote}.`,
     changed: (current) => {
-      if (!current) tooltips = [];
+      if (!current) {
+        tooltips = [];
+        shown = null;
+      }
       share.refresh();
     },
   });
@@ -185,6 +241,7 @@ if (root) {
       const n = state[`n${i}`];
       if (typeof n === 'string') frequency(i).value = n;
     }
+    if (typeof state.y === 'number') fields.years!.value = String(state.y);
     calc.leaveBlank(leftOut);
     sharedNote.textContent =
       state.a === 'none'
@@ -195,12 +252,25 @@ if (root) {
     sharedNote.hidden = sharedNote.textContent === '';
   }
 
-  $(root, '[data-action="csv"]').addEventListener('click', () => {
-    const current = calc.current();
-    if (current) downloadText('apr-apy-comparison.csv', ratesCsv(current.result));
-  });
+  wireExports(
+    root,
+    {
+      name: 'apr-apy',
+      report: (generated) => {
+        calc.current();
+        return shown ? ratesReport(shown.input, shown.result, shown.rows, schedule.grouping(), generated) : null;
+      },
+      csv: () => {
+        calc.current();
+        if (!shown) return null;
+        const g = schedule.grouping();
+        return { table: illustrationTable(shown.result, shown.rows(g), g), what: `balance illustration by ${groupingOption(g).noun}` };
+      },
+    },
+    () => calc.settle(),
+  );
 
-  wireChartTooltip(chartBox, () => tooltips);
+  wireChartTooltip(chartBox, { count: () => tooltips.length, lines: (i) => tooltips[i] ?? [] });
   if ('ResizeObserver' in window) {
     let width = chartWidth();
     new ResizeObserver(

@@ -17,16 +17,21 @@ export const MONTH_STARTS: readonly number[] = MONTH_DAYS.reduce<number[]>((star
   return starts;
 }, [0]);
 
-/** Periods per year that follow the calendar, and where each starts within a year. */
+/**
+ * Periods per year that follow the calendar, and where each starts within a year. Weeks
+ * (v1.4, for the rate illustration only) start every 7 days from January 1, so the last
+ * week of each year has 8 days.
+ */
 const PERIOD_STARTS: Readonly<Record<number, readonly number[]>> = {
   1: [0],
   2: [MONTH_STARTS[0]!, MONTH_STARTS[6]!],
   4: [MONTH_STARTS[0]!, MONTH_STARTS[3]!, MONTH_STARTS[6]!, MONTH_STARTS[9]!],
   12: MONTH_STARTS,
+  52: Array.from({ length: 52 }, (_, week) => 7 * week),
   365: Array.from({ length: YEAR_DAYS }, (_, day) => day),
 };
 
-export const CALENDAR_PERIODS = [1, 2, 4, 12, 365] as const;
+export const CALENDAR_PERIODS = [1, 2, 4, 12, 52, 365] as const;
 export type CalendarPeriods = (typeof CALENDAR_PERIODS)[number];
 
 export const CONTRIBUTION_FREQUENCIES = ['none', 'weekly', 'biweekly', 'monthly', 'quarterly', 'annually'] as const;
@@ -53,6 +58,41 @@ export function periodBoundaries(periodsPerYear: CalendarPeriods, years: number)
   }
   out.push(years * YEAR_DAYS);
   return out;
+}
+
+/**
+ * The number of calendar periods (of `periodsPerYear` a year) that have ended at or before
+ * boundary t: every period of the years before t's year, plus those of its own year whose
+ * end is at most t (ENGINE_CONVENTIONS 12.2).
+ */
+export function completedPeriods(periodsPerYear: CalendarPeriods, boundary: number): number {
+  const starts = PERIOD_STARTS[periodsPerYear];
+  if (!starts) throw new RangeError(`completedPeriods: ${periodsPerYear} periods a year does not follow the calendar`);
+  if (!Number.isInteger(boundary) || boundary < 0) throw new RangeError(`completedPeriods: boundary ${boundary}`);
+  const year = Math.floor(boundary / YEAR_DAYS);
+  const offset = boundary - year * YEAR_DAYS;
+  // A period of this year has ended by the offset when the next period's start is at most
+  // the offset; the start at offset 0 begins the year and ends nothing.
+  let ended = 0;
+  for (let i = 1; i < starts.length && starts[i]! <= offset; i += 1) ended += 1;
+  return year * periodsPerYear + ended;
+}
+
+/** Where a day falls on the calendar: its year (1-based), month of the year (1 to 12), month of the term (1-based) and day of the month. */
+export interface CalendarDay {
+  year: number;
+  month: number;
+  termMonth: number;
+  dayOfMonth: number;
+}
+
+export function calendarDay(day: number): CalendarDay {
+  if (!Number.isInteger(day) || day < 0) throw new RangeError(`calendarDay: day ${day}`);
+  const year = Math.floor(day / YEAR_DAYS);
+  const offset = day - year * YEAR_DAYS;
+  let month = 0;
+  while (month + 1 < MONTH_STARTS.length && MONTH_STARTS[month + 1]! <= offset) month += 1;
+  return { year: year + 1, month: month + 1, termMonth: year * 12 + month + 1, dayOfMonth: offset - MONTH_STARTS[month]! + 1 };
 }
 
 /**

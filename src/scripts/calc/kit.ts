@@ -249,31 +249,61 @@ export function wireCalculator<I, R>(o: CalculatorOptions<I, R>) {
   };
 }
 
+/** What a chart tooltip reads: how many points there are, and the lines for one point. */
+export interface TooltipSource {
+  count: () => number;
+  lines: (index: number) => readonly string[];
+}
+
 /**
- * Chart tooltip for columns: pointer hover on each column's hit area, and keyboard reading
- * with the arrow keys, Home and End when the chart has focus. Lines are set as text.
+ * Chart tooltip: pointer hover, and keyboard reading with the arrow keys, Page Up and Page
+ * Down (a tenth of the points at a time), Home and End when the chart has focus. Column and
+ * bar charts give each point a hit area (.chart__col); charts over many points (areas and
+ * lines, with data-count on the svg) map the pointer to the nearest point and move a cursor
+ * line. Lines are set as text.
  */
-export function wireChartTooltip(box: HTMLElement, lines: () => string[][]): void {
+export function wireChartTooltip(box: HTMLElement, source: TooltipSource): void {
   const tooltip = $(box, '[data-tooltip]');
   let active = -1;
 
+  /** For a chart read by position: its point count and plot geometry in viewBox units. */
+  const geometry = () => {
+    const svg = box.querySelector<SVGSVGElement>('svg[data-count]');
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    const scale = rect.width / Number(svg.dataset.width || rect.width || 1);
+    return { svg, rect, scale, count: Number(svg.dataset.count), left: Number(svg.dataset.plotLeft), width: Number(svg.dataset.plotWidth) };
+  };
+  const pointX = (g: NonNullable<ReturnType<typeof geometry>>, index: number) => g.left + (g.count <= 1 ? g.width / 2 : (index / (g.count - 1)) * g.width);
+
   const show = (index: number, anchor?: { x: number; y: number }) => {
-    const data = lines();
-    if (index < 0 || index >= data.length) return hide();
+    const count = source.count();
+    if (index < 0 || index >= count) return hide();
     active = index;
     tooltip.replaceChildren(
-      ...data[index]!.map((line, i) => {
+      ...source.lines(index).map((line, i) => {
         const el = document.createElement(i === 0 ? 'strong' : 'span');
         el.textContent = line;
         return el;
       }),
     );
     tooltip.hidden = false;
-    box.querySelectorAll('.chart__col').forEach((col) => col.classList.toggle('is-active', col.getAttribute('data-index') === String(index)));
-    const col = box.querySelector<SVGGraphicsElement>(`.chart__col[data-index="${index}"] .chart__hit`);
     const boxRect = box.getBoundingClientRect();
-    const colRect = col?.getBoundingClientRect();
-    const x = anchor?.x ?? (colRect ? colRect.left + colRect.width / 2 - boxRect.left : boxRect.width / 2);
+    let x: number;
+    const g = geometry();
+    if (g) {
+      const cursor = g.svg.querySelector('.chart__cursor');
+      const at = pointX(g, index);
+      cursor?.setAttribute('x1', String(at));
+      cursor?.setAttribute('x2', String(at));
+      cursor?.setAttribute('visibility', 'visible');
+      x = anchor?.x ?? g.rect.left - boxRect.left + at * g.scale;
+    } else {
+      box.querySelectorAll('.chart__col').forEach((col) => col.classList.toggle('is-active', col.getAttribute('data-index') === String(index)));
+      const col = box.querySelector<SVGGraphicsElement>(`.chart__col[data-index="${index}"] .chart__hit`);
+      const colRect = col?.getBoundingClientRect();
+      x = anchor?.x ?? (colRect ? colRect.left + colRect.width / 2 - boxRect.left : boxRect.width / 2);
+    }
     const left = Math.max(8, Math.min(x + 12, boxRect.width - tooltip.offsetWidth - 8));
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${Math.max(8, (anchor?.y ?? 24) - 12)}px`;
@@ -282,22 +312,35 @@ export function wireChartTooltip(box: HTMLElement, lines: () => string[][]): voi
     active = -1;
     tooltip.hidden = true;
     box.querySelectorAll('.chart__col.is-active').forEach((col) => col.classList.remove('is-active'));
+    box.querySelector('.chart__cursor')?.setAttribute('visibility', 'hidden');
   };
 
   box.addEventListener('pointermove', (event) => {
+    const rect = box.getBoundingClientRect();
+    const anchor = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    const g = geometry();
+    if (g) {
+      const at = (event.clientX - g.rect.left) / g.scale;
+      if (at < g.left - 4 || at > g.left + g.width + 4) return hide();
+      const index = Math.round(((at - g.left) / g.width) * (g.count - 1));
+      return show(Math.max(0, Math.min(g.count - 1, index)), anchor);
+    }
     const target = (event.target as Element).closest('.chart__col');
     if (!target) return hide();
-    const rect = box.getBoundingClientRect();
-    show(Number(target.getAttribute('data-index')), { x: event.clientX - rect.left, y: event.clientY - rect.top });
+    show(Number(target.getAttribute('data-index')), anchor);
   });
   box.addEventListener('pointerleave', hide);
   box.addEventListener('blur', hide);
   box.addEventListener('keydown', (event) => {
-    const count = lines().length;
+    const count = source.count();
     if (!count) return;
+    const jump = Math.max(1, Math.round(count / 10));
+    const from = active < 0 ? 0 : active;
     const keys: Record<string, number> = {
       ArrowRight: Math.min(count - 1, active + 1),
       ArrowLeft: Math.max(0, active < 0 ? 0 : active - 1),
+      PageDown: Math.min(count - 1, from + jump),
+      PageUp: Math.max(0, from - jump),
       Home: 0,
       End: count - 1,
     };

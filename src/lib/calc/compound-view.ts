@@ -1,12 +1,14 @@
 // Everything the compound interest page displays, derived from the engine result in one
-// place, so the build-time render and the browser render show identical numbers.
+// place, so the build-time render, the browser render, the CSV and the report show
+// identical numbers.
 
 import type { CompoundFrequency, CompoundInput, CompoundResult } from '../engines/compound';
+import { compoundDays, Schedule, type Grouping } from '../engines/schedule';
 import type { Issue } from '../engines/validate';
-import { stackedColumnsSvg } from './chart';
-import { centsToCsv, toCsv } from './csv';
-import { formatInteger, formatRate, formatUSD, formatUSDCompact } from './format';
+import { REPORT_ROW_LIMIT, reportSchedule, type Report } from '../report/report';
+import { formatInteger, formatRate, formatUSD } from './format';
 import { contributionOption } from './frequency';
+import { composition, groupingOption, scheduleChartSvg, scheduleTable, type ScheduleConfig } from './schedule-view';
 import { AMOUNTS_FIELD, type Schema } from './share';
 
 export const FREQUENCIES: readonly { value: CompoundFrequency; label: string; period: string; periods: string }[] = [
@@ -36,22 +38,25 @@ export const SERIES = [
   { key: 'interest', label: 'Interest' },
 ] as const;
 
-export interface CompoundRow {
-  year: number;
-  start: string;
-  contributions: string;
-  interest: string;
-  end: string;
-}
+export const COMPOUND_CALCULATOR = 'Compound interest calculator';
+
+/** The page's assumptions, also printed in every report. */
+export const COMPOUND_ASSUMPTIONS: readonly string[] = [
+  'The interest rate stays the same for the whole period. Real savings rates change.',
+  'Interest is credited at the end of each compounding period and rounded to the nearest cent when it is credited, half a cent rounding up.',
+  'Each compounding period earns the annual rate divided by the number of periods in a year, whatever its length: February earns the same monthly rate as January.',
+  'Contributions follow their own schedule, separate from compounding. A contribution earns interest from the day it is made. One made part way through a compounding period earns that period\'s interest in proportion to the days it was in the account.',
+  'The calendar: every year has 365 days and starts on January 1, months have their real lengths (31 days in January, 28 in February, and so on), quarters start in January, April, July and October, and leap days are ignored. Months are never treated as 30 days.',
+  'Monthly, quarterly and yearly contributions are made on the first day of each month, quarter or year (start), or on its last day (end). Weekly and biweekly contributions are made every 7 or 14 days, counted from the first day.',
+  'A 365-day year is 52 weeks and 1 day, so the number of weekly or biweekly contributions changes a little from year to year. With contributions at the start of each week, the first year has 53.',
+  'A contribution at the end of the last interval is added on the final day and earns no interest.',
+  'No taxes, fees or withdrawals, and amounts are not adjusted for inflation.',
+];
 
 export interface CompoundView {
   final: string;
   breakdown: { label: string; value: string }[];
   summary: string;
-  rows: CompoundRow[];
-  totals: { contributions: string; interest: string; end: string };
-  chartSvg: string;
-  tooltips: string[][];
 }
 
 /** "$100.00 a month at the end of each month, 120 contributions", or "no contributions". */
@@ -62,7 +67,7 @@ export function contributionPhrase(input: CompoundInput, result: CompoundResult)
   return `${formatUSD(input.contribution)} ${o.often} at the ${input.timing} of each ${o.interval}, ${count}`;
 }
 
-export function compoundView(input: CompoundInput, result: CompoundResult, chartWidth?: number): CompoundView {
+export function compoundView(input: CompoundInput, result: CompoundResult): CompoundView {
   const freq = frequencyInfo(input.periodsPerYear);
   const parts =
     result.totalContributions > 0
@@ -71,30 +76,6 @@ export function compoundView(input: CompoundInput, result: CompoundResult, chart
   const summary =
     `After ${formatInteger(input.years)} ${input.years === 1 ? 'year' : 'years'}, the balance would be ${formatUSD(result.finalBalance)}: ` +
     `${parts}, at ${formatRate(input.annualRate)} compounded ${freq.label.toLowerCase()}.`;
-
-  let contributionsToDate = 0;
-  let interestToDate = 0;
-  const values: number[][] = [];
-  const tooltips: string[][] = [];
-  const rows = result.years.map((y) => {
-    contributionsToDate += y.contributions;
-    interestToDate += y.interest;
-    values.push([input.principal, contributionsToDate, interestToDate]);
-    tooltips.push([
-      `Year ${y.year}: ${formatUSD(y.endBalance)}`,
-      `Starting balance ${formatUSD(input.principal)}`,
-      `Contributions to date ${formatUSD(contributionsToDate)}`,
-      `Interest to date ${formatUSD(interestToDate)}`,
-    ]);
-    return {
-      year: y.year,
-      start: formatUSD(y.startBalance),
-      contributions: formatUSD(y.contributions),
-      interest: formatUSD(y.interest),
-      end: formatUSD(y.endBalance),
-    };
-  });
-
   return {
     final: formatUSD(result.finalBalance),
     breakdown: [
@@ -103,28 +84,90 @@ export function compoundView(input: CompoundInput, result: CompoundResult, chart
       { label: 'Interest earned', value: formatUSD(result.totalInterest) },
     ],
     summary,
-    rows,
-    totals: { contributions: formatUSD(result.totalContributions), interest: formatUSD(result.totalInterest), end: formatUSD(result.finalBalance) },
-    chartSvg: stackedColumnsSvg({
-      categories: result.years.map((y) => String(y.year)),
-      series: SERIES,
-      values,
-      formatTick: formatUSDCompact,
-      formatTotal: formatUSD,
-      title: 'Balance at the end of each year',
-      description: summary,
-      idPrefix: 'ci-chart',
-      ...(chartWidth ? { width: chartWidth } : {}),
-    }),
-    tooltips,
   };
 }
 
-export function compoundCsv(result: CompoundResult): string {
-  return toCsv(
-    ['year', 'start_balance_usd', 'contributions_usd', 'interest_usd', 'end_balance_usd'],
-    result.years.map((y) => [y.year, centsToCsv(y.startBalance), centsToCsv(y.contributions), centsToCsv(y.interest), centsToCsv(y.endBalance)]),
-  );
+export function compoundSchedule(input: CompoundInput, result: CompoundResult): Schedule {
+  return new Schedule(compoundDays(input, result));
+}
+
+export function compoundScheduleConfig(input: CompoundInput): ScheduleConfig {
+  const rate = formatRate(input.annualRate);
+  const csvRate = (input.annualRate * 100).toFixed(10);
+  return {
+    depositsLabel: 'Contributions',
+    rates: { label: 'Rate', text: () => rate, csvHeader: () => ['annual_rate_percent'], csv: () => [csvRate] },
+  };
+}
+
+/** Notes printed with the schedule: when interest is credited for this compounding. */
+export function compoundScheduleNotes(input: CompoundInput, grouping: Grouping): string[] {
+  const f = frequencyInfo(input.periodsPerYear);
+  const notes =
+    input.periodsPerYear === 365
+      ? ['Interest is compounded and credited every day, rounded to the cent; interest accrued is the unrounded amount for the day, shown to a hundredth of a cent.']
+      : [
+          `Interest is credited at the end of each ${f.period}, rounded to the cent, and only then becomes part of the balance. Interest accrued is each day's share of the ${f.period}'s interest, shown unrounded to a hundredth of a cent.`,
+        ];
+  if (input.periodsPerYear < 12 && grouping !== 'year') notes.push(`Rows that do not end a ${f.period} show interest accrued but no interest credited.`);
+  if (input.periodsPerYear !== 365 && grouping === 'day') notes.push(`Day rows show a credit only on the last day of each ${f.period}.`);
+  return notes;
+}
+
+export function compoundChartSvg(input: CompoundInput, schedule: Schedule, grouping: Grouping, description: string, options: { idPrefix?: string; width?: number } = {}): string {
+  return scheduleChartSvg(schedule, grouping, {
+    principal: input.principal,
+    series: SERIES,
+    depositsLabel: 'Contributions',
+    title: `Balance at the end of each ${groupingOption(grouping).noun}`,
+    description,
+    idPrefix: options.idPrefix ?? 'ci-chart',
+    ...(options.width ? { width: options.width } : {}),
+  });
+}
+
+export function compoundInputs(input: CompoundInput): { label: string; value: string }[] {
+  const often = contributionOption(input.contributionFrequency);
+  const out = [
+    { label: 'Starting balance', value: formatUSD(input.principal) },
+    { label: 'Annual interest rate', value: formatRate(input.annualRate) },
+    { label: 'Compounding', value: frequencyInfo(input.periodsPerYear).label },
+    { label: 'Years', value: formatInteger(input.years) },
+    { label: 'Contribution frequency', value: often.label },
+  ];
+  if (input.contributionFrequency !== 'none') {
+    out.push({ label: 'Contribution amount', value: formatUSD(input.contribution) }, { label: 'Contribution timing', value: `${input.timing === 'start' ? 'Start' : 'End'} of each ${often.interval}` });
+  }
+  return out;
+}
+
+/** The report for a scenario, with the schedule at the chosen grouping. */
+export function compoundReport(input: CompoundInput, result: CompoundResult, schedule: Schedule, grouping: Grouping, generated: Date): Report {
+  const view = compoundView(input, result);
+  const config = compoundScheduleConfig(input);
+  const part = (g: Grouping) => ({ heading: groupingOption(g).heading, table: scheduleTable(schedule, g, config), notes: compoundScheduleNotes(input, g) });
+  const shown = reportSchedule(part(grouping), grouping === 'day' ? part('month') : null);
+  const chartGrouping: Grouping = grouping === 'day' && schedule.days.length > REPORT_ROW_LIMIT ? 'month' : grouping;
+  return {
+    calculator: COMPOUND_CALCULATOR,
+    generated,
+    headline: { label: 'Projected balance', value: view.final },
+    summary: [...view.breakdown, { label: 'Number of contributions', value: formatInteger(result.contributionCount) }, { label: 'Compounding periods', value: formatInteger(result.periods) }],
+    sentence: view.summary,
+    inputs: compoundInputs(input),
+    composition: composition(input.principal, result.totalContributions, result.totalInterest, 'Contributions'),
+    rateChanges: null,
+    tables: [],
+    chart: {
+      heading: `Balance by ${groupingOption(chartGrouping).noun}`,
+      svg: compoundChartSvg(input, schedule, chartGrouping, view.summary, { idPrefix: 'report-chart', width: 720 }),
+      legend: SERIES.map((s) => s.label),
+      summary: `${view.summary} The chart stacks the starting balance, the contributions made so far and the interest credited so far at the end of each ${groupingOption(chartGrouping).noun}; the schedule below has every figure.`,
+    },
+    schedule: shown,
+    assumptions: COMPOUND_ASSUMPTIONS,
+    sources: [],
+  };
 }
 
 /**

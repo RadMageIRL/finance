@@ -36,6 +36,17 @@ export interface CompoundYear {
   endBalance: Cents;
 }
 
+/** One compounding period: interest is credited, rounded to the cent, at its end. */
+export interface CompoundPeriod {
+  /** Boundaries (day numbers) where the period starts and ends. */
+  start: number;
+  end: number;
+  startBalance: Cents;
+  contributions: Cents;
+  interest: Cents;
+  endBalance: Cents;
+}
+
 export interface CompoundResult {
   finalBalance: Cents;
   totalContributions: Cents;
@@ -45,6 +56,8 @@ export interface CompoundResult {
   /** Number of compounding periods. */
   periods: number;
   years: CompoundYear[];
+  /** Every compounding period in order, for schedules by day, month or year (conventions 11). */
+  creditPeriods: CompoundPeriod[];
 }
 
 export const COMPOUND_LIMITS = {
@@ -80,6 +93,7 @@ export function compoundInterest(input: CompoundInput): Result<CompoundResult> {
   const belongs = timing === 'start' ? (t: number, end: number) => t < end : (t: number, end: number) => t <= end;
 
   const rows: CompoundYear[] = [];
+  const creditPeriods: CompoundPeriod[] = [];
   let balance = principal;
   let totalInterest = 0;
   let next = 0;
@@ -102,6 +116,7 @@ export function compoundInterest(input: CompoundInput): Result<CompoundResult> {
       // Sum of the daily balances over the period, in cent-days (conventions 5.4 step 3).
       const balanceDays = BigInt(balance) * BigInt(days) + BigInt(contribution) * BigInt(heldDays);
       const interest = averageBalanceInterest(balanceDays, days, annualRate, n);
+      const startBalance = balance;
       balance += contribution * count + interest;
       yearInterest += interest;
       yearCount += count;
@@ -110,6 +125,7 @@ export function compoundInterest(input: CompoundInput): Result<CompoundResult> {
         check.add({ field: 'years', code: 'result-too-large', limit: year });
         return check.fail();
       }
+      creditPeriods.push({ start, end, startBalance, contributions: contribution * count, interest, endBalance: balance });
     }
     totalInterest += yearInterest;
     rows.push({ year, startBalance, contributions: contribution * yearCount, interest: yearInterest, endBalance: balance });
@@ -124,6 +140,7 @@ export function compoundInterest(input: CompoundInput): Result<CompoundResult> {
       contributionCount: deposits.length,
       periods: n * years,
       years: rows,
+      creditPeriods,
     },
   };
 }

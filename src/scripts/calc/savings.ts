@@ -1,13 +1,30 @@
-// High-yield savings calculator: reads the inputs, runs the savings engine, renders results.
+// High-yield savings calculator: reads the inputs, runs the savings engine, renders results,
+// the schedule, and the exports.
 
 import { formatUSD } from '../../lib/calc/format';
 import { contributionHint, contributionOption } from '../../lib/calc/frequency';
 import { parseMoney, parsePercent, parseWhole, type Parsed } from '../../lib/calc/parse';
-import { CHANGE_SLOTS, SAVINGS_MONEY_KEYS, SAVINGS_SHARE_SCHEMA, savingsCsv, savingsIssueMessage, savingsShareState, savingsView, type SavingsRow } from '../../lib/calc/savings-view';
+import {
+  CHANGE_SLOTS,
+  SAVINGS_MONEY_KEYS,
+  SAVINGS_SHARE_SCHEMA,
+  savingsChartSvg,
+  savingsIssueMessage,
+  savingsReport,
+  savingsSchedule,
+  savingsScheduleConfig,
+  savingsScheduleNotes,
+  savingsShareState,
+  savingsView,
+} from '../../lib/calc/savings-view';
+import { groupingOption, scheduleTable, scheduleTooltip } from '../../lib/calc/schedule-view';
 import { decodeShare, encodeShare, shareAmounts } from '../../lib/calc/share';
-import { savingsGrowth, type HysaCompounding, type HysaInput, type HysaResult, type RateStep } from '../../lib/engines/hysa';
 import type { ContributionFrequency, ContributionTiming } from '../../lib/engines/calendar';
-import { $, debounce, downloadText, wireCalculator, wireChartTooltip, wireShare, wireSticky, type Evaluation } from './kit';
+import { savingsGrowth, type HysaCompounding, type HysaInput, type HysaResult, type RateStep } from '../../lib/engines/hysa';
+import type { Grouping, Schedule } from '../../lib/engines/schedule';
+import { wireExports } from './exports';
+import { $, wireCalculator, wireShare, wireSticky, type Evaluation } from './kit';
+import { wireSchedule } from './schedule';
 
 const root = document.querySelector<HTMLElement>('[data-calc="savings"]');
 
@@ -31,9 +48,10 @@ if (root) {
   const out = (name: string) => $(page, `[data-out="${name}"]`);
   const sharedNote = out('shared-note');
   const contributionFields = root.querySelectorAll<HTMLElement>('[data-contribution]');
-  let tooltips: string[][] = [];
   /** For each engine rate step after the first, the change row it came from. */
   let slots: number[] = [];
+  /** The schedule of the result on screen, built once per result. */
+  let shown: { input: HysaInput; result: HysaResult; schedule: Schedule } | null = null;
 
   const reasonText = (reason: string, kind: 'money' | 'percent' | 'whole') =>
     reason === 'empty'
@@ -108,29 +126,12 @@ if (root) {
     return { input: scenario, result: computed.value, errors };
   }
 
-  const chartBox = $(page, '[data-chart]');
-  const chartWidth = () => Math.round(chartBox.clientWidth) || undefined;
-
-  const rowsInto = (target: HTMLElement, rows: readonly SavingsRow[]) =>
-    target.replaceChildren(
-      ...rows.map((r) => {
-        const tr = document.createElement('tr');
-        const th = document.createElement('th');
-        th.scope = 'row';
-        th.textContent = r.label;
-        tr.append(th);
-        for (const value of r.cells) {
-          const td = document.createElement('td');
-          td.className = 'num';
-          td.textContent = value;
-          tr.append(td);
-        }
-        return tr;
-      }),
-    );
+  const schedule = wireSchedule($(page, '#sg-schedule'), (g) => {
+    out('export-grouping').textContent = groupingOption(g).noun;
+  });
 
   function render(scenario: HysaInput, result: HysaResult): void {
-    const view = savingsView(scenario, result, chartWidth());
+    const view = savingsView(scenario, result);
     out('final').textContent = view.final;
     out('final-again').textContent = view.final;
     out('final-sticky').textContent = view.final;
@@ -138,9 +139,6 @@ if (root) {
     out('contributions').textContent = view.breakdown[1]!.value;
     out('interest').textContent = view.breakdown[2]!.value;
     out('summary').textContent = view.summary;
-    out('total-contributions').textContent = view.totals.contributions;
-    out('total-interest').textContent = view.totals.interest;
-    out('total-end').textContent = view.totals.end;
     out('rates').replaceChildren(
       ...view.rates.map((r) => {
         const tr = document.createElement('tr');
@@ -157,11 +155,15 @@ if (root) {
         return tr;
       }),
     );
-    rowsInto(out('year-rows'), view.yearRows);
-    rowsInto(out('month-rows'), view.monthRows);
-    // The SVG string is built from numbers and fixed labels only (src/lib/calc/chart.ts).
-    out('chart').innerHTML = view.chartSvg;
-    tooltips = view.tooltips;
+    const rows = savingsSchedule(scenario, result);
+    shown = { input: scenario, result, schedule: rows };
+    const config = savingsScheduleConfig(result);
+    schedule.update({
+      table: (g: Grouping) => scheduleTable(rows, g, config),
+      chart: (g: Grouping, width?: number) => savingsChartSvg(scenario, rows, g, view.summary, width ? { width } : {}),
+      tooltip: (g: Grouping, i: number) => scheduleTooltip(rows, g, scenario.principal, 'Deposits', i),
+      notes: (g: Grouping) => savingsScheduleNotes(scenario, g),
+    });
   }
 
   const calc = wireCalculator({
@@ -173,7 +175,7 @@ if (root) {
     status: out('status'),
     announce: (_scenario, result) => `Projected balance ${formatUSD(result.finalBalance)}.`,
     changed: (current) => {
-      if (!current) tooltips = [];
+      if (!current) shown = null;
       share.refresh();
     },
   });
@@ -195,6 +197,24 @@ if (root) {
           : `The link opens with a projected balance of ${formatUSD(recomputed.value.finalBalance)}.`,
     };
   });
+
+  wireExports(
+    root,
+    {
+      name: 'savings',
+      report: (generated) => {
+        calc.current();
+        return shown ? savingsReport(shown.input, shown.result, shown.schedule, schedule.grouping(), generated) : null;
+      },
+      csv: () => {
+        calc.current();
+        if (!shown) return null;
+        const g = schedule.grouping();
+        return { table: scheduleTable(shown.schedule, g, savingsScheduleConfig(shown.result)), what: groupingOption(g).heading };
+      },
+    },
+    () => calc.settle(),
+  );
 
   function applyShared(): void {
     const state = decodeShare(SAVINGS_SHARE_SCHEMA, location.hash);
@@ -235,25 +255,6 @@ if (root) {
     sharedNote.hidden = sharedNote.textContent === '';
   }
 
-  $(root, '[data-action="csv"]').addEventListener('click', () => {
-    const current = calc.current();
-    if (current) downloadText('savings-by-month.csv', savingsCsv(current.result));
-  });
-
-  wireChartTooltip(chartBox, () => tooltips);
-  if ('ResizeObserver' in window) {
-    let width = chartWidth();
-    new ResizeObserver(
-      debounce(() => {
-        const next = chartWidth();
-        const current = calc.current();
-        if (next !== width && current) {
-          width = next;
-          out('chart').innerHTML = savingsView(current.input, current.result, next).chartSvg;
-        }
-      }, 100),
-    ).observe(chartBox);
-  }
   wireSticky($(root, '.calc__results'), $(page, '[data-sticky]'));
 
   window.addEventListener('hashchange', () => {

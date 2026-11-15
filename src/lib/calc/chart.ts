@@ -72,6 +72,7 @@ export function stackedColumnsSvg(spec: StackedColumns): string {
   parts.push(`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="${spec.idPrefix}-title ${spec.idPrefix}-desc" preserveAspectRatio="xMidYMid meet">`);
   parts.push(`<title id="${spec.idPrefix}-title">${escapeXml(spec.title)}</title>`);
   parts.push(`<desc id="${spec.idPrefix}-desc">${escapeXml(spec.description)}</desc>`);
+  parts.push(textureDefs(spec.idPrefix, spec.series.length));
 
   // Gridlines and y-axis labels.
   for (const t of ticks) {
@@ -99,8 +100,15 @@ export function stackedColumnsSvg(spec: StackedColumns): string {
       const h = Math.max(0, yBottom - yTop - gapBelow - gapAbove);
       if (h > 0) {
         const cls = `chart__seg chart__seg--${s + 1}`;
-        if (s === lastNonZero) parts.push(`<path class="${cls}" d="${topRounded(x, yTop + gapAbove, barW, h, 4)}"/>`);
+        const top = s === lastNonZero;
+        if (top) parts.push(`<path class="${cls}" d="${topRounded(x, yTop + gapAbove, barW, h, 4)}"/>`);
         else parts.push(`<rect class="${cls}" x="${f(x)}" y="${f(yTop + gapAbove)}" width="${f(barW)}" height="${f(h)}"/>`);
+        // Texture over the second and later series, shown only in print and forced colors.
+        if (s > 0) {
+          const tex = `class="chart__tex" fill="url(#${spec.idPrefix}-tex-${s + 1})"`;
+          if (top) parts.push(`<path ${tex} d="${topRounded(x, yTop + gapAbove, barW, h, 4)}"/>`);
+          else parts.push(`<rect ${tex} x="${f(x)}" y="${f(yTop + gapAbove)}" width="${f(barW)}" height="${f(h)}"/>`);
+        }
       }
       base += v;
     });
@@ -173,6 +181,170 @@ export function horizontalBarsSvg(spec: HorizontalBars): string {
     parts.push(`<text class="chart__tick chart__tick--bar" x="${x0 - 10}" y="${f(y + BAR_H / 2)}" dy="0.32em" text-anchor="end">${escapeXml(category)}</text>`);
     parts.push(`<text class="chart__label" x="${f(x0 + w + 8)}" y="${f(y + BAR_H / 2)}" dy="0.32em">${escapeXml(spec.formatValue(value))}</text>`);
   });
+  parts.push('</svg>');
+  return parts.join('');
+}
+
+/**
+ * Texture fills for series 2 and later: hatching at 45 and 135 degrees, the backup channel
+ * for grayscale print and forced colors (dataviz guidance: never on by default, so CSS shows
+ * the overlays only in print and forced colors). Ids are unique per chart.
+ */
+function textureDefs(idPrefix: string, seriesCount: number): string {
+  const parts = ['<defs>'];
+  for (let s = 2; s <= Math.max(2, seriesCount); s += 1) {
+    const angle = s % 2 === 0 ? 45 : 135;
+    parts.push(`<pattern id="${idPrefix}-tex-${s}" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(${angle})"><line class="chart__tex-line" x1="0" y1="0" x2="0" y2="6"/></pattern>`);
+  }
+  parts.push('</defs>');
+  return parts.join('');
+}
+
+export interface SeriesOverTime {
+  /** Number of points (rows). */
+  count: number;
+  series: readonly StackSeries[];
+  /** values(i)[s]: the value of series s at point i, in cents, nonnegative. */
+  values: (index: number) => readonly number[];
+  /** Points that get an x-axis label, with the label text (for example each year start). */
+  xLabels: readonly { index: number; label: string }[];
+  formatTick: (cents: number) => string;
+  formatTotal: (cents: number) => string;
+  title: string;
+  description: string;
+  idPrefix: string;
+  width?: number;
+}
+
+const AREA_M = { top: 28, right: 16, bottom: 30, left: 56 };
+
+/**
+ * The points a chart draws: every point when they fit, otherwise one per pixel column of the
+ * plot, always including the first and the last. Every drawn point is an exact value; the
+ * chart never computes a value between them.
+ */
+export function samplePoints(count: number, plotW: number): number[] {
+  const most = Math.max(2, Math.floor(plotW));
+  if (count <= most) return Array.from({ length: count }, (_, i) => i);
+  const out: number[] = [];
+  for (let j = 0; j < most; j += 1) out.push(Math.round((j * (count - 1)) / (most - 1)));
+  return out;
+}
+
+interface Frame {
+  plotW: number;
+  x: (i: number) => number;
+  y: (v: number) => number;
+}
+
+function plotFrame(count: number, yMax: number, W: number): Frame {
+  const plotW = W - AREA_M.left - AREA_M.right;
+  const plotH = H - AREA_M.top - AREA_M.bottom;
+  return {
+    plotW,
+    x: (i: number) => AREA_M.left + (count <= 1 ? plotW / 2 : (i / (count - 1)) * plotW),
+    y: (v: number) => AREA_M.top + plotH - (v / yMax) * plotH,
+  };
+}
+
+function axisParts(spec: SeriesOverTime, ticks: readonly number[], W: number, frame: Frame): string[] {
+  const parts: string[] = [];
+  for (const t of ticks) {
+    const ty = f(frame.y(t));
+    parts.push(`<line class="chart__grid${t === 0 ? ' chart__grid--base' : ''}" x1="${AREA_M.left}" x2="${W - AREA_M.right}" y1="${ty}" y2="${ty}"/>`);
+    parts.push(`<text class="chart__tick" x="${AREA_M.left - 8}" y="${ty}" dy="0.32em" text-anchor="end">${escapeXml(spec.formatTick(t))}</text>`);
+  }
+  // As many x labels as fit about 40px apart, always the last, never one crowding the last.
+  const room = Math.max(2, Math.floor(frame.plotW / 40));
+  const every = Math.max(1, Math.ceil(spec.xLabels.length / room));
+  const last = spec.xLabels.length - 1;
+  spec.xLabels.forEach((l, k) => {
+    if (k !== last && (k % every !== 0 || last - k < every)) return;
+    parts.push(`<text class="chart__tick" x="${f(frame.x(l.index))}" y="${H - AREA_M.bottom + 18}" text-anchor="middle">${escapeXml(l.label)}</text>`);
+  });
+  return parts;
+}
+
+/** The svg element of a chart read by position: the script maps a pointer to the nearest point. */
+function openOverTime(spec: SeriesOverTime, W: number, frame: Frame, cls: string): string {
+  return (
+    `<svg class="chart ${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="${spec.idPrefix}-title ${spec.idPrefix}-desc" preserveAspectRatio="xMidYMid meet" ` +
+    `data-count="${spec.count}" data-plot-left="${AREA_M.left}" data-plot-width="${f(frame.plotW)}" data-width="${W}">` +
+    `<title id="${spec.idPrefix}-title">${escapeXml(spec.title)}</title><desc id="${spec.idPrefix}-desc">${escapeXml(spec.description)}</desc>`
+  );
+}
+
+const cursor = () => `<line class="chart__cursor" x1="0" x2="0" y1="${AREA_M.top}" y2="${H - AREA_M.bottom}" visibility="hidden"/>`;
+
+/**
+ * Stacked areas over many points (months or days): each series is a band from the sum of the
+ * series below it to the sum including it, a light wash with a 2px line on its top edge, so
+ * starting balance, deposits and interest stay apart. One direct label: the final total.
+ */
+export function stackedAreaSvg(spec: SeriesOverTime): string {
+  const W = Math.max(W_MIN, Math.round(spec.width ?? W_DEFAULT));
+  const total = (i: number) => spec.values(i).reduce((sum, v) => sum + v, 0);
+  const points = samplePoints(spec.count, W - AREA_M.left - AREA_M.right);
+  let top = 0;
+  for (const i of points) top = Math.max(top, total(i));
+  const ticks = niceTicks(top);
+  const frame = plotFrame(spec.count, ticks[ticks.length - 1] || 1, W);
+  const parts: string[] = [openOverTime(spec, W, frame, 'chart--area'), textureDefs(spec.idPrefix, spec.series.length), ...axisParts(spec, ticks, W, frame)];
+
+  // stack[s][j]: the top of band s at drawn point j.
+  const stack = spec.series.map(() => [] as number[]);
+  for (const i of points) {
+    let sum = 0;
+    spec.values(i).forEach((v, s) => {
+      sum += v;
+      stack[s]?.push(sum);
+    });
+  }
+  const xs = points.map((i) => f(frame.x(i)));
+  spec.series.forEach((_series, s) => {
+    const upper = stack[s]!;
+    const lower = s === 0 ? points.map(() => 0) : stack[s - 1]!;
+    if (upper.every((v, j) => v === lower[j])) return;
+    const edge = upper.map((v, j) => `${j === 0 ? 'M' : 'L'}${xs[j]},${f(frame.y(v))}`).join('');
+    const back = lower.map((v, j) => `L${xs[j]},${f(frame.y(v))}`).reverse().join('');
+    parts.push(`<path class="chart__band chart__band--${s + 1}" d="${edge}${back}Z"/>`);
+    if (s > 0) parts.push(`<path class="chart__tex" fill="url(#${spec.idPrefix}-tex-${s + 1})" d="${edge}${back}Z"/>`);
+    parts.push(`<path class="chart__edge chart__edge--${s + 1}" d="${edge}"/>`);
+  });
+  parts.push(cursor());
+  const final = total(spec.count - 1);
+  if (final > 0) parts.push(`<text class="chart__label" x="${f(W - AREA_M.right)}" y="${f(frame.y(final) - 8)}" text-anchor="end">${escapeXml(spec.formatTotal(final))}</text>`);
+  parts.push('</svg>');
+  return parts.join('');
+}
+
+/**
+ * Lines over many points, one per series, each with its name and final value written at its
+ * end (direct labels, so identity never rests on color). Used by the rate illustration.
+ */
+export function linesSvg(spec: SeriesOverTime): string {
+  const W = Math.max(W_MIN, Math.round(spec.width ?? W_DEFAULT));
+  const points = samplePoints(spec.count, W - AREA_M.left - AREA_M.right);
+  let top = 0;
+  for (const i of points) for (const v of spec.values(i)) top = Math.max(top, v);
+  const ticks = niceTicks(top);
+  const frame = plotFrame(spec.count, ticks[ticks.length - 1] || 1, W);
+  const parts: string[] = [openOverTime(spec, W, frame, 'chart--lines'), ...axisParts(spec, ticks, W, frame)];
+  const xs = points.map((i) => f(frame.x(i)));
+  spec.series.forEach((_series, s) => {
+    const d = points.map((i, j) => `${j === 0 ? 'M' : 'L'}${xs[j]},${f(frame.y(spec.values(i)[s] ?? 0))}`).join('');
+    parts.push(`<path class="chart__line chart__line--${s + 1}" d="${d}"/>`);
+  });
+  parts.push(cursor());
+  // End labels, stacked upward from the lowest line so close lines never overlap.
+  const last = spec.values(spec.count - 1);
+  const order = spec.series.map((_s, i) => i).sort((a, b) => (last[a] ?? 0) - (last[b] ?? 0));
+  let ceiling = Number.POSITIVE_INFINITY;
+  for (const s of order) {
+    const yText = Math.min(frame.y(last[s] ?? 0) - 8, ceiling - 15);
+    ceiling = yText;
+    parts.push(`<text class="chart__label" x="${f(W - AREA_M.right)}" y="${f(yText)}" text-anchor="end">${escapeXml(`${spec.series[s]!.label} ${spec.formatTotal(last[s] ?? 0)}`)}</text>`);
+  }
   parts.push('</svg>');
   return parts.join('');
 }

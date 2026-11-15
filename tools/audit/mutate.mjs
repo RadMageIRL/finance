@@ -77,6 +77,25 @@ const MUTANTS = [
   ['hysa-apy-earned-inverted', `${E}hysa.ts`, 'Math.expm1((YEAR_DAYS / days) * Math.log1p(interest / averageDailyBalance))', 'Math.expm1((days / YEAR_DAYS) * Math.log1p(interest / averageDailyBalance))'],
   ['hysa-belongs-swapped', `${E}hysa.ts`, "timing === 'start' ? (t: number, end: number) => t < end : (t: number, end: number) => t <= end;", "timing === 'start' ? (t: number, end: number) => t <= end : (t: number, end: number) => t < end;"],
   ['hysa-cap-doubled', `${E}hysa.ts`, 'if (balance > Number.MAX_SAFE_INTEGER) {', 'if (balance > 2 * Number.MAX_SAFE_INTEGER) {'],
+  // Schedules by day, month and year (schedule.ts, conventions section 11)
+  ['schedule-start-deposit-day-early', `${E}schedule.ts`, "counts[timing === 'start' ? t : t - 1]! += 1;", "counts[t === 0 ? 0 : t - 1]! += 1;"],
+  ['schedule-end-deposit-earns-its-day', `${E}schedule.ts`, "const dayBalance = timing === 'start' ? opening + deposits : opening;", 'const dayBalance = opening + deposits;'],
+  ['schedule-compound-period-length', `${E}schedule.ts`, '(dayBalance * annualRate) / (n * (p.end - p.start))', '(dayBalance * annualRate) / (n * (p.end - p.start + 1))'],
+  ['schedule-savings-366-days', `${E}schedule.ts`, '(dayBalance * rates[p.rate]!.annualRate) / YEAR_DAYS', '(dayBalance * rates[p.rate]!.annualRate) / (YEAR_DAYS + 1)'],
+  ['schedule-daily-no-compounding', `${E}schedule.ts`, '(dayBalance + accruedSoFar) * growth[p.rate]!', 'dayBalance * growth[p.rate]!'],
+  ['schedule-credit-first-day', `${E}schedule.ts`, 'day === period.end - 1 ? period.interest : 0', 'day === period.start ? period.interest : 0'],
+  ['schedule-row-opens-at-last', `${E}schedule.ts`, 'opening: first.opening', 'opening: last.opening'],
+  ['schedule-accrued-not-summed', `${E}schedule.ts`, 'accrued += part.accrued;', 'accrued = part.accrued;'],
+  ['schedule-first-rate-only', `${E}schedule.ts`, 'if (rates[rates.length - 1] !== r) rates.push(r);', 'if (rates.length === 0) rates.push(r);'],
+  ['schedule-30-day-months', `${E}schedule.ts`, 'const to = month === 11 ? (year + 1) * YEAR_DAYS : year * YEAR_DAYS + MONTH_STARTS[month + 1]!;', 'const to = month === 11 ? (year + 1) * YEAR_DAYS : year * YEAR_DAYS + MONTH_STARTS[month]! + 30;'],
+  // Rate illustration (rate-illustration.ts, conventions section 12) and its calendar
+  ['illustration-periodic-n-plus-one', `${E}rate-illustration.ts`, 'return deposit * Math.exp(k * Math.log1p(account.annualRate / account.periodsPerYear));', 'return deposit * Math.exp(k * Math.log1p(account.annualRate / (account.periodsPerYear + 1)));'],
+  ['illustration-cap-doubled', `${E}rate-illustration.ts`, '> Number.MAX_SAFE_INTEGER)', '> 2 * Number.MAX_SAFE_INTEGER)'],
+  ['illustration-shown-truncated', `${E}rate-illustration.ts`, 'shown: balances.map(roundCents)', 'shown: balances.map(Math.floor)'],
+  ['illustration-month-ends-shifted', `${E}rate-illustration.ts`, 'periodBoundaries(12, years).slice(1)', 'periodBoundaries(12, years).slice(0, -1)'],
+  ['calendar-53-weeks', `${E}calendar.ts`, '52: Array.from({ length: 52 }, (_, week) => 7 * week),', '52: Array.from({ length: 53 }, (_, week) => 7 * week),'],
+  ['calendar-period-end-exclusive', `${E}calendar.ts`, 'starts[i]! <= offset', 'starts[i]! < offset'],
+  ['calendar-day-month-late', `${E}calendar.ts`, 'MONTH_STARTS[month + 1]! <= offset', 'MONTH_STARTS[month + 1]! < offset'],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
   ['loan-months-per-year-13', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 13);'],
@@ -102,7 +121,7 @@ const MUTANTS = [
 const VITEST = resolve('node_modules', 'vitest', 'vitest.mjs');
 const WORK = resolve('local', 'mutation-work');
 // Everything the unit tests read, copied into the work tree.
-const COPY = ['src/lib', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
+const COPY = ['src/lib', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
 
 function hashTree(dir) {
   const out = {};
@@ -139,6 +158,11 @@ function runTests() {
       .flatMap((file) => file.assertionResults)
       .filter((t) => t.status !== 'passed')
       .map((t) => t.fullName);
+    // A test file that cannot even load (a missing file it reads, a syntax error) runs no
+    // tests at all; count it as a failure, never as silence.
+    for (const file of json.testResults) {
+      if (file.status === 'failed' && !file.assertionResults.some((t) => t.status !== 'passed')) failed.push(`(file failed to run) ${file.name}`);
+    }
     return { total: json.numTotalTests, failed, timedOut: false };
   } catch {
     return { total: 0, failed: ['(the test run did not produce a report)'], timedOut: false };

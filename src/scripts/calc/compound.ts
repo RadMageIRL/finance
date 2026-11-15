@@ -1,12 +1,29 @@
-// Compound interest calculator: reads the inputs, runs the engine, renders the results.
+// Compound interest calculator: reads the inputs, runs the engine, renders the results,
+// the schedule, and the exports.
 
-import { compoundCsv, compoundShareState, compoundView, contributionPhrase, issueMessage, SHARE_MONEY_KEYS, SHARE_SCHEMA } from '../../lib/calc/compound-view';
+import {
+  compoundChartSvg,
+  compoundReport,
+  compoundSchedule,
+  compoundScheduleConfig,
+  compoundScheduleNotes,
+  compoundShareState,
+  compoundView,
+  contributionPhrase,
+  issueMessage,
+  SHARE_MONEY_KEYS,
+  SHARE_SCHEMA,
+} from '../../lib/calc/compound-view';
 import { formatUSD } from '../../lib/calc/format';
 import { contributionHint, contributionOption } from '../../lib/calc/frequency';
 import { parseMoney, parsePercent, parseWhole, type Parsed } from '../../lib/calc/parse';
+import { groupingOption, scheduleTable, scheduleTooltip } from '../../lib/calc/schedule-view';
 import { decodeShare, encodeShare, shareAmounts } from '../../lib/calc/share';
 import { compoundInterest, type CompoundFrequency, type CompoundInput, type CompoundResult, type ContributionFrequency, type ContributionTiming } from '../../lib/engines/compound';
-import { $, debounce, downloadText, wireCalculator, wireChartTooltip, wireShare, wireSticky, type Evaluation } from './kit';
+import type { Grouping, Schedule } from '../../lib/engines/schedule';
+import { wireExports } from './exports';
+import { $, wireCalculator, wireShare, wireSticky, type Evaluation } from './kit';
+import { wireSchedule } from './schedule';
 
 const root = document.querySelector<HTMLElement>('[data-calc="compound"]');
 
@@ -35,7 +52,8 @@ if (root) {
   const contributionHintEl = $(root, '#ci-contribution-hint');
   const sharedNote = out('shared-note');
 
-  let tooltips: string[][] = [];
+  /** The schedule of the result on screen, built once per result. */
+  let shown: { input: CompoundInput; result: CompoundResult; schedule: Schedule } | null = null;
 
   const parseMessages: Record<string, (label: string) => string> = {
     empty: (label) => `Enter ${label.toLowerCase()}.`,
@@ -87,11 +105,12 @@ if (root) {
     return { input, result: computed.value, errors };
   }
 
-  const chartBox = $(page, '[data-chart]');
-  const chartWidth = () => Math.round(chartBox.clientWidth) || undefined;
+  const schedule = wireSchedule($(page, '#ci-schedule'), (g) => {
+    out('export-grouping').textContent = groupingOption(g).noun;
+  });
 
   function render(input: CompoundInput, result: CompoundResult) {
-    const view = compoundView(input, result, chartWidth());
+    const view = compoundView(input, result);
     out('final').textContent = view.final;
     out('final-again').textContent = view.final;
     out('final-sticky').textContent = view.final;
@@ -99,29 +118,15 @@ if (root) {
     out('contributions').textContent = view.breakdown[1]!.value;
     out('interest').textContent = view.breakdown[2]!.value;
     out('summary').textContent = view.summary;
-    out('total-contributions').textContent = view.totals.contributions;
-    out('total-interest').textContent = view.totals.interest;
-    out('total-end').textContent = view.totals.end;
-    // The SVG string is built from numbers and fixed labels only (src/lib/calc/chart.ts).
-    out('chart').innerHTML = view.chartSvg;
-    const body = out('rows');
-    body.replaceChildren(
-      ...view.rows.map((r) => {
-        const tr = document.createElement('tr');
-        const th = document.createElement('th');
-        th.scope = 'row';
-        th.textContent = String(r.year);
-        tr.append(th);
-        for (const value of [r.start, r.contributions, r.interest, r.end]) {
-          const td = document.createElement('td');
-          td.className = 'num';
-          td.textContent = value;
-          tr.append(td);
-        }
-        return tr;
-      }),
-    );
-    tooltips = view.tooltips;
+    const rows = compoundSchedule(input, result);
+    shown = { input, result, schedule: rows };
+    const config = compoundScheduleConfig(input);
+    schedule.update({
+      table: (g: Grouping) => scheduleTable(rows, g, config),
+      chart: (g: Grouping, width?: number) => compoundChartSvg(input, rows, g, view.summary, width ? { width } : {}),
+      tooltip: (g: Grouping, i: number) => scheduleTooltip(rows, g, input.principal, 'Contributions', i),
+      notes: (g: Grouping) => compoundScheduleNotes(input, g),
+    });
   }
 
   const calc = wireCalculator({
@@ -133,7 +138,7 @@ if (root) {
     status: out('status'),
     announce: (_input, result) => `Projected balance ${formatUSD(result.finalBalance)}.`,
     changed: (current) => {
-      if (!current) tooltips = [];
+      if (!current) shown = null;
       share.refresh();
     },
   });
@@ -188,27 +193,24 @@ if (root) {
     sharedNote.hidden = sharedNote.textContent === '';
   }
 
-  $(root, '[data-action="csv"]').addEventListener('click', () => {
-    const current = calc.current();
-    if (current) downloadText('compound-interest.csv', compoundCsv(current.result));
-  });
+  wireExports(
+    root,
+    {
+      name: 'compound-interest',
+      report: (generated) => {
+        calc.current();
+        return shown ? compoundReport(shown.input, shown.result, shown.schedule, schedule.grouping(), generated) : null;
+      },
+      csv: () => {
+        calc.current();
+        if (!shown) return null;
+        const g = schedule.grouping();
+        return { table: scheduleTable(shown.schedule, g, compoundScheduleConfig(shown.input)), what: groupingOption(g).heading };
+      },
+    },
+    () => calc.settle(),
+  );
 
-  wireChartTooltip(chartBox, () => tooltips);
-
-  // Redraw the chart at its real width so its text stays readable on any screen.
-  if ('ResizeObserver' in window) {
-    let width = chartWidth();
-    new ResizeObserver(
-      debounce(() => {
-        const next = chartWidth();
-        const current = calc.current();
-        if (next !== width && current) {
-          width = next;
-          out('chart').innerHTML = compoundView(current.input, current.result, next).chartSvg;
-        }
-      }, 100),
-    ).observe(chartBox);
-  }
   wireSticky($(root, '.calc__results'), $(page, '[data-sticky]'));
 
   // A different share link pasted into this tab changes only the fragment: apply it too.

@@ -119,22 +119,24 @@ test.describe('APR and APY calculator', () => {
     await expect(other.locator('#ra-value-2')).toHaveValue('4.75');
   });
 
-  test('downloads the comparison as CSV', async ({ page }) => {
+  test('downloads the balance illustration as CSV', async ({ page }) => {
     await page.goto(PAGE);
     const [download] = await Promise.all([page.waitForEvent('download'), page.click('[data-action="csv"]')]);
-    expect(download.suggestedFilename()).toBe('apr-apy-comparison.csv');
+    expect(download.suggestedFilename()).toMatch(/^radmage-finance-apr-apy-balance-illustration-by-year-[\d-]+\.csv$/);
     const lines = readFileSync((await download.path())!, 'utf8').trim().split('\r\n');
-    expect(lines).toHaveLength(3);
-    expect(lines[1]).toContain(',460.25,10460.25');
+    expect(lines).toHaveLength(6);
+    expect(lines[0]).toBe('year,a_periods_completed,a_balance_usd,a_interest_in_period_usd,a_interest_to_date_usd,a_balance_unrounded_usd,b_periods_completed,b_balance_usd,b_interest_in_period_usd,b_interest_to_date_usd,b_balance_unrounded_usd');
+    // After one year each account has grown by exactly its APY: 4.6025% for A, 4.55% for B.
+    expect(lines[1]).toMatch(/^1,365,10460\.25,460\.25,460\.25,10460\.24958\d,12,10455\.00,455\.00,455\.00,10455\.000000$/);
   });
 
   test('the chart reads out each account from the keyboard', async ({ page }) => {
     await page.goto(PAGE);
-    await page.locator('.chart-box').focus();
+    await page.locator('.calc-chart .chart-box').focus();
     await page.keyboard.press('ArrowRight');
-    await expect(page.locator('.chart-tooltip')).toContainText('Account A: $460.25');
+    await expect(page.locator('.calc-chart .chart-tooltip')).toContainText('Account A: $460.25');
     await page.keyboard.press('End');
-    await expect(page.locator('.chart-tooltip')).toContainText('Account B');
+    await expect(page.locator('.calc-chart .chart-tooltip')).toContainText('Account B');
   });
 
   for (const theme of ['dark', 'light'] as const) {

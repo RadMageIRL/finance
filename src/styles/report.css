@@ -1,0 +1,391 @@
+/* Calculator report: the downloaded HTML document and the print view (Save as PDF).
+   Everything is scoped to .rmf-report so the same file can sit on a calculator page for
+   printing and be copied whole into a downloaded report. Light by default; the document
+   follows a dark system setting on screen; print is always light. No fonts, images or
+   other files are loaded. */
+
+.rmf-report {
+  --r-bg: #ffffff;
+  --r-text: #121a26;
+  --r-muted: #435167;
+  --r-line: #d9dfe7;
+  --r-line-strong: #a7b4c4;
+  --r-soft: #f2f5f8;
+  --r-accent: #0a6a80;
+  --r-notice: #fff6e0;
+  --r-notice-line: #c99a2e;
+  --r-s1: #2a78d6;
+  --r-s2: #eb6834;
+  --r-s3: #1baf7a;
+  --r-grid: #e3e7ed;
+  --r-base: #a7b4c4;
+  --r-tex: #121a26;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  color: var(--r-text);
+  background: var(--r-bg);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  .rmf-report-page,
+  .rmf-report-page .rmf-report {
+    --r-bg: #151d2a;
+    --r-text: #e8eef6;
+    --r-muted: #aab7c8;
+    --r-line: #273548;
+    --r-line-strong: #3d5878;
+    --r-soft: #1b2636;
+    --r-accent: #7dd3e8;
+    --r-notice: #2a2412;
+    --r-notice-line: #f0c46a;
+    --r-s1: #3987e5;
+    --r-s2: #d95926;
+    --r-s3: #199e70;
+    --r-grid: #273548;
+    --r-base: #3d5878;
+    --r-tex: #e8eef6;
+  }
+}
+
+.rmf-report-page {
+  margin: 0;
+  background: var(--r-bg, #ffffff);
+  color-scheme: light dark;
+}
+
+.rmf-report *,
+.rmf-report *::before,
+.rmf-report *::after {
+  box-sizing: border-box;
+}
+
+.rmf-report h1,
+.rmf-report h2 {
+  margin: 0 0 0.5rem;
+  line-height: 1.25;
+}
+
+.rmf-report h1 {
+  font-size: 1.75rem;
+}
+
+.rmf-report h2 {
+  font-size: 1.15rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--r-line);
+  break-after: avoid;
+}
+
+.rmf-report p,
+.rmf-report ul {
+  margin: 0 0 0.75rem;
+}
+
+.rmf-report ul {
+  padding-left: 1.25rem;
+}
+
+.rmf-report li + li {
+  margin-top: 0.25rem;
+}
+
+.rmf-report__head {
+  margin-bottom: 1.5rem;
+}
+
+.rmf-report__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.rmf-report__brand b {
+  color: var(--r-accent);
+}
+
+.rmf-report__mark svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.rmf-report__kind {
+  margin: 0 0 0.25rem;
+  color: var(--r-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rmf-report__meta,
+.rmf-report__small,
+.rmf-report__caption,
+.rmf-report__foot {
+  color: var(--r-muted);
+  font-size: 0.875rem;
+}
+
+.rmf-report__notice {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--r-notice-line);
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: var(--r-notice);
+  break-inside: avoid;
+}
+
+.rmf-report__section {
+  margin: 0 0 1.75rem;
+}
+
+.rmf-report__headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rmf-report__headline strong {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmf-report__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.25rem 1.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.rmf-report__items div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--r-line);
+  break-inside: avoid;
+}
+
+.rmf-report__items dt {
+  color: var(--r-muted);
+}
+
+.rmf-report__items dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmf-report table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmf-report caption {
+  caption-side: top;
+  padding: 0 0 0.4rem;
+  color: var(--r-muted);
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.rmf-report th,
+.rmf-report td {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--r-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.rmf-report th,
+.rmf-report td,
+.rmf-report caption {
+  font-size: inherit;
+}
+
+.rmf-report th,
+.rmf-report td {
+  color: var(--r-text);
+  white-space: normal;
+}
+
+.rmf-report thead th {
+  border-bottom: 2px solid var(--r-line-strong);
+  background: var(--r-soft);
+  color: var(--r-text);
+  font-weight: 650;
+}
+
+.rmf-report thead {
+  display: table-header-group;
+}
+
+.rmf-report tfoot th,
+.rmf-report tfoot td {
+  border-top: 2px solid var(--r-line-strong);
+  font-weight: 700;
+}
+
+.rmf-report td,
+.rmf-report th.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rmf-report tbody th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.rmf-report tr {
+  break-inside: avoid;
+}
+
+.rmf-report__note {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--r-line-strong);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.rmf-report__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.rmf-report__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.rmf-report__key {
+  width: 12px;
+  height: 12px;
+}
+
+.rmf-report__figure,
+.rmf-report__chart {
+  break-inside: avoid;
+}
+
+.rmf-report__figure svg.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 22rem;
+}
+
+.rmf-report .chart__grid { stroke: var(--r-grid); stroke-width: 1; }
+.rmf-report .chart__grid--base { stroke: var(--r-base); }
+.rmf-report .chart__tick { fill: var(--r-muted); font-size: 11px; }
+.rmf-report .chart__label { fill: var(--r-text); font-size: 12px; font-weight: 650; }
+.rmf-report .chart__seg--1 { fill: var(--r-s1); }
+.rmf-report .chart__seg--2 { fill: var(--r-s2); }
+.rmf-report .chart__seg--3 { fill: var(--r-s3); }
+.rmf-report .chart__band--1 { fill: var(--r-s1); fill-opacity: 0.16; }
+.rmf-report .chart__band--2 { fill: var(--r-s2); fill-opacity: 0.16; }
+.rmf-report .chart__band--3 { fill: var(--r-s3); fill-opacity: 0.16; }
+.rmf-report .chart__edge,
+.rmf-report .chart__line { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.rmf-report .chart__edge--1,
+.rmf-report .chart__line--1 { stroke: var(--r-s1); }
+.rmf-report .chart__edge--2,
+.rmf-report .chart__line--2 { stroke: var(--r-s2); }
+.rmf-report .chart__edge--3,
+.rmf-report .chart__line--3 { stroke: var(--r-s3); }
+.rmf-report .chart__line--2 { stroke-dasharray: 6 3; }
+.rmf-report .chart__line--3 { stroke-dasharray: 2 3; }
+.rmf-report .chart__hit,
+.rmf-report .chart__cursor { display: none; }
+.rmf-report .chart__tex { display: none; }
+.rmf-report .chart__tex-line { stroke: var(--r-tex); stroke-width: 1.5; stroke-opacity: 0.55; }
+
+.rmf-report__foot {
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--r-line);
+}
+
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  .rmf-report,
+  .rmf-report-page {
+    --r-bg: #ffffff;
+    --r-text: #000000;
+    --r-muted: #333d4b;
+    --r-line: #c3cad4;
+    --r-line-strong: #6b7788;
+    --r-soft: #eef1f5;
+    --r-accent: #0a6a80;
+    --r-notice: #ffffff;
+    --r-notice-line: #000000;
+    --r-s1: #2a78d6;
+    --r-s2: #eb6834;
+    --r-s3: #1baf7a;
+    --r-grid: #d5dbe3;
+    --r-base: #6b7788;
+    --r-tex: #000000;
+  }
+
+  .rmf-report {
+    max-width: none;
+    padding: 0;
+    font-size: 10.5pt;
+  }
+
+  .rmf-report table {
+    font-size: 8.5pt;
+  }
+
+  .rmf-report .chart__tex {
+    display: inline;
+  }
+
+  .rmf-report__schedule {
+    break-before: page;
+  }
+}
+
+@media (forced-colors: active) {
+  .rmf-report .chart__tex {
+    display: inline;
+  }
+
+  .rmf-report .chart__tex-line {
+    stroke: CanvasText;
+    stroke-opacity: 1;
+  }
+}
+
+@media screen and (max-width: 40em) {
+  .rmf-report__schedule,
+  .rmf-report__extra,
+  .rmf-report__composition {
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,132 @@
+---
+// A calculator's schedule: a chart and a table of the same rows, by day, month or year.
+// Without JavaScript it shows both, by year (rendered at build time); with JavaScript the
+// visitor chooses Chart, Table or Both and the grouping, and long tables are paged.
+// The script is src/scripts/calc/schedule.ts.
+import type { TableSource } from '../../lib/report/table';
+import { pageCount } from '../../lib/report/table';
+
+interface Props {
+  id: string;
+  heading: string;
+  /** Legend entries, in series order; empty for a chart that labels its lines directly. */
+  series: readonly { key: string; label: string }[];
+  svg: string;
+  /** The table at the default grouping; its first page is rendered. */
+  table: TableSource;
+  notes: readonly string[];
+  groupings?: readonly { value: string; label: string }[];
+  grouping?: string;
+  /** What the chart shows, for the help line: "the balance" or "each account's interest". */
+  chartHelp?: string;
+}
+
+const {
+  id,
+  heading,
+  series,
+  svg,
+  table,
+  notes,
+  groupings = [
+    { value: 'day', label: 'Day' },
+    { value: 'month', label: 'Month' },
+    { value: 'year', label: 'Year' },
+  ],
+  grouping = 'year',
+  chartHelp = 'its values',
+} = Astro.props;
+const views = [
+  { value: 'both', label: 'Both' },
+  { value: 'chart', label: 'Chart' },
+  { value: 'table', label: 'Table' },
+];
+const first = Array.from({ length: Math.min(table.count, table.pageSize) }, (_, i) => table.row(i));
+const pages = pageCount(table);
+const noun = groupings.find((g) => g.value === grouping)?.label.toLowerCase() ?? 'year';
+---
+<section class="schedule" id={id} aria-labelledby={`${id}-heading`} data-schedule data-view="both" data-grouping={grouping}>
+  <div class="schedule__head">
+    <h2 id={`${id}-heading`}>{heading}</h2>
+    <div class="schedule__controls" data-js-only>
+      <fieldset class="segmented">
+        <legend>Show</legend>
+        <div class="segmented__options">
+          {views.map((v) => (
+            <label><input type="radio" name={`${id}-view`} value={v.value} checked={v.value === 'both'} data-action="view" /><span>{v.label}</span></label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset class="segmented">
+        <legend>Group by</legend>
+        <div class="segmented__options">
+          {groupings.map((g) => (
+            <label><input type="radio" name={`${id}-group`} value={g.value} checked={g.value === grouping} data-action="group" /><span>{g.label}</span></label>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <p class="schedule__withheld" data-out="schedule-withheld">The chart and the schedule show once the entries above are complete and valid.</p>
+  <div class="schedule__body">
+    <div class="schedule__notes small muted" data-out="schedule-notes">
+      {notes.map((n) => <p>{n}</p>)}
+    </div>
+    <div class="schedule__chart" data-part="chart">
+      {series.length > 0 && (
+        <ul class="chart-legend" aria-label="Legend">
+          {series.map((s, i) => (
+            <li><span class={`chart-legend__key chart-legend__key--${i + 1}`} aria-hidden="true"></span>{s.label}</li>
+          ))}
+        </ul>
+      )}
+      <div class="chart-box" data-chart tabindex="0" role="group" aria-labelledby={`${id}-heading`} aria-describedby={`${id}-help`}>
+        <div class="chart-box__svg" data-out="chart" set:html={svg} />
+        <div class="chart-tooltip" data-tooltip role="status" aria-live="polite" hidden></div>
+      </div>
+      <p class="small muted" id={`${id}-help`} data-out="chart-help">
+        Hover over the chart, or focus it and use the arrow keys (Page Up and Page Down jump further), to read {chartHelp} for each <span data-out="chart-noun">{noun}</span>. Every value is also in the table.
+      </p>
+    </div>
+    <div class="schedule__table" data-part="table">
+      <div class="pager" data-pager data-js-only hidden>
+        <button class="button button--secondary pager__step" type="button" data-page="first">First</button>
+        <button class="button button--secondary pager__step" type="button" data-page="previous">Previous</button>
+        <label class="pager__jump">
+          <span class="vh">Page</span>
+          <select class="select" data-page="jump"></select>
+        </label>
+        <button class="button button--secondary pager__step" type="button" data-page="next">Next</button>
+        <button class="button button--secondary pager__step" type="button" data-page="last">Last</button>
+        <p class="pager__status small muted" data-out="page-status" aria-live="polite"></p>
+      </div>
+      <div class="table-wrap schedule__wrap" role="region" tabindex="0" aria-labelledby={`${id}-caption`}>
+        <table>
+          <caption id={`${id}-caption`} data-out="table-caption">{table.caption}</caption>
+          <thead>
+            <tr data-out="table-head">
+              {table.columns.map((c) => <th scope="col" class:list={{ num: c.numeric }}>{c.label}</th>)}
+            </tr>
+          </thead>
+          <tbody data-out="table-rows">
+            {first.map((r) => (
+              <tr>
+                <th scope="row">{r.head}{r.note && <span class="row-note">{r.note}</span>}</th>
+                {r.cells.map((c, i) => <td class:list={{ num: table.columns[i + 1]?.numeric }}>{c}</td>)}
+              </tr>
+            ))}
+          </tbody>
+          {table.footer && (
+            <tfoot data-out="table-foot">
+              <tr>
+                <th scope="row">{table.footer.head}</th>
+                {table.footer.cells.map((c, i) => <td class:list={{ num: table.columns[i + 1]?.numeric }}>{c}</td>)}
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+      {pages > 1 && <p class="small muted">This page shows the first {table.pageSize} rows. Turn on JavaScript to see the rest, or download the CSV.</p>}
+    </div>
+  </div>
+</section>
