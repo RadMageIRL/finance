@@ -1,0 +1,227 @@
+---
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import Cite from '../../components/learn/Cite.astro';
+import { INSTRUMENTS, QUESTIONS, REVIEWED, REVIEWED_LABEL, SOURCES, sourceNumber } from '../../lib/learn/money';
+import { href } from '../../lib/url';
+import '../../styles/learn.css';
+
+// The comparison shown before any choice (and without JavaScript).
+const DEFAULT_COMPARE = ['cash', 'deposits', 'stablecoins'];
+const compared = INSTRUMENTS.filter((i) => DEFAULT_COMPARE.includes(i.id));
+const n = sourceNumber;
+---
+<LessonLayout
+  title="What Is Money?"
+  description="Cash, bank deposits, central bank reserves, Treasury bills, money market funds, payment stablecoins, bitcoin and gold, compared: whose promise each is, its legal status, who can hold it, how payments settle and what backs it."
+  lead="Cash, a bank balance, a Treasury bill, a stablecoin and a gold coin can all be called money. They are very different things. This lesson compares eight of them: whose promise each one is, who can hold it, how a payment with it settles, and what stands behind it."
+  reviewed={REVIEWED}
+  minutes={12}
+>
+  <section class="prose lesson-section" aria-labelledby="functions">
+    <h2 id="functions">What people mean by money</h2>
+    <p class="claim-line"><ClaimLabel kind="model" /> <span class="small muted">The standard textbook description</span></p>
+    <p>
+      Economics textbooks describe money by three jobs it does. In the words of the Federal
+      Reserve's education program:<Cite ids={['fed-education-functions']} number={n} />
+    </p>
+    <ul>
+      <li><strong>Medium of exchange:</strong> "money is widely accepted as a method of payment."</li>
+      <li><strong>Unit of account:</strong> money works as "a yardstick," used "to measure value in economic transactions."</li>
+      <li><strong>Store of value:</strong> money you earn today "will hold its value until tomorrow, next week, or even next year."</li>
+    </ul>
+    <p>
+      Not everything that does one of these jobs does all three, and they come in degrees: a
+      currency that loses value quickly is a poor store of value but can still be a good means
+      of payment.
+    </p>
+    <p>
+      <strong>Commodity money</strong> "had value because it was made of a substance that had
+      value," like gold or silver coins. <strong>Fiat money</strong> "does not have intrinsic
+      value and does not represent an asset in a vault somewhere"; its value comes from being
+      declared legal tender by the government that issues it.<Cite ids={['fed-education-functions']} number={n} />
+      The US dollar is fiat money: Federal Reserve notes "are not redeemable in gold, silver,
+      or any other commodity."<Cite ids={['fed-currency-faq']} number={n} />
+    </p>
+    <p>
+      The Federal Reserve's own measure of the money supply is narrower than everything this
+      lesson compares: "cash, coins, and balances in bank accounts."<Cite ids={['fed-money-supply']} number={n} />
+      Its broader measure, M2, adds small time deposits and retail money market fund shares.
+    </p>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="promise">
+    <h2 id="promise">Money as a promise</h2>
+    <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">Whose liability each one is</span></p>
+    <p>
+      Much of what people call money is somebody's debt. The cash in your wallet is an
+      obligation of the United States and a liability of the Federal Reserve; the balance in
+      your bank account is a debt your bank owes you. As the Federal Reserve puts it, the money
+      people use in everyday digital payments is made of "liabilities of private entities, such
+      as commercial banks."<Cite ids={['usc-12-411', 'fed-balance-sheet', 'fed-money-payments']} number={n} />
+      Every asset on this list is held by someone; the question is who, if anyone, owes it to
+      them.
+    </p>
+  </section>
+  <ul class="promise-list" aria-label="Who owes the holder of each kind of money">
+    {INSTRUMENTS.map((i) => (
+      <li class:list={{ 'is-none': i.noIssuer }}>
+        <strong>{i.name}</strong>
+        <span class="promise-list__arrow" aria-hidden="true">owed by</span>
+        <span class="promise-list__who"><span class="vh">is owed by </span>{i.owedBy}</span>
+      </li>
+    ))}
+  </ul>
+  <div class="prose lesson-section">
+    <p>
+      Five of the eight are a debt with a fixed amount in dollars. A money market fund share is
+      different: it is a share of what a fund owns, not a debt. Bitcoin and gold are no one's
+      debt at all: their value is whatever buyers will pay.
+    </p>
+  </div>
+
+  <section class="money-compare" aria-labelledby="compare-heading" data-money-compare data-mode="side">
+    <h2 id="compare-heading">Compare them</h2>
+    <p>
+      Choose up to three to see side by side, or pick one question to see every answer to it.
+      Numbers in brackets link to the sources at the end of the lesson.
+    </p>
+    <div class="money-compare__controls" data-js-only>
+      <fieldset class="segmented">
+        <legend>View</legend>
+        <div class="segmented__options">
+          <label><input type="radio" name="mc-mode" value="side" checked /><span>Side by side</span></label>
+          <label><input type="radio" name="mc-mode" value="question" /><span>One question</span></label>
+        </div>
+      </fieldset>
+      <fieldset data-for="side">
+        <legend>Kinds of money <span class="small muted" data-out="compare-hint">Choose up to 3.</span></legend>
+        <div class="pick-group">
+          {INSTRUMENTS.map((i) => (
+            <label class="pick"><input type="checkbox" name="mc-item" value={i.id} checked={DEFAULT_COMPARE.includes(i.id)} /><span>{i.name}</span></label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset data-for="question">
+        <legend>Question</legend>
+        <div class="pick-group">
+          {QUESTIONS.map((q, k) => (
+            <label class="pick"><input type="radio" name="mc-question" value={q.key} checked={k === 0} /><span>{q.label}</span></label>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+    <div data-out="compare">
+      <div class="table-wrap" role="region" tabindex="0" aria-label={`Comparing ${compared.map((i) => i.name.toLowerCase()).join(', ')}`}>
+        <table class="money-table">
+          <caption>Comparing {compared.map((i) => i.name.toLowerCase()).join(', ')}</caption>
+          <thead><tr><th scope="col">Question</th>{compared.map((i) => <th scope="col">{i.name}</th>)}</tr></thead>
+          <tbody>
+            {QUESTIONS.map((q) => (
+              <tr>
+                <th scope="row">{q.label}</th>
+                {compared.map((i) => <td>{i.answers[q.key].text}<Cite ids={i.answers[q.key].sources} number={n} /></td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="vh" data-out="compare-status" role="status" aria-live="polite"></p>
+    <p class="small muted calc__nojs">The full comparison of all eight is below. Choosing which to compare needs JavaScript.</p>
+  </section>
+
+  <section aria-labelledby="all-eight">
+    <h2 id="all-eight">All eight in detail</h2>
+    <ul class="instrument-grid">
+      {INSTRUMENTS.map((i) => (
+        <li class="instrument" id={`money-${i.id}`}>
+          <h3>{i.name}</h3>
+          <p class="instrument__summary">{i.summary}</p>
+          <dl>
+            {QUESTIONS.map((q) => (
+              <div>
+                <dt>{q.label}</dt>
+                <dd>{i.answers[q.key].text}<Cite ids={i.answers[q.key].sources} number={n} /></dd>
+              </div>
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="why">
+    <h2 id="why">Why the differences matter</h2>
+    <p class="claim-line"><ClaimLabel kind="interpretation" /> <span class="small muted">What follows from the facts above</span></p>
+    <ul>
+      <li>
+        <strong>Whose promise you rely on.</strong> A promise is only as good as whoever makes it.
+        Cash and reserves rest on the Federal Reserve and the US government; a deposit on your
+        bank, with insurance up to $250,000 per depositor, per insured bank, per ownership
+        category; a payment stablecoin on its issuer and its reserves; a Treasury bill on the
+        United States.<Cite ids={['fdic-faq', 'genius-act', 'treasury-marketable']} number={n} />
+      </li>
+      <li>
+        <strong>Insurance is narrower than it looks.</strong> FDIC insurance covers deposits at
+        insured banks. It does not cover money market funds, Treasury securities or crypto
+        assets, "even if they were purchased from an insured bank," and the GENIUS Act rules it
+        out for payment stablecoins.<Cite ids={['fdic-not-insured', 'fdic-crypto', 'genius-act']} number={n} />
+      </li>
+      <li>
+        <strong>Where a payment finally settles.</strong> When a payment passes between
+        customers of two different banks, the banks settle with each other by moving reserves
+        between their accounts at the Federal Reserve, for example over Fedwire, where a
+        payment is final once processed. That is why reserves matter even though the public
+        never holds them.<Cite ids={['fed-fedwire', 'fed-iorb-faq']} number={n} />
+      </li>
+      <li>
+        <strong>A fixed dollar amount, or a market price.</strong> Cash, deposits and reserves
+        are always worth their face value in dollars. A Treasury bill pays its face value at
+        maturity; a stablecoin is meant to hold its value. Bitcoin and gold have no face value
+        in dollars at all: their price is set by the market, and virtual currencies "are more
+        volatile than traditional fiat currencies."<Cite ids={['treasury-bills', 'genius-act', 'cftc-virtual-currency']} number={n} />
+      </li>
+      <li>
+        <strong>Not interchangeable.</strong> Each of these can serve as money for some purposes
+        and some people. None does every job equally well, and switching from one to another
+        changes whose promise you hold.
+      </li>
+    </ul>
+  </section>
+
+  <section class="key-ideas" aria-labelledby="key-ideas">
+    <h2 id="key-ideas">Key ideas</h2>
+    <ul>
+      <li>Money is described by three jobs: a means of payment, a unit of account and a store of value.</li>
+      <li>Most money is a promise: cash and reserves are liabilities of the Federal Reserve, deposits of your bank, stablecoins of their issuer.</li>
+      <li>Only US coins and currency are legal tender; bank deposits, reserves, Treasury bills, fund shares, stablecoins and bitcoin are not.</li>
+      <li>FDIC insurance covers bank deposits up to the standard amount, and nothing else on this list.</li>
+      <li>Banks can settle payments with each other by moving reserves at the Federal Reserve, where a Fedwire payment is final.</li>
+      <li>Bitcoin and gold are no one's liability; their dollar price floats.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="related">
+    <h2 id="related">Related</h2>
+    <ul>
+      <li><a href={href('calculators/apr-apy/')}>APR and APY calculator</a>: what a savings rate really pays.</li>
+      <li><a href={href('calculators/savings-growth/')}>High-yield savings calculator</a>: how a bank deposit grows.</li>
+      <li>How Banks Create Money, the next lesson, is in development.</li>
+    </ul>
+  </section>
+
+  <section class="prose lesson-section" aria-labelledby="sources">
+    <h2 id="sources">Sources</h2>
+    <p class="small">Every source was checked on {REVIEWED_LABEL}. Facts that can change (the interest rate on reserves, the status of stablecoin rules) are stated as of that date.</p>
+    <ol class="source-list small">
+      {SOURCES.map((s) => (
+        <li id={`src-${s.id}`}>{s.publisher}, <a href={s.url}>{s.title}</a>, {s.date}.</li>
+      ))}
+    </ol>
+  </section>
+</LessonLayout>
+
+<script>
+  import '../../scripts/learn/money';
+</script>

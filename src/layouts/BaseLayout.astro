@@ -18,7 +18,7 @@ interface Props {
   /** Review and error pages that should not be indexed. */
   noindex?: boolean;
   /** schema.org type for the page. */
-  schemaType?: 'WebPage' | 'WebSite' | 'AboutPage' | 'CollectionPage';
+  schemaType?: 'WebPage' | 'WebSite' | 'AboutPage' | 'CollectionPage' | 'LearningResource';
 }
 
 const { title, description, noindex = false, schemaType = 'WebPage' } = Astro.props;

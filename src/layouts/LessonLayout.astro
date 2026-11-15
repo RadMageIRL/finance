@@ -1,0 +1,35 @@
+---
+// Learn modules: title, reading time and review date, a short introduction, the lesson,
+// key ideas, sources and related links (INFORMATION_ARCHITECTURE.md, Learn module template).
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { href } from '../lib/url';
+
+interface Props {
+  title: string;
+  description: string;
+  lead: string;
+  /** ISO date the lesson's text and facts were last reviewed. */
+  reviewed: string;
+  minutes: number;
+}
+
+const { title, description, lead, reviewed, minutes } = Astro.props;
+const reviewedLabel = new Date(`${reviewed}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+---
+<BaseLayout title={title} description={description} schemaType="LearningResource">
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Learn', path: 'learn/' }, { label: title }]} />
+      <h1>{title}</h1>
+      <p class="lead">{lead}</p>
+      <p class="page-meta">About {minutes} minutes to read. Facts last reviewed <time datetime={reviewed}>{reviewedLabel}</time>.</p>
+    </div>
+  </div>
+  <div class="wrap page-body lesson">
+    <slot />
+    <p class="small muted lesson__disclaimer">
+      Educational information, not financial, legal or tax advice. <a href={href('disclaimer/')}>Disclaimer</a>. Found an error? <a href={href('corrections/')}>Corrections</a>.
+    </p>
+  </div>
+</BaseLayout>

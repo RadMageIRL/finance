@@ -121,7 +121,7 @@ const MUTANTS = [
 const VITEST = resolve('node_modules', 'vitest', 'vitest.mjs');
 const WORK = resolve('local', 'mutation-work');
 // Everything the unit tests read, copied into the work tree.
-const COPY = ['src/lib', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
+const COPY = ['src/lib', 'src/pages/learn', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
 
 function hashTree(dir) {
   const out = {};

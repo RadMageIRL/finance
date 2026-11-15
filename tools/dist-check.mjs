@@ -87,8 +87,9 @@ for (const file of pages) {
     fail(page, `missing space before a link: "${html.slice(match.index - 20, match.index + 3)}"`);
   }
   // The same after a link or a citation ("calculator</a>for", "(c)</span>Behind"). An empty
-  // span (a legend key) is a mark, not a word, and may touch its label.
-  for (const match of html.matchAll(/[^>]<\/(a|span)>[A-Za-z]/g)) {
+  // span (a legend key) is a mark, not a word, and may touch its label; text that already
+  // ends in a space before the tag closes is fine.
+  for (const match of html.matchAll(/(?:[^>\s]<\/(?:a|span)>|<\/a><\/span>)[A-Za-z]/g)) {
     fail(page, `missing space after an inline element: "${html.slice(match.index - 20, match.index + 12)}"`);
   }
 

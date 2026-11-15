@@ -1,0 +1,285 @@
+/* Learn modules: lesson layout, the instrument comparison and the "promise" chart.
+   Loaded by lesson pages only. */
+
+.lesson > .prose,
+.lesson > section {
+  margin-bottom: var(--space-7);
+}
+
+.lesson__disclaimer {
+  margin-top: var(--space-7);
+}
+
+.lesson-section {
+  max-width: var(--measure);
+}
+
+.key-ideas {
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.key-ideas h2 {
+  margin-top: 0;
+}
+
+.key-ideas ul {
+  margin-bottom: 0;
+}
+
+.claim-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+/* Citations: a bracketed number linking to the source list. */
+.cite-ref {
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cites {
+  white-space: normal;
+}
+
+/* Whose promise: each kind of money as the holder's asset and someone's liability. */
+.promise-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.promise-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 17rem) 7.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.promise-list__arrow {
+  color: var(--text-faint);
+  font-size: var(--step--1);
+  text-align: center;
+}
+
+.promise-list__who {
+  color: var(--text-muted);
+}
+
+.promise-list li.is-none {
+  border-style: dashed;
+}
+
+@media (max-width: 36em) {
+  .promise-list li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+
+  .promise-list__arrow {
+    text-align: left;
+  }
+}
+
+/* The comparison panel. */
+.money-compare {
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.money-compare h2 {
+  margin-top: 0;
+}
+
+.money-compare__controls {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.money-compare fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.money-compare legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+  font-weight: 650;
+}
+
+.pick-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pick {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pick span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pick input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.pick input:checked + span::before {
+  content: "\2713\00a0";
+}
+
+.pick input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pick input:disabled + span {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.money-compare[data-mode="side"] [data-for="question"],
+.money-compare[data-mode="question"] [data-for="side"] {
+  display: none;
+}
+
+.money-table td,
+.money-table th {
+  min-width: 11rem;
+  white-space: normal;
+}
+
+.money-table tbody th {
+  min-width: 8rem;
+  color: var(--text-muted);
+  font-weight: 650;
+}
+
+.money-answers {
+  margin: 0;
+}
+
+.money-answers > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--line);
+}
+
+.money-answers dt {
+  font-weight: 650;
+}
+
+.money-answers dd {
+  margin: 0;
+}
+
+.money-answers__question {
+  margin: 0 0 var(--space-2);
+  font-size: var(--step-1);
+  font-weight: 650;
+}
+
+@media (max-width: 36em) {
+  .money-answers > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}
+
+/* Every instrument in full: readable without JavaScript and by search engines. */
+.instrument-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.instrument {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.instrument h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--step-1);
+}
+
+.instrument__summary {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+}
+
+.instrument dl {
+  margin: 0;
+}
+
+.instrument dt {
+  margin-top: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  font-weight: 650;
+}
+
+.instrument dd {
+  margin: var(--space-1) 0 0;
+}
+
+.source-list li {
+  margin-bottom: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.source-list li:target {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}

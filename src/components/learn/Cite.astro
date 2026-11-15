@@ -1,0 +1,16 @@
+---
+// Citation numbers for a lesson: bracketed links to the numbered sources at the end of the
+// page. The numbers come from the lesson's data module, so the text and the comparison panel
+// always agree.
+interface Props {
+  ids: readonly string[];
+  number: (id: string) => number;
+}
+
+const { ids, number } = Astro.props;
+---
+{ids.length > 0 && (
+  <span class="cites">{ids.map((id) => (
+    <> <a class="cite-ref" href={`#src-${id}`} aria-label={`Source ${number(id)}`}>[{number(id)}]</a></>
+  ))}</span>
+)}{' '}

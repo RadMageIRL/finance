@@ -7,6 +7,7 @@ export const PAGES = [
   '',
   'news/',
   'learn/',
+  'learn/what-is-money/',
   'calculators/',
   'calculators/compound-interest/',
   'calculators/apr-apy/',

@@ -96,7 +96,7 @@ export const MODULES: readonly CatalogItem[] = [
     path: 'learn/what-is-money/',
     summary: 'Cash, bank deposits, reserves, Treasury bills, stablecoins, bitcoin and gold, compared side by side.',
     detail: 'Whose promise each one is, who can hold it, how a payment settles, and what backs it.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'How Money Flows',
