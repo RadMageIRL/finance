@@ -107,7 +107,9 @@ export function stackedColumnsSvg(spec: StackedColumns): string {
     // Hit target: the whole band, bigger than the marks.
     parts.push(`<rect class="chart__hit" x="${f(M.left + band * i)}" y="${M.top}" width="${f(band)}" height="${plotH}"/>`);
     parts.push('</g>');
-    if (i % labelEvery === 0 || i === categories.length - 1) {
+    // Every labelEvery-th year, plus the last; a regular label too close to the last is skipped.
+    const lastIndex = categories.length - 1;
+    if (i === lastIndex || (i % labelEvery === 0 && lastIndex - i >= labelEvery)) {
       parts.push(`<text class="chart__tick" x="${f(x + barW / 2)}" y="${H - M.bottom + 18}" text-anchor="middle">${escapeXml(category)}</text>`);
     }
   });

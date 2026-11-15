@@ -158,6 +158,21 @@ test.describe('compound interest calculator', () => {
     await context.close();
   });
 
+  test('on a phone, a result bar stays visible while the results panel is out of view', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await page.goto(PAGE);
+    const bar = page.locator('[data-sticky]');
+    await page.locator('.calc__results').scrollIntoViewIfNeeded();
+    await expect(bar).toBeHidden();
+    await page.evaluate(() => document.querySelector('.calc-notes')!.scrollIntoView({ behavior: 'instant' }));
+    await expect(bar).toBeVisible();
+    await expect(bar.locator('strong')).toHaveText(EXAMPLE_FINAL);
+    await page.fill('#ci-years', '0');
+    await expect(bar).toBeHidden();
+    await context.close();
+  });
+
   test('hides the download and share buttons while results are withheld', async ({ page }) => {
     await page.goto(PAGE);
     await page.fill('#ci-years', '0');

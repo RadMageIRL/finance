@@ -49,6 +49,24 @@ describe('stacked column chart', () => {
     expect(s.match(/<rect class="chart__seg/g)).toHaveLength(2);
   });
 
+  it('never crowds a regular year label against the final one', () => {
+    const labels = (count: number, width: number) =>
+      [...stackedColumnsSvg({
+        categories: Array.from({ length: count }, (_, i) => String(i + 1)),
+        series: [{ key: 'a', label: 'A' }],
+        values: Array.from({ length: count }, () => [100]),
+        formatTick: () => '',
+        formatTotal: String,
+        title: 't',
+        description: 'd',
+        idPrefix: 'x',
+        width,
+      }).matchAll(/text-anchor="middle">(\d+)</g)].map((m) => Number(m[1]));
+    // 10 years on a phone-width chart: labels every other year, and 9 is dropped next to 10.
+    expect(labels(10, 340)).toEqual([1, 3, 5, 7, 10]);
+    expect(labels(10, 640)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+
   it('draws at the requested width, never narrower than 280', () => {
     expect(svg(390)).toContain('viewBox="0 0 390 300"');
     expect(svg(100)).toContain('viewBox="0 0 280 300"');
