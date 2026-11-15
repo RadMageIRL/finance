@@ -7,8 +7,9 @@ import { HEAD_SCRIPT } from './src/lib/theme/head-script.mjs';
 // can run it under a strict Content-Security-Policy.
 const headScriptHash = `sha256-${createHash('sha256').update(HEAD_SCRIPT).digest('base64')}`;
 
-// Pages that exist for review or error handling and must not be indexed.
-const NOT_IN_SITEMAP = /\/finance\/(design-system|404)\/$/;
+// Pages that must not be indexed: review and error pages, and News while it is a preview
+// (NEWS_LIVE in src/lib/site.ts; remove 'news' here when feeds go live).
+const NOT_IN_SITEMAP = /\/finance\/(design-system|404|news)\/$/;
 
 export default defineConfig({
   site: 'https://radmagelabs.com',

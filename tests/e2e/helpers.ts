@@ -5,6 +5,7 @@ export const BASE = '/finance/';
 /** Every built page. The 404 page is reached through a missing address. */
 export const PAGES = [
   '',
+  'news/',
   'learn/',
   'calculators/',
   'about/',

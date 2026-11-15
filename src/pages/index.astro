@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CatalogCard from '../components/CatalogCard.astro';
 import ClaimLabel from '../components/ClaimLabel.astro';
-import { CALCULATORS, MODULES, SITE } from '../lib/site';
+import { CALCULATORS, MODULES, NEWS_CATEGORIES, SITE } from '../lib/site';
 import { href } from '../lib/url';
 ---
 <BaseLayout
@@ -12,17 +12,44 @@ import { href } from '../lib/url';
 >
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
-      <p class="eyebrow">Free financial education</p>
+      <p class="eyebrow">Free financial news and education</p>
       <h1 id="hero-title">How money works, shown step by step.</h1>
       <p class="lead">
-        Interactive lessons and calculators for savers, borrowers, homeowners and anyone
-        curious about the financial system. Every formula is shown, every fact links to its
-        source, and every calculation runs in your browser.
+        Financial news from named sources, interactive lessons, and calculators that show
+        their math, for savers, borrowers, homeowners and anyone curious about the financial
+        system. Every fact links to its source, and every calculation runs in your browser.
       </p>
       <div class="button-row">
         <a class="button" href={href('learn/')}>Start learning</a>
         <a class="button button--secondary" href={href('calculators/')}>Open the calculators</a>
       </div>
+    </div>
+  </section>
+
+  <section class="section news-home" aria-labelledby="news-title">
+    <div class="wrap news-panel">
+      <div class="news-panel__intro">
+        <div class="news-panel__heading">
+          <h2 id="news-title">Financial News</h2>
+          <span class="badge badge--preview">Preview</span>
+        </div>
+        <p>
+          Headlines from named publishers, grouped by topic and linked to the original
+          reporting, with publication times and refresh status shown on every page.
+        </p>
+        <p class="small muted">News is in development. Feeds are not live yet, so no stories are shown.</p>
+        <a class="button button--secondary" href={href('news/')}>Preview the News section</a>
+      </div>
+      <ul class="topic-grid">
+        {NEWS_CATEGORIES.map((category) => (
+          <li>
+            <a class="topic-tile" href={href(`news/#${category.id}`)}>
+              <span class="topic-tile__label">{category.label}</span>
+              <span class="topic-tile__scope">{category.scope}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 

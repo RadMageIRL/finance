@@ -108,7 +108,7 @@ test.describe('mobile menu', () => {
     // the browser's own controls (seen here as <body>), then back to the first item: focus
     // must never land on page content behind the menu, and it must come back.
     const seen: string[] = [];
-    for (let i = 0; i < 14; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
       await page.keyboard.press('Tab');
       const where = await page.evaluate(() => {
         const active = document.activeElement;

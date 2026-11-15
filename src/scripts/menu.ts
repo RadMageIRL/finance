@@ -1,4 +1,28 @@
-// Mobile menu. A modal <dialog> provides the focus trap, Escape to close, and an inert page
+// Header menus.
+//
+// More: a native <details> disclosure, so it opens without JavaScript. This adds Escape,
+// outside clicks and focus leaving to close it, returning focus to its toggle on Escape.
+
+const more = document.querySelector<HTMLDetailsElement>('[data-more-menu]');
+
+if (more) {
+  const summary = more.querySelector('summary');
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && more.open) {
+      more.open = false;
+      summary?.focus();
+    }
+  });
+  document.addEventListener('click', (event) => {
+    if (more.open && event.target instanceof Node && !more.contains(event.target)) more.open = false;
+  });
+  more.addEventListener('focusout', (event) => {
+    const next = event.relatedTarget;
+    if (more.open && next instanceof Node && !more.contains(next)) more.open = false;
+  });
+}
+
+// Phone menu. A modal <dialog> provides the focus trap, Escape to close, and an inert page
 // behind it; this module opens it, keeps aria-expanded in step, and returns focus.
 
 const openButton = document.querySelector<HTMLButtonElement>('[data-menu-open]');

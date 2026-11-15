@@ -154,9 +154,14 @@ test.describe('theme', () => {
     const page = await context.newPage();
     await page.goto(url(''));
     await expect(page.locator('.menu-button')).toBeHidden();
-    for (const label of ['Learn', 'Calculators', 'About']) {
-      await expect(page.locator('.site-nav a', { hasText: label })).toBeVisible();
-    }
+    const links = page.locator('.site-nav > ul > li > a');
+    await expect(links).toHaveText(['Home', 'News', 'Learn', 'Calculators']);
+    for (const link of await links.all()) await expect(link).toBeVisible();
+    // More is a native disclosure, so it opens without JavaScript.
+    await page.locator('.more-menu > summary').click();
+    await expect(page.locator('.more-menu__panel a', { hasText: 'Methodology' })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
     await context.close();
   });
 });

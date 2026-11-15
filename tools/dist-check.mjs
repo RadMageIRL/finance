@@ -79,6 +79,11 @@ for (const file of pages) {
   }
   if (/\sstyle="/.test(html)) fail(page, 'inline style attribute (blocked by the CSP)');
 
+  // A word run into a link ("and<a") means a source line break was compressed away.
+  for (const match of html.matchAll(/[A-Za-z0-9,;]<a\s/g)) {
+    fail(page, `missing space before a link: "${html.slice(match.index - 20, match.index + 3)}"`);
+  }
+
   // Every tag that references a URL.
   const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
   let cssGzip = 0;

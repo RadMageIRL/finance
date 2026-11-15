@@ -7,7 +7,7 @@ export const SITE = {
   origin: 'https://radmagelabs.com',
   contactEmail: 'radmageirl@radmagelabs.com',
   description:
-    'Free interactive lessons and calculators that show how money, banking and interest work, with every formula shown and every fact sourced.',
+    'Free financial news from named sources, interactive lessons, and calculators that show how money, banking and interest work, with every fact sourced.',
 } as const;
 
 export interface NavItem {
@@ -16,15 +16,27 @@ export interface NavItem {
 }
 
 export const PRIMARY_NAV: readonly NavItem[] = [
+  { label: 'Home', path: '' },
+  { label: 'News', path: 'news/' },
   { label: 'Learn', path: 'learn/' },
   { label: 'Calculators', path: 'calculators/' },
+];
+
+/** The More menu in the header and the second group in the phone menu. */
+export const MORE_NAV: readonly NavItem[] = [
   { label: 'About', path: 'about/' },
+  { label: 'Methodology', path: 'methodology/' },
+  { label: 'Sources', path: 'sources/' },
+  { label: 'Corrections', path: 'corrections/' },
+  { label: 'Privacy', path: 'privacy/' },
+  { label: 'Disclaimer', path: 'disclaimer/' },
 ];
 
 export const FOOTER_GROUPS: readonly { title: string; items: readonly NavItem[] }[] = [
   {
     title: 'Explore',
     items: [
+      { label: 'News', path: 'news/' },
       { label: 'Learn', path: 'learn/' },
       { label: 'Calculators', path: 'calculators/' },
       { label: 'About', path: 'about/' },
@@ -45,6 +57,27 @@ export const FOOTER_GROUPS: readonly { title: string; items: readonly NavItem[] 
       { label: 'Disclaimer', path: 'disclaimer/' },
     ],
   },
+];
+
+/**
+ * News is a core section. Until feeds are collected (a later phase) the News page is a
+ * layout preview: it shows no stories, carries noindex, and stays out of the sitemap.
+ */
+export const NEWS_LIVE = false;
+
+export interface NewsCategory {
+  id: string;
+  label: string;
+  scope: string;
+}
+
+export const NEWS_CATEGORIES: readonly NewsCategory[] = [
+  { id: 'markets', label: 'Markets', scope: 'Stocks, bonds, currencies and commodities: what moved, and what the reporting says about why.' },
+  { id: 'economy', label: 'Economy', scope: 'Jobs, inflation, growth and spending, alongside the official releases they come from.' },
+  { id: 'federal-reserve', label: 'Federal Reserve', scope: 'Policy decisions, statements, minutes, speeches and the Fed balance sheet.' },
+  { id: 'banking', label: 'Banking', scope: 'Lending, deposits, bank health, failures and supervision.' },
+  { id: 'crypto', label: 'Crypto', scope: 'Digital assets and stablecoins: regulation, institutional adoption and infrastructure, without hype.' },
+  { id: 'regulation', label: 'Regulation', scope: 'Financial rules and legislation: proposals, final rules, enforcement actions and votes.' },
 ];
 
 export type ItemStatus = 'available' | 'in-development';

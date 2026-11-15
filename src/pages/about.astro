@@ -5,8 +5,8 @@ import { href } from '../lib/url';
 ---
 <ReferenceLayout
   title="About"
-  description="RadMage Finance is a free financial education site from RadMage Labs: interactive lessons, calculators that show their formulas, and sources you can check."
-  lead="RadMage Finance is a free financial education site. It explains how money, banking and interest work through interactive lessons, calculators that show their formulas, and sources you can check."
+  description="RadMage Finance is a free financial news and education site from RadMage Labs: source-linked news, interactive lessons, and calculators that show their formulas."
+  lead="RadMage Finance is a free financial news and education site. It follows financial news from named sources and explains how money, banking and interest work through interactive lessons, calculators that show their formulas, and sources you can check."
   updated="2026-11-15"
   schemaType="AboutPage"
 >
@@ -24,6 +24,7 @@ import { href } from '../lib/url';
 
   <h2>What you will find</h2>
   <ul>
+    <li><a href={href('news/')}>News</a>: headlines from named publishers on markets, the economy, the Federal Reserve, banking, crypto and regulation, grouped by topic and linked to the original reporting. In development.</li>
     <li><a href={href('learn/')}>Learn</a>: interactive lessons on what money is, how it flows between households, businesses, banks, the government and the Federal Reserve, and how banks create money when they lend.</li>
     <li><a href={href('calculators/')}>Calculators</a>: compound interest, APR and APY, high-yield savings, loan amortization and mortgage payoff.</li>
   </ul>

@@ -1,16 +1,23 @@
 ---
 import Icon from './Icon.astro';
 import ThemeControl from './ThemeControl.astro';
-import { PRIMARY_NAV, SITE } from '../lib/site';
+import { MORE_NAV, PRIMARY_NAV, SITE } from '../lib/site';
 import { href, isWithin } from '../lib/url';
 
 const pathname = Astro.url.pathname;
-const nav = PRIMARY_NAV.map((item) => ({
-  ...item,
-  url: href(item.path),
-  current: isWithin(pathname, item.path),
-  exact: pathname === href(item.path),
-}));
+const withState = (items: typeof PRIMARY_NAV) =>
+  items.map((item) => ({
+    ...item,
+    url: href(item.path),
+    exact: pathname === href(item.path),
+    // Home is current only on itself; a section is current anywhere inside it.
+    current: item.path === '' ? pathname === href() : isWithin(pathname, item.path),
+  }));
+const nav = withState(PRIMARY_NAV);
+const more = withState(MORE_NAV);
+const moreCurrent = more.some((item) => item.current);
+const ariaCurrent = (item: { exact: boolean; current: boolean }) =>
+  item.exact ? 'page' : item.current ? 'true' : undefined;
 ---
 <header class="site-header">
   <div class="wrap header-inner">
@@ -22,19 +29,30 @@ const nav = PRIMARY_NAV.map((item) => ({
     <nav class="site-nav" aria-label="Primary">
       <ul>
         {nav.map((item) => (
-          <li>
-            <a
-              href={item.url}
-              aria-current={item.exact ? 'page' : item.current ? 'true' : undefined}
-            >{item.label}</a>
-          </li>
+          <li><a href={item.url} aria-current={ariaCurrent(item)}>{item.label}</a></li>
         ))}
+        <li>
+          <details class="more-menu" data-more-menu>
+            <summary class:list={{ 'is-current': moreCurrent }}>
+              More<Icon name="chevron" />
+            </summary>
+            <div class="more-menu__panel">
+              <ul>
+                {more.map((item) => (
+                  <li><a href={item.url} aria-current={ariaCurrent(item)}>{item.label}</a></li>
+                ))}
+              </ul>
+              <p class="more-menu__foot">
+                <a href={SITE.publisherUrl}>RadMage Labs home</a>
+              </p>
+            </div>
+          </details>
+        </li>
       </ul>
     </nav>
 
     <div class="header-tools">
       <ThemeControl id="header" compact />
-      <a class="labs-link" href={SITE.publisherUrl}>RadMage Labs</a>
       <button
         class="menu-button"
         type="button"
@@ -62,12 +80,16 @@ const nav = PRIMARY_NAV.map((item) => ({
     <nav class="menu-nav" aria-label="Primary">
       <ul>
         {nav.map((item) => (
-          <li>
-            <a
-              href={item.url}
-              aria-current={item.exact ? 'page' : item.current ? 'true' : undefined}
-            >{item.label}</a>
-          </li>
+          <li><a href={item.url} aria-current={ariaCurrent(item)}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <nav class="menu-nav menu-nav--secondary" aria-labelledby="menu-more-title">
+      <p class="menu-section-title" id="menu-more-title">More</p>
+      <ul>
+        {more.map((item) => (
+          <li><a href={item.url} aria-current={ariaCurrent(item)}>{item.label}</a></li>
         ))}
       </ul>
     </nav>

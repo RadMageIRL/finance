@@ -1,0 +1,154 @@
+---
+// News is a core section. Until a later phase collects feeds, this page is a clearly marked
+// layout preview: no headlines, sources or times are shown or invented, nothing is fetched,
+// and the page is not indexed.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { NEWS_CATEGORIES, NEWS_LIVE } from '../../lib/site';
+import { href } from '../../lib/url';
+---
+<BaseLayout
+  title="Financial News"
+  description="Financial news from named publishers, grouped by topic and linked to the original reporting: markets, the economy, the Federal Reserve, banking, crypto and regulation."
+  noindex={!NEWS_LIVE}
+  schemaType="CollectionPage"
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'News' }]} />
+      <h1>Financial News</h1>
+      <p class="lead">
+        Headlines from named publishers, grouped by topic, with every story linked to the
+        original reporting and every page showing when it was last refreshed.
+      </p>
+
+      <div class="preview-banner" role="note" aria-labelledby="preview-title">
+        <span class="badge badge--preview">Preview</span>
+        <div>
+          <p class="preview-banner__title" id="preview-title">News is not live yet</p>
+          <p>
+            This page shows the layout the News section will use. No stories are collected
+            yet, so nothing below is news: the gray blocks mark where headlines, publishers
+            and times will appear.
+          </p>
+        </div>
+      </div>
+
+      <dl class="feed-status" aria-label="Feed status">
+        <div>
+          <dt>Feed status</dt>
+          <dd>Not live</dd>
+        </div>
+        <div>
+          <dt>Sources connected</dt>
+          <dd>0</dd>
+        </div>
+        <div>
+          <dt>Last successful refresh</dt>
+          <dd>None yet</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <nav class="chip-nav" aria-label="News categories">
+    <div class="wrap">
+      <ul>
+        {NEWS_CATEGORIES.map((category) => (
+          <li><a class="chip" href={`#${category.id}`}>{category.label}</a></li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+
+  <div class="wrap page-body">
+    <section class="news-block" aria-labelledby="anatomy-title">
+      <div class="section-head">
+        <h2 id="anatomy-title">How a story will appear</h2>
+      </div>
+      <div class="anatomy">
+        <div class="story story--anatomy" aria-hidden="true">
+          <div class="story__tags">
+            <span class="marker">1</span>
+            <span class="slot">Topic</span>
+            <span class="slot">Reporting, Analysis or Opinion</span>
+          </div>
+          <p class="story__source"><span class="marker">2</span><span class="slot">Publisher name</span></p>
+          <p class="story__headline"><span class="marker">3</span><span class="slot slot--headline">Headline as published, linked to the original article</span></p>
+          <p class="story__meta"><span class="marker">4</span><span class="slot">Published time</span><span class="slot">Collected time</span></p>
+          <p class="story__related"><span class="marker">5</span><span class="slot">Also covered by other publishers</span></p>
+        </div>
+        <ol class="anatomy__key">
+          <li><strong>Topic and story type.</strong> The category, and whether the piece is reporting, analysis or opinion, as the publisher labels it.</li>
+          <li><strong>Publisher.</strong> Always named, so you know who is reporting.</li>
+          <li><strong>Headline.</strong> As the publisher wrote it, linking to the original article. Full articles stay with the publisher.</li>
+          <li><strong>Times.</strong> When the publisher released the story, and when RadMage Finance collected it.</li>
+          <li><strong>Related coverage.</strong> Other publishers reporting the same event, grouped under one story instead of repeated.</li>
+        </ol>
+      </div>
+    </section>
+
+    {NEWS_CATEGORIES.map((category, index) => (
+      <section class="news-block news-category" id={category.id} aria-labelledby={`${category.id}-title`}>
+        <div class="section-head">
+          <h2 id={`${category.id}-title`}>{category.label}</h2>
+          <span class="badge badge--preview">Preview</span>
+        </div>
+        <p class="news-category__scope">{category.scope}</p>
+        <p class="preview-note">No stories yet. Layout preview only.</p>
+        {index === 0 ? (
+          <div class="cluster" aria-hidden="true">
+            <div class="story story--lead">
+              <span class="sk sk--tag"></span>
+              <span class="sk sk--source"></span>
+              <span class="sk sk--title"></span>
+              <span class="sk sk--title sk--short"></span>
+              <span class="sk sk--meta"></span>
+            </div>
+            <div class="cluster__related">
+              <span class="cluster__label">Also covered by</span>
+              {[0, 1, 2].map(() => (
+                <div class="cluster__row">
+                  <span class="sk sk--source"></span>
+                  <span class="sk sk--line"></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div class="story-grid" aria-hidden="true">
+            {[0, 1, 2].map(() => (
+              <div class="story">
+                <span class="sk sk--source"></span>
+                <span class="sk sk--title"></span>
+                <span class="sk sk--title sk--short"></span>
+                <span class="sk sk--meta"></span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    ))}
+
+    <section class="news-block" aria-labelledby="approach-title">
+      <div class="section-head">
+        <h2 id="approach-title">How News will work</h2>
+      </div>
+      <div class="prose">
+        <ul>
+          <li>Stories come only from feeds and services whose terms allow it. Headlines link to the original article, and the full text stays with the publisher.</li>
+          <li>Every story names its publisher and shows its publication time, and the page shows when the feeds were last refreshed.</li>
+          <li>Original reporting and primary sources come first. Official releases link straight to the agency that published them.</li>
+          <li>Reporting, analysis and opinion are labeled so they are not confused.</li>
+          <li>Coverage of the same event is grouped. When reports disagree on the facts, the disagreement is shown instead of one account being picked silently.</li>
+          <li>Stories are not ranked by engagement, and headlines are not rewritten to be more dramatic.</li>
+          <li>News on this site is information, not financial advice.</li>
+        </ul>
+        <p>
+          How sources are chosen and cited: <a href={href('methodology/')}>Methodology</a>
+          and <a href={href('sources/')}>Sources</a>. Errors: <a href={href('corrections/')}>Corrections</a>.
+        </p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
