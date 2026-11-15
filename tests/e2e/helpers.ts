@@ -9,6 +9,7 @@ export const PAGES = [
   'learn/',
   'calculators/',
   'calculators/compound-interest/',
+  'calculators/apr-apy/',
   'about/',
   'methodology/',
   'sources/',

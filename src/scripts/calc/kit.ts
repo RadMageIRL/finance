@@ -25,12 +25,39 @@ export function setFieldError(input: HTMLInputElement, message: string | null): 
   }
 }
 
-export function debounce<T extends unknown[]>(fn: (...args: T) => void, ms: number): (...args: T) => void {
+export interface Debounced<T extends unknown[]> {
+  (...args: T): void;
+  /** Runs a pending call now instead of after the pause; does nothing if none is pending. */
+  flush: () => void;
+  /** Drops a pending call. */
+  cancel: () => void;
+}
+
+export function debounce<T extends unknown[]>(fn: (...args: T) => void, ms: number): Debounced<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  return (...args: T) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
+  let pending: T | undefined;
+  const run = () => {
+    timer = undefined;
+    const args = pending!;
+    pending = undefined;
+    fn(...args);
   };
+  const debounced = (...args: T) => {
+    if (timer) clearTimeout(timer);
+    pending = args;
+    timer = setTimeout(run, ms);
+  };
+  debounced.flush = () => {
+    if (!timer) return;
+    clearTimeout(timer);
+    run();
+  };
+  debounced.cancel = () => {
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+    pending = undefined;
+  };
+  return debounced;
 }
 
 export function downloadText(filename: string, text: string, type = 'text/csv;charset=utf-8'): void {
@@ -165,6 +192,8 @@ export function wireCalculator<I, R>(o: CalculatorOptions<I, R>) {
   };
 
   function refresh(announce: boolean): void {
+    // This reads the form as it is now, so an edit still waiting for the pause is covered.
+    later.cancel();
     const ev = o.evaluate();
     const errors = shownErrors(ev.errors);
     for (const [key, el] of Object.entries(o.fields)) setFieldError(el, errors.get(key) ?? null);
@@ -203,11 +232,20 @@ export function wireCalculator<I, R>(o: CalculatorOptions<I, R>) {
 
   return {
     refresh,
+    /**
+     * Applies an edit still waiting for the typing pause, so a link or download made right
+     * after typing reflects what is on screen in the form, never the previous input.
+     */
+    settle: () => later.flush(),
     /** Marks fields as deliberately blank until the visitor types in them. */
     leaveBlank(keys: readonly string[]) {
       for (const key of keys) blank.add(key);
     },
-    current: () => current,
+    /** The shown input and result after settling any pending edit; null while withheld. */
+    current: () => {
+      later.flush();
+      return current;
+    },
   };
 }
 

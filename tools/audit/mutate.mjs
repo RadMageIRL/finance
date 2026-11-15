@@ -62,6 +62,12 @@ const MUTANTS = [
   ['compound-year-count', `${E}compound.ts`, 'contributions: contribution * yearCount,', 'contributions: contribution * (yearCount + 1),'],
   ['compound-none-validates', `${E}compound.ts`, "&& input.contributionFrequency !== 'none') {", '&& true) {'],
   ['compound-cap-doubled', `${E}compound.ts`, 'if (balance > Number.MAX_SAFE_INTEGER) {', 'if (balance > 2 * Number.MAX_SAFE_INTEGER) {'],
+  // Rate comparison (rate-compare.ts)
+  ['rates-interest-from-rate', `${E}rate-compare.ts`, 'oneYearInterest: roundCents(balance * apy),', 'oneYearInterest: roundCents(balance * annualRate),'],
+  ['rates-periodic-n-plus-one', `${E}rate-compare.ts`, 'periodicRate: annualRate / n,', 'periodicRate: annualRate / (n + 1),'],
+  ['rates-kind-swapped', `${E}rate-compare.ts`, "const annualRate = a.kind === 'rate' ? a.value : nominalFromApy(a.value, n);", "const annualRate = a.kind === 'apy' ? a.value : nominalFromApy(a.value, n);"],
+  ['rates-best-is-lowest', `${E}rate-compare.ts`, 'const top = Math.max(...out.map((a) => a.apy));', 'const top = Math.min(...out.map((a) => a.apy));'],
+  ['rates-four-accounts', `${E}rate-compare.ts`, 'export const MAX_ACCOUNTS = 3;', 'export const MAX_ACCOUNTS = 4;'],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
   ['loan-months-per-year-13', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 13);'],

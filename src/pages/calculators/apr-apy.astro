@@ -1,0 +1,220 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ClaimLabel from '../../components/ClaimLabel.astro';
+import CalcChoice from '../../components/calc/CalcChoice.astro';
+import CalcField from '../../components/calc/CalcField.astro';
+import CalcSelect from '../../components/calc/CalcSelect.astro';
+import ChartFigure from '../../components/calc/ChartFigure.astro';
+import ShareExport from '../../components/calc/ShareExport.astro';
+import { compareRates } from '../../lib/engines/rate-compare';
+import { ACCOUNT_NAMES, BLANK_ACCOUNT, DEFAULT_RATES, RATE_FREQUENCIES, percentText, ratesView } from '../../lib/calc/rates-view';
+import { href } from '../../lib/url';
+
+// The example is computed at build time with the same engine and view code the browser
+// uses, so the page shows real results without JavaScript.
+const computed = compareRates(DEFAULT_RATES.accounts, DEFAULT_RATES.balance);
+if (!computed.ok) throw new Error('APR/APY example scenario is invalid');
+const view = ratesView(computed.value);
+const frequencyOptions = RATE_FREQUENCIES.map((f) => ({ value: String(f.value), label: f.label }));
+const hintFor = (kind: string) =>
+  kind === 'apy' ? 'The annual percentage yield, which already includes compounding.' : 'The rate before compounding, for example 4.5.';
+const VERIFIED = 'November 15, 2026';
+---
+<BaseLayout
+  title="APR and APY Calculator"
+  description="Convert a savings account's interest rate to its APY, or an APY back to the rate, for any compounding frequency, and compare up to three accounts. Why a savings APR and a loan APR differ."
+>
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators', path: 'calculators/' }, { label: 'APR and APY' }]} />
+      <h1>APR and APY calculator</h1>
+      <p class="lead">
+        Turn a savings account's interest rate into its annual percentage yield, or an APY
+        back into the rate, and compare up to three accounts on the same footing.
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap page-body">
+    <div class="calc" data-calc="rates" data-state="ok">
+      <form class="calc__inputs" novalidate aria-labelledby="ra-inputs-title">
+        <h2 class="calc__heading" id="ra-inputs-title">Your accounts</h2>
+        <p class="calc__note" data-out="shared-note" hidden></p>
+        <CalcField id="ra-balance" label="Balance to compare" unitLabel="in dollars" kind="money" value="10,000.00" hint="Used to show the interest each account would pay in a year." />
+        {ACCOUNT_NAMES.map((name, i) => {
+          const a = DEFAULT_RATES.accounts[i];
+          const kind = a?.kind ?? BLANK_ACCOUNT.kind;
+          return (
+            <fieldset class="calc-account" data-account={i}>
+              <legend>{name}{!a && <span class="calc-account__optional"> (optional)</span>}</legend>
+              <CalcChoice name={`ra-kind-${i}`} legend="Rate given as" value={kind} options={[{ value: 'rate', label: 'Interest rate (APR)' }, { value: 'apy', label: 'APY' }]} />
+              <div class="calc-account__row">
+                <CalcField id={`ra-value-${i}`} label="Rate" unitLabel="in percent" kind="percent" value={a ? percentText(a.value, 4).replace('%', '') : ''} hint={a ? hintFor(kind) : 'Leave blank to compare fewer accounts.'} />
+                <CalcSelect id={`ra-n-${i}`} label="Compounding" value={String(a?.periodsPerYear ?? BLANK_ACCOUNT.periodsPerYear)} options={frequencyOptions} hint="How often interest is added." />
+              </div>
+            </fieldset>
+          );
+        })}
+        <p class="calc__nojs small muted">This calculator needs JavaScript to recalculate. Without it, the results show the example above.</p>
+      </form>
+
+      <section class="calc__results" aria-labelledby="ra-results-title">
+        <div class="calc__results-head">
+          <h2 class="calc__heading" id="ra-results-title">Comparison</h2>
+          <ClaimLabel kind="forecast" />
+        </div>
+        <div class="calc__values">
+          <p class="calc__hero" data-out="hero">{view.hero}</p>
+          <p class="calc__hero-note" data-out="hero-note">{view.heroNote}</p>
+          <div class="table-wrap">
+            <table class="compare-table">
+              <caption class="vh">Each account's rates and one year's interest</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Account</th>
+                  <th scope="col" class="num">APY</th>
+                  <th scope="col" class="num col-rate">Interest rate</th>
+                  <th scope="col" class="num">Interest in a year</th>
+                </tr>
+              </thead>
+              <tbody data-out="compare-rows">
+                {view.rows.map((r) => (
+                  <tr class:list={{ 'is-best': r.best }}>
+                    <th scope="row">{r.name}{r.best && <span class="compare-best"> Highest</span>}</th>
+                    <td class="num">{r.apy}</td>
+                    <td class="num col-rate">{r.rate}<span class="compare-sub">{r.compounding}</span></td>
+                    <td class="num">{r.interest}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="calc__summary" data-out="summary">{view.summary}</p>
+        </div>
+        <p class="calc__invalid" data-out="invalid">Results are hidden until the highlighted entries are fixed.</p>
+        <p class="calc__incomplete" data-out="incomplete">Enter a balance to compare.</p>
+        <p class="vh" data-out="status" role="status" aria-live="polite"></p>
+        <ShareExport idPrefix="ra" />
+        <p class="small muted">An illustration, not an offer. Rates on savings accounts change. <a href={href('disclaimer/')}>Disclaimer</a>.</p>
+      </section>
+    </div>
+
+    <div class="calc-sticky" data-sticky aria-hidden="true">
+      <span>Highest APY</span>
+      <strong data-out="hero-sticky">{view.hero}</strong>
+    </div>
+
+    <ChartFigure id="ra-chart" heading="Interest in one year" series={[{ key: 'interest', label: 'Interest on the balance' }]} svg={view.chartSvg} tableSummary="Show every figure as a table">
+      <div class="table-wrap">
+        <table>
+          <caption>Rates and one year's interest for each account</caption>
+          <thead>
+            <tr>
+              <th scope="col">Account</th>
+              <th scope="col">Entered as</th>
+              <th scope="col">Compounding</th>
+              <th scope="col" class="num">Interest rate</th>
+              <th scope="col" class="num">Rate per period</th>
+              <th scope="col" class="num">APY</th>
+              <th scope="col" class="num">Interest in a year</th>
+              <th scope="col" class="num">Balance after a year</th>
+            </tr>
+          </thead>
+          <tbody data-out="rows">
+            {view.rows.map((r) => (
+              <tr>
+                <th scope="row">{r.name}</th>
+                <td>{r.entered}</td>
+                <td>{r.compounding}</td>
+                <td class="num">{r.rate}</td>
+                <td class="num">{r.periodic}</td>
+                <td class="num">{r.apy}</td>
+                <td class="num">{r.interest}</td>
+                <td class="num">{r.after}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </ChartFigure>
+
+    <div class="prose calc-notes">
+      <h2>How compounding changes the APY</h2>
+      <p>The same interest rate gives a higher APY the more often interest is added, because each addition starts earning interest too. For <span data-out="by-frequency-rate">{view.byFrequencyRate}</span>:</p>
+      <div class="table-wrap">
+        <table class="by-frequency">
+          <caption class="vh">APY at each compounding frequency for the same interest rate</caption>
+          <thead><tr><th scope="col">Compounding</th><th scope="col" class="num">APY</th></tr></thead>
+          <tbody data-out="by-frequency">
+            {view.byFrequency.map((r) => (
+              <tr class:list={{ 'is-current': r.current }}><th scope="row">{r.label}</th><td class="num">{r.apy}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Interest rate, APY and APR on a savings account</h2>
+      <p>
+        US banks follow the Truth in Savings rules, Regulation DD. It defines two rates for a
+        deposit account:
+      </p>
+      <ul>
+        <li><strong>Interest rate:</strong> "the annual rate of interest paid on an account which does not reflect compounding." In account disclosures a bank may also call it the annual percentage rate, or APR. <span class="cite">12 CFR 1030.2(o)</span></li>
+        <li><strong>Annual percentage yield (APY):</strong> "a percentage rate reflecting the total amount of interest paid on an account, based on the interest rate and the frequency of compounding for a 365-day period." <span class="cite">12 CFR 1030.2(c)</span></li>
+      </ul>
+      <p>
+        So on a savings account, APR and interest rate mean the same thing, and the APY is the
+        figure that includes compounding. Two accounts with different compounding can be
+        compared fairly only by their APYs. Banks round the APY and the interest rate to two
+        decimal places, though a disclosure may show the interest rate with more. <span class="cite">12 CFR 1030.3(f)(1)</span>
+      </p>
+
+      <h2>A loan's APR is a different measure</h2>
+      <p>
+        For loans, the Truth in Lending rules, Regulation Z, use APR for something else: "a
+        measure of the cost of credit, expressed as a yearly rate." <span class="cite">12 CFR 1026.22(a)(1)</span>
+        It is built from the finance charge, "the cost of consumer credit as a dollar amount,"
+        which includes interest and also charges such as "points, loan fees, assumption fees,
+        finder's fees, and similar charges." <span class="cite">12 CFR 1026.4(a), (b)(3)</span>
+      </p>
+      <ul>
+        <li>A loan's APR can be higher than its interest rate (the note rate), because it also counts those fees.</li>
+        <li>A loan's APR is not compounded the way an APY is: it is "the unit-period rate" multiplied "by the number of unit-periods in a year." <span class="cite">12 CFR part 1026, appendix J, (b)(1)</span></li>
+      </ul>
+      <p>
+        This calculator works with savings rates only. It does not calculate a loan APR, which
+        needs the loan's fees and payment schedule.
+      </p>
+
+      <h2>Assumptions</h2>
+      <ul>
+        <li>Each rate stays the same for a full year. Savings rates change.</li>
+        <li>The interest for a year is the balance times the APY, rounded once to the cent. It assumes the balance stays in the account all year with no deposits or withdrawals, the same assumption the APY itself makes. A bank rounds each interest payment, so its total can differ by a cent or two.</li>
+        <li>A year has 365 days. Weekly compounding means 52 times a year.</li>
+        <li>No fees, minimum balances, balance tiers or introductory rates, and no taxes.</li>
+      </ul>
+
+      <h2>How this is calculated</h2>
+      <p>For an interest rate r compounded n times a year:</p>
+      <p class="formula"><code>APY = (1 + r/n)<sup>n</sup> − 1</code></p>
+      <p>and, the other way, for an APY:</p>
+      <p class="formula"><code>r = n × [(1 + APY)<sup>1/n</sup> − 1]</code></p>
+      <p>
+        The rate per period is r/n. The APY is shown rounded to two decimals, half up, as banks
+        disclose it. The conversions are checked against an independent implementation that
+        uses exact decimal arithmetic. See the <a href={href('methodology/')}>Methodology</a>.
+      </p>
+
+      <h2>Sources</h2>
+      <ul class="small">
+        <li>12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import '../../scripts/calc/apr-apy';
+</script>

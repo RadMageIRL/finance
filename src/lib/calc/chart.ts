@@ -124,6 +124,59 @@ export function stackedColumnsSvg(spec: StackedColumns): string {
   return parts.join('');
 }
 
+export interface HorizontalBars {
+  /** One label per bar, for example "Account A". */
+  categories: readonly string[];
+  /** One value per bar, in cents, all nonnegative. */
+  values: readonly number[];
+  formatValue: (cents: number) => string;
+  title: string;
+  description: string;
+  idPrefix: string;
+  width?: number;
+}
+
+const BAR_H = 24;
+const BAR_GAP = 16;
+const BAR_LABEL_W = 92;
+const BAR_VALUE_W = 96;
+
+/**
+ * Horizontal bars for comparing a few items, each with its value written at the end of its
+ * bar (direct labels, so no axis is needed). Same marks and classes as the column chart: a
+ * 4px rounded data end, a square base, and a hit area per bar for the shared tooltip.
+ */
+export function horizontalBarsSvg(spec: HorizontalBars): string {
+  const W = Math.max(W_MIN, Math.round(spec.width ?? W_DEFAULT));
+  const top = 8;
+  const H = top + spec.categories.length * (BAR_H + BAR_GAP);
+  const x0 = BAR_LABEL_W;
+  const plotW = Math.max(40, W - x0 - BAR_VALUE_W);
+  const max = Math.max(...spec.values, 0) || 1;
+  const parts: string[] = [];
+  parts.push(`<svg class="chart chart--bars" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="${spec.idPrefix}-title ${spec.idPrefix}-desc" preserveAspectRatio="xMidYMid meet">`);
+  parts.push(`<title id="${spec.idPrefix}-title">${escapeXml(spec.title)}</title>`);
+  parts.push(`<desc id="${spec.idPrefix}-desc">${escapeXml(spec.description)}</desc>`);
+  parts.push(`<line class="chart__grid chart__grid--base" x1="${x0}" x2="${x0}" y1="${top - 4}" y2="${H - BAR_GAP + 4}"/>`);
+  spec.categories.forEach((category, i) => {
+    const y = top + i * (BAR_H + BAR_GAP);
+    const value = spec.values[i] ?? 0;
+    const w = (value / max) * plotW;
+    parts.push(`<g class="chart__col" data-index="${i}">`);
+    if (w > 0) {
+      const r = Math.min(4, w, BAR_H / 2);
+      // Square at the base (left), rounded at the data end (right).
+      parts.push(`<path class="chart__seg chart__seg--1" d="M${f(x0)},${f(y)}H${f(x0 + w - r)}Q${f(x0 + w)},${f(y)} ${f(x0 + w)},${f(y + r)}V${f(y + BAR_H - r)}Q${f(x0 + w)},${f(y + BAR_H)} ${f(x0 + w - r)},${f(y + BAR_H)}H${f(x0)}Z"/>`);
+    }
+    parts.push(`<rect class="chart__hit" x="0" y="${f(y - BAR_GAP / 2)}" width="${W}" height="${BAR_H + BAR_GAP}"/>`);
+    parts.push('</g>');
+    parts.push(`<text class="chart__tick chart__tick--bar" x="${x0 - 10}" y="${f(y + BAR_H / 2)}" dy="0.32em" text-anchor="end">${escapeXml(category)}</text>`);
+    parts.push(`<text class="chart__label" x="${f(x0 + w + 8)}" y="${f(y + BAR_H / 2)}" dy="0.32em">${escapeXml(spec.formatValue(value))}</text>`);
+  });
+  parts.push('</svg>');
+  return parts.join('');
+}
+
 export function escapeXml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

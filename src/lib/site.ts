@@ -127,7 +127,7 @@ export const CALCULATORS: readonly CatalogItem[] = [
     path: 'calculators/apr-apy/',
     summary: 'Convert between a stated rate and the annual percentage yield, and compare up to three accounts.',
     detail: 'Why a savings APY and a loan APR measure different things.',
-    status: 'in-development',
+    status: 'available',
   },
   {
     title: 'High-yield savings',
