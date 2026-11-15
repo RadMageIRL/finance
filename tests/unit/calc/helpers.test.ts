@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { centsToCsv, csvCell, toCsv } from '../../../src/lib/calc/csv';
 import { formatRate, formatUSD, formatUSDCompact, intlUSD } from '../../../src/lib/calc/format';
 import { parseMoney, parsePercent, parseWhole } from '../../../src/lib/calc/parse';
-import { decodeShare, encodeShare, type Schema } from '../../../src/lib/calc/share';
+import { AMOUNTS_FIELD, decodeShare, encodeShare, roundForShare, shareAmounts, type Schema } from '../../../src/lib/calc/share';
 
 describe('formatUSD', () => {
   it('formats whole cents exactly, with separators and two decimals', () => {
@@ -127,5 +127,37 @@ describe('share links (URL fragment, validated on load)', () => {
     expect(decodeShare(schema, `#s=${encodeURIComponent('v=2&p=100')}`)).toEqual({});
     expect(decodeShare(schema, '#s=%E0%A4%A')).toEqual({});
     expect(decodeShare(schema, '')).toEqual({});
+  });
+});
+
+describe('share link amounts: exact, rounded or left out', () => {
+  it('rounds each amount on its own scale to its first two digits: $12,345.67 to $12,000 and $137.50 to $140', () => {
+    expect(roundForShare(1_234_567)).toBe(1_200_000);
+    expect(roundForShare(13_750)).toBe(14_000);
+    expect(roundForShare(13_749)).toBe(14_000); // $137.49 rounds to $140 too: the step is $10
+    expect(roundForShare(13_499)).toBe(13_000);
+    expect(roundForShare(725)).toBe(700); // $7.25 to $7: never finer than a whole dollar
+    expect(roundForShare(99_999)).toBe(100_000); // $999.99 to $1,000
+    expect(roundForShare(0)).toBe(0);
+    expect(roundForShare(10_000_000_000)).toBe(10_000_000_000);
+  });
+
+  it('rejects an amount that is not whole cents', () => {
+    expect(() => roundForShare(10.5)).toThrow(RangeError);
+    expect(() => roundForShare(-100)).toThrow(RangeError);
+  });
+
+  it('keeps, rounds or removes only the money fields, and records the mode', () => {
+    const state = { p: 1_234_567, r: '5.25', c: 13_750, y: 10 };
+    expect(shareAmounts(state, ['p', 'c'], 'exact')).toEqual({ ...state, a: 'exact' });
+    expect(shareAmounts(state, ['p', 'c'], 'rounded')).toEqual({ p: 1_200_000, r: '5.25', c: 14_000, y: 10, a: 'rounded' });
+    expect(shareAmounts(state, ['p', 'c'], 'none')).toEqual({ r: '5.25', y: 10, a: 'none' });
+  });
+
+  it('a No amounts link contains no dollar amount at all', () => {
+    const schema: Schema = { p: { kind: 'int', min: 0, max: 10_000_000_000 }, y: { kind: 'int', min: 1, max: 100 }, a: AMOUNTS_FIELD };
+    const fragment = encodeShare(schema, shareAmounts({ p: 1_234_567, y: 10 }, ['p'], 'none'));
+    expect(decodeURIComponent(fragment)).toBe('s=v=1&y=10&a=none');
+    expect(decodeShare(schema, `#${fragment}`)).toEqual({ y: 10, a: 'none' });
   });
 });

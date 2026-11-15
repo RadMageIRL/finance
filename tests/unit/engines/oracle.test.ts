@@ -2,7 +2,7 @@
 // Money must match to the cent; unrounded fractions to a relative 1e-12.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { compoundInterest, type CompoundFrequency } from '../../../src/lib/engines/compound';
+import { compoundInterest, type CompoundFrequency, type ContributionFrequency } from '../../../src/lib/engines/compound';
 import { amortize } from '../../../src/lib/engines/loan';
 import { percent2Text, roundCents } from '../../../src/lib/engines/money';
 import {
@@ -27,8 +27,16 @@ function expectCloseRelative(actual: number, expected: number, tolerance = 1e-12
 }
 
 describe('oracle fixtures', () => {
-  it('were generated under the conventions this code implements (v1.1)', () => {
-    for (const f of [regdd, conversions, loans, compound]) expect(f.conventions).toBe('v1.1');
+  it('were generated under the conventions this code implements (v1.2)', () => {
+    for (const f of [regdd, conversions, loans, compound]) expect(f.conventions).toBe('v1.2');
+  });
+
+  it('cover every contribution frequency with every compounding frequency and both timings', () => {
+    const seen = new Set(compound.cases.map((c: { contribution_frequency: string; periods_per_year: number; timing: string }) => `${c.contribution_frequency} ${c.periods_per_year} ${c.contribution_frequency === 'none' ? 'end' : c.timing}`));
+    for (const f of ['weekly', 'biweekly', 'monthly', 'quarterly', 'annually']) {
+      for (const n of [1, 2, 4, 12, 365]) for (const timing of ['start', 'end']) expect(seen.has(`${f} ${n} ${timing}`), `${f} ${n} ${timing}`).toBe(true);
+    }
+    for (const n of [1, 2, 4, 12, 365]) expect(seen.has(`none ${n} end`), `none ${n}`).toBe(true);
   });
 });
 
@@ -120,6 +128,7 @@ describe('oracle: compound interest', () => {
         annualRate: Number(c.annual_rate),
         periodsPerYear: c.periods_per_year as CompoundFrequency,
         years: c.years,
+        contributionFrequency: c.contribution_frequency as ContributionFrequency,
         contribution: c.contribution_cents,
         timing: c.timing,
       });
@@ -127,10 +136,10 @@ describe('oracle: compound interest', () => {
       if (!result.ok) return;
       const r = result.value;
       expect(r.finalBalance).toBe(c.final_balance_cents);
+      expect(r.contributionCount).toBe(c.contribution_count);
       expect(r.totalContributions).toBe(c.total_contributions_cents);
       expect(r.totalInterest).toBe(c.total_interest_cents);
       expect(r.years.map((y) => [y.year, y.startBalance, y.contributions, y.interest, y.endBalance])).toEqual(c.yearly);
-      expectCloseRelative(r.closedForm, Number(c.closed_form_cents), 1e-9);
     });
   }
 });

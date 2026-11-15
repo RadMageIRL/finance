@@ -6,7 +6,8 @@ import type { Issue } from '../engines/validate';
 import { stackedColumnsSvg } from './chart';
 import { centsToCsv, toCsv } from './csv';
 import { formatInteger, formatRate, formatUSD, formatUSDCompact } from './format';
-import type { Schema } from './share';
+import { contributionOption } from './frequency';
+import { AMOUNTS_FIELD, type Schema } from './share';
 
 export const FREQUENCIES: readonly { value: CompoundFrequency; label: string; period: string; periods: string }[] = [
   { value: 1, label: 'Annually', period: 'year', periods: 'years' },
@@ -24,6 +25,7 @@ export const DEFAULT_INPUT: CompoundInput = {
   annualRate: 0.05,
   periodsPerYear: 12,
   years: 10,
+  contributionFrequency: 'monthly',
   contribution: 10_000, // $100.00 a month
   timing: 'end',
 };
@@ -52,12 +54,23 @@ export interface CompoundView {
   tooltips: string[][];
 }
 
+/** "$100.00 a month at the end of each month, 120 contributions", or "no contributions". */
+export function contributionPhrase(input: CompoundInput, result: CompoundResult): string {
+  if (input.contributionFrequency === 'none' || result.totalContributions === 0) return 'no regular contributions';
+  const o = contributionOption(input.contributionFrequency);
+  const count = `${formatInteger(result.contributionCount)} ${result.contributionCount === 1 ? 'contribution' : 'contributions'}`;
+  return `${formatUSD(input.contribution)} ${o.often} at the ${input.timing} of each ${o.interval}, ${count}`;
+}
+
 export function compoundView(input: CompoundInput, result: CompoundResult, chartWidth?: number): CompoundView {
   const freq = frequencyInfo(input.periodsPerYear);
+  const parts =
+    result.totalContributions > 0
+      ? `${formatUSD(input.principal)} starting balance, ${formatUSD(result.totalContributions)} in contributions (${contributionPhrase(input, result)}) and ${formatUSD(result.totalInterest)} in interest`
+      : `${formatUSD(input.principal)} starting balance and ${formatUSD(result.totalInterest)} in interest, with no regular contributions`;
   const summary =
     `After ${formatInteger(input.years)} ${input.years === 1 ? 'year' : 'years'}, the balance would be ${formatUSD(result.finalBalance)}: ` +
-    `${formatUSD(input.principal)} starting balance, ${formatUSD(result.totalContributions)} in contributions and ${formatUSD(result.totalInterest)} in interest, ` +
-    `at ${formatRate(input.annualRate)} compounded ${freq.label.toLowerCase()}.`;
+    `${parts}, at ${formatRate(input.annualRate)} compounded ${freq.label.toLowerCase()}.`;
 
   let contributionsToDate = 0;
   let interestToDate = 0;
@@ -114,15 +127,35 @@ export function compoundCsv(result: CompoundResult): string {
   );
 }
 
-/** Share link schema (version 1): whole cents, percent with up to 4 decimals, choices. */
+/**
+ * Share link schema (version 1): whole cents, percent with up to 4 decimals, choices, and
+ * the amounts mode `a`. The money fields (p, c) are the ones a Rounded link rounds and a
+ * No amounts link leaves out.
+ */
 export const SHARE_SCHEMA: Schema = {
   p: { kind: 'int', min: 0, max: 10_000_000_000 },
   r: { kind: 'decimal', min: 0, max: 100, decimals: 4 },
   n: { kind: 'choice', values: ['1', '2', '4', '12', '365'] },
   y: { kind: 'int', min: 1, max: 100 },
+  f: { kind: 'choice', values: ['none', 'weekly', 'biweekly', 'monthly', 'quarterly', 'annually'] },
   c: { kind: 'int', min: 0, max: 10_000_000_000 },
   t: { kind: 'choice', values: ['start', 'end'] },
+  a: AMOUNTS_FIELD,
 };
+
+export const SHARE_MONEY_KEYS = ['p', 'c'] as const;
+
+/** The share state for a scenario, before the amounts mode is applied. */
+export function compoundShareState(input: CompoundInput): Record<string, number | string> {
+  return {
+    p: input.principal,
+    r: formatRate(input.annualRate).replace('%', ''),
+    n: String(input.periodsPerYear),
+    y: input.years,
+    f: input.contributionFrequency,
+    ...(input.contributionFrequency === 'none' ? {} : { c: input.contribution, t: input.timing }),
+  };
+}
 
 /** Plain-language message for an engine issue on a field. */
 export function issueMessage(issue: Issue, label: string): string {

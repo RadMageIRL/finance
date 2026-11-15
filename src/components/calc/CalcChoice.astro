@@ -15,7 +15,7 @@ const { name, legend, value, options } = Astro.props;
     {options.map((o) => (
       <label class="choice">
         <input type="radio" name={name} value={o.value} checked={o.value === value} />
-        {o.label}
+        <span data-choice-label={o.value}>{o.label}</span>
       </label>
     ))}
   </div>

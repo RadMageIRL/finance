@@ -52,11 +52,23 @@ function exactDecimal(value: number): { digits: bigint; scale: bigint } {
  */
 export function periodicInterest(balance: Cents, annualRate: number, periodsPerYear: number): Cents {
   if (!Number.isSafeInteger(balance) || balance < 0) throw new RangeError(`periodicInterest: balance ${balance} must be whole cents, 0 or more`);
-  if (!Number.isFinite(annualRate) || annualRate < 0) throw new RangeError(`periodicInterest: rate ${annualRate} must be 0 or more`);
-  if (!Number.isInteger(periodsPerYear) || periodsPerYear < 1) throw new RangeError(`periodicInterest: ${periodsPerYear} periods per year`);
+  return averageBalanceInterest(BigInt(balance), 1, annualRate, periodsPerYear);
+}
+
+/**
+ * Interest for one period on its average daily balance, posted to the cent: the sum of the
+ * daily balances over the period (cent-days) x annualRate / (periodsPerYear x days),
+ * rounded half away from zero, computed exactly in integers (ENGINE_CONVENTIONS 5.4). With
+ * days = 1 the sum is just the balance, which is periodicInterest.
+ */
+export function averageBalanceInterest(balanceDays: bigint, days: number, annualRate: number, periodsPerYear: number): Cents {
+  if (balanceDays < 0n) throw new RangeError(`averageBalanceInterest: ${balanceDays} cent-days must be 0 or more`);
+  if (!Number.isInteger(days) || days < 1) throw new RangeError(`averageBalanceInterest: ${days} days`);
+  if (!Number.isFinite(annualRate) || annualRate < 0) throw new RangeError(`averageBalanceInterest: rate ${annualRate} must be 0 or more`);
+  if (!Number.isInteger(periodsPerYear) || periodsPerYear < 1) throw new RangeError(`averageBalanceInterest: ${periodsPerYear} periods per year`);
   const rate = exactDecimal(annualRate);
-  const numerator = BigInt(balance) * rate.digits;
-  const denominator = rate.scale * BigInt(periodsPerYear);
+  const numerator = balanceDays * rate.digits;
+  const denominator = rate.scale * BigInt(periodsPerYear) * BigInt(days);
   // floor(numerator / denominator + 1/2): half up, which is away from zero for a nonnegative value.
   return Number((2n * numerator + denominator) / (2n * denominator));
 }

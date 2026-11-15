@@ -151,13 +151,42 @@ html:not(.js) [data-js-only] {
   font-weight: 600;
 }
 
+/* Incomplete input (a shared link without amounts): the same, with a neutral message. */
+.calc__incomplete {
+  display: none;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunk);
+  font-weight: 600;
+}
+
 .calc[data-state="invalid"] .calc__values,
-.calc[data-state="invalid"] .calc-actions {
+.calc[data-state="invalid"] .calc-actions,
+.calc[data-state="incomplete"] .calc__values,
+.calc[data-state="incomplete"] .calc-actions {
   display: none;
 }
 
-.calc[data-state="invalid"] .calc__invalid {
+.calc[data-state="invalid"] .calc__invalid,
+.calc[data-state="incomplete"] .calc__incomplete {
   display: block;
+}
+
+/* A note about the shared link that set the inputs (amounts rounded or left out). */
+.calc__note {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunk);
+  font-size: var(--step--1);
+}
+
+.calc__note[hidden],
+.calc [data-contribution][hidden] {
+  display: none;
 }
 
 .calc-actions {
@@ -172,8 +201,9 @@ html:not(.js) [data-js-only] {
   background: var(--bg-sunk);
 }
 
-.calc-share > label:first-child {
+.calc-share label[for] {
   display: block;
+  margin-top: var(--space-3);
   margin-bottom: var(--space-1);
   font-size: var(--step--1);
   font-weight: 600;
@@ -191,8 +221,45 @@ html:not(.js) [data-js-only] {
 }
 
 .calc-share .choice {
-  margin-bottom: var(--space-2);
+  min-height: 44px;
   font-size: var(--step--1);
+}
+
+.calc-share__modes {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.calc-share__modes legend {
+  padding: 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.calc-share__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+.calc-share__privacy {
+  margin-top: var(--space-2);
+}
+
+.calc-share__privacy summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  font-size: var(--step--1);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calc-share__privacy ul {
+  margin: 0;
+  padding-left: var(--space-5);
 }
 
 .calc-share p {
@@ -232,7 +299,7 @@ html:not(.js) [data-js-only] {
     display: flex;
   }
 
-  .calc[data-state="invalid"] ~ .calc-sticky {
+  .calc:not([data-state="ok"]) ~ .calc-sticky {
     display: none !important;
   }
 }

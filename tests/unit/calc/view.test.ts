@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { niceTicks, stackedColumnsSvg } from '../../../src/lib/calc/chart';
-import { compoundCsv, compoundView, DEFAULT_INPUT } from '../../../src/lib/calc/compound-view';
+import { compoundCsv, compoundShareState, compoundView, DEFAULT_INPUT } from '../../../src/lib/calc/compound-view';
+import { contributionHint } from '../../../src/lib/calc/frequency';
 import { compoundInterest } from '../../../src/lib/engines/compound';
 
 function example() {
@@ -89,5 +90,36 @@ describe('compound interest view', () => {
     const lines = compoundCsv(result).trim().split('\r\n');
     expect(lines[0]).toBe('year,start_balance_usd,contributions_usd,interest_usd,end_balance_usd');
     expect(lines[10]).toBe(`10,${(result.years[9]!.startBalance / 100).toFixed(2)},1200.00,${(result.years[9]!.interest / 100).toFixed(2)},31998.39`);
+  });
+});
+
+describe('compound interest view: contribution wording', () => {
+  const view = (change: Partial<typeof DEFAULT_INPUT>) => {
+    const input = { ...DEFAULT_INPUT, ...change };
+    const result = compoundInterest(input);
+    if (!result.ok) throw new Error('scenario invalid');
+    return compoundView(input, result.value);
+  };
+
+  it('states the contribution schedule and count in the summary', () => {
+    expect(view({ years: 1, contributionFrequency: 'weekly', timing: 'start' }).summary).toContain('$100.00 a week at the start of each week, 53 contributions');
+    expect(view({}).summary).toContain('$100.00 a month at the end of each month, 120 contributions');
+  });
+
+  it('says there are no regular contributions when the frequency is none', () => {
+    const s = view({ contributionFrequency: 'none' }).summary;
+    expect(s).toContain('with no regular contributions');
+    expect(s).not.toContain('in contributions');
+  });
+
+  it('hints how often and when a contribution is added', () => {
+    expect(contributionHint('biweekly', 'end')).toBe('Added every 2 weeks, at the end of each 2-week period.');
+    expect(contributionHint('quarterly', 'start')).toBe('Added once a quarter, at the start of each quarter.');
+    expect(contributionHint('none', 'end')).toBe('No regular contributions.');
+  });
+
+  it('leaves the contribution and timing out of the share state when there are none', () => {
+    expect(compoundShareState({ ...DEFAULT_INPUT, contributionFrequency: 'none' })).toEqual({ p: 1_000_000, r: '5', n: '12', y: 10, f: 'none' });
+    expect(compoundShareState(DEFAULT_INPUT)).toEqual({ p: 1_000_000, r: '5', n: '12', y: 10, f: 'monthly', c: 10_000, t: 'end' });
   });
 });

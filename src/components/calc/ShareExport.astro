@@ -1,13 +1,18 @@
 ---
 // CSV download and share link controls. Both need JavaScript and are hidden without it.
-// The share link carries the scenario in the URL fragment (after #), which browsers never
-// send to a server.
+// The share link carries the scenario in the URL fragment (after #). The visitor chooses
+// whether dollar amounts go into it exactly, rounded, or not at all, and the panel says
+// plainly what a link can and cannot keep private.
 interface Props {
   idPrefix: string;
-  roundLabel: string;
 }
 
-const { idPrefix, roundLabel } = Astro.props;
+const { idPrefix } = Astro.props;
+const modes = [
+  { value: 'exact', label: 'Exact amounts' },
+  { value: 'rounded', label: 'Rounded amounts' },
+  { value: 'none', label: 'No amounts' },
+];
 ---
 <div class="calc-actions" data-js-only>
   <div class="button-row">
@@ -15,19 +20,33 @@ const { idPrefix, roundLabel } = Astro.props;
     <button class="button button--secondary" type="button" data-action="share" aria-expanded="false" aria-controls={`${idPrefix}-share`}>Share link</button>
   </div>
   <div class="calc-share" id={`${idPrefix}-share`} hidden>
+    <fieldset class="calc-share__modes">
+      <legend>Dollar amounts in the link</legend>
+      <div class="calc-share__options">
+        {modes.map((m) => (
+          <label class="choice">
+            <input type="radio" name={`${idPrefix}-share-amounts`} value={m.value} checked={m.value === 'exact'} data-action="amounts" />
+            {m.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <p class="small muted" data-out="share-mode-help" id={`${idPrefix}-share-mode-help`}></p>
     <label for={`${idPrefix}-share-link`}>Link to this scenario</label>
     <div class="calc-share__row">
-      <input class="input" id={`${idPrefix}-share-link`} type="text" readonly />
+      <input class="input" id={`${idPrefix}-share-link`} type="text" readonly aria-describedby={`${idPrefix}-share-preview`} />
       <button class="button" type="button" data-action="copy">Copy</button>
     </div>
-    <label class="choice">
-      <input type="checkbox" data-action="round" />
-      {roundLabel}
-    </label>
-    <p class="small muted">
-      Anyone with this link sees these numbers. They are stored in the link itself, after
-      the # sign, which browsers do not send to any server. Nothing is saved on this site.
-    </p>
+    <p class="small" data-out="share-preview" id={`${idPrefix}-share-preview`}></p>
+    <details class="calc-share__privacy">
+      <summary>What a share link keeps private, and what it does not</summary>
+      <ul class="small">
+        <li>The scenario is written into the link itself, after the # sign. Browsers do not send that part of a link to our server, and this site does not save it anywhere.</li>
+        <li>Anyone who has the link can read everything in it, amounts included.</li>
+        <li>The whole link stays wherever it goes: in your browser history and on devices that sync it, in the message, email or document you paste it into, and with the app or service that delivers it. Browser extensions you have installed can also read it.</li>
+        <li>Rounded amounts are still close to yours. Choose No amounts to leave every dollar figure out; rates, years and the other choices are still included.</li>
+      </ul>
+    </details>
     <p class="small" data-out="share-status" role="status" aria-live="polite"></p>
   </div>
 </div>

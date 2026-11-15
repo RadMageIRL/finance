@@ -1,6 +1,6 @@
 {
   "generator": "tests/oracle/generate.py",
-  "conventions": "v1.1",
+  "conventions": "v1.2",
   "cases": [
     {
       "id": "reference-30-year-6-percent",

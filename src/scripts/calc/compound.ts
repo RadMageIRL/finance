@@ -1,11 +1,12 @@
 // Compound interest calculator: reads the inputs, runs the engine, renders the results.
 
-import { compoundCsv, compoundView, frequencyInfo, issueMessage, SHARE_SCHEMA } from '../../lib/calc/compound-view';
-import { formatRate } from '../../lib/calc/format';
+import { compoundCsv, compoundShareState, compoundView, contributionPhrase, issueMessage, SHARE_MONEY_KEYS, SHARE_SCHEMA } from '../../lib/calc/compound-view';
+import { formatUSD } from '../../lib/calc/format';
+import { contributionHint, contributionOption } from '../../lib/calc/frequency';
 import { parseMoney, parsePercent, parseWhole, type Parsed } from '../../lib/calc/parse';
-import { decodeShare, encodeShare } from '../../lib/calc/share';
-import { compoundInterest, type CompoundFrequency, type CompoundInput, type CompoundResult, type ContributionTiming } from '../../lib/engines/compound';
-import { $, debounce, downloadText, setFieldError, wireChartTooltip, wireShare, wireSticky } from './kit';
+import { decodeShare, encodeShare, shareAmounts } from '../../lib/calc/share';
+import { compoundInterest, type CompoundFrequency, type CompoundInput, type CompoundResult, type ContributionFrequency, type ContributionTiming } from '../../lib/engines/compound';
+import { $, debounce, downloadText, wireCalculator, wireChartTooltip, wireShare, wireSticky, type Evaluation } from './kit';
 
 const root = document.querySelector<HTMLElement>('[data-calc="compound"]');
 
@@ -22,16 +23,18 @@ if (root) {
     principal: 'Starting balance',
     annualRate: 'Annual interest rate',
     years: 'Years',
-    contribution: 'Contribution',
+    contribution: 'Contribution amount',
     periodsPerYear: 'Compounding',
+    contributionFrequency: 'Contribution frequency',
   };
-  const frequency = $(root, '#ci-frequency') as HTMLSelectElement;
+  const compounding = $(root, '#ci-frequency') as HTMLSelectElement;
+  const contributionFrequency = $(root, '#ci-contribution-frequency') as HTMLSelectElement;
   const timing = () => (form.querySelector<HTMLInputElement>('input[name="ci-timing"]:checked')?.value ?? 'end') as ContributionTiming;
   const out = (name: string) => $(page, `[data-out="${name}"]`);
-  const contributionHint = $(root, '#ci-contribution-hint');
+  const contributionFields = root.querySelectorAll<HTMLElement>('[data-contribution]');
+  const contributionHintEl = $(root, '#ci-contribution-hint');
+  const sharedNote = out('shared-note');
 
-  let lastInput: CompoundInput | null = null;
-  let lastResult: CompoundResult | null = null;
   let tooltips: string[][] = [];
 
   const parseMessages: Record<string, (label: string) => string> = {
@@ -40,29 +43,48 @@ if (root) {
     'too-many-decimals': (label) => (label === 'Years' ? 'Years must be a whole number.' : label.includes('rate') ? 'Use at most four decimal places.' : 'Use at most two decimal places (cents).'),
   };
 
-  function read(): { input: CompoundInput | null; errors: Map<string, string> } {
+  /** Shows or hides the amount and timing fields, which mean nothing without contributions. */
+  function syncContributionFields(): void {
+    const frequency = contributionFrequency.value as ContributionFrequency;
+    for (const el of contributionFields) el.hidden = frequency === 'none';
+    contributionHintEl.textContent = contributionHint(frequency, timing());
+    const interval = contributionOption(frequency).interval;
+    if (interval) {
+      $(root!, '[data-choice-label="end"]').textContent = `End of each ${interval}`;
+      $(root!, '[data-choice-label="start"]').textContent = `Start of each ${interval}`;
+    }
+  }
+
+  function evaluate(): Evaluation<CompoundInput, CompoundResult> {
+    syncContributionFields();
     const errors = new Map<string, string>();
     const take = <T>(key: keyof typeof fields, parsed: Parsed<T>): T | undefined => {
       if (parsed.ok) return parsed.value;
       errors.set(key, parseMessages[parsed.reason]!(labels[key]!));
       return undefined;
     };
+    const frequency = contributionFrequency.value as ContributionFrequency;
     const principal = take('principal', parseMoney(fields.principal.value));
-    const ratePercent = take('annualRate', parsePercent(fields.annualRate.value));
+    const annualRate = take('annualRate', parsePercent(fields.annualRate.value));
     const years = take('years', parseWhole(fields.years.value));
-    const contribution = take('contribution', parseMoney(fields.contribution.value));
-    if (errors.size) return { input: null, errors };
-    return {
-      input: {
-        principal: principal!,
-        annualRate: ratePercent!,
-        periodsPerYear: Number(frequency.value) as CompoundFrequency,
-        years: years!,
-        contribution: contribution!,
-        timing: timing(),
-      },
-      errors,
+    // Without contributions the amount field is hidden and ignored, whatever it holds.
+    const contribution = frequency === 'none' ? 0 : take('contribution', parseMoney(fields.contribution.value));
+    if (errors.size) return { input: null, result: null, errors };
+    const input: CompoundInput = {
+      principal: principal!,
+      annualRate: annualRate!,
+      periodsPerYear: Number(compounding.value) as CompoundFrequency,
+      years: years!,
+      contributionFrequency: frequency,
+      contribution: contribution!,
+      timing: timing(),
     };
+    const computed = compoundInterest(input);
+    if (!computed.ok) {
+      for (const issue of computed.issues) errors.set(issue.field, issueMessage(issue, labels[issue.field] ?? issue.field));
+      return { input: null, result: null, errors };
+    }
+    return { input, result: computed.value, errors };
   }
 
   const chartBox = $(page, '[data-chart]');
@@ -102,69 +124,74 @@ if (root) {
     tooltips = view.tooltips;
   }
 
-  function update(announce: boolean) {
-    const { input, errors } = read();
-    let result: CompoundResult | null = null;
-    if (input) {
-      const computed = compoundInterest(input);
-      if (computed.ok) result = computed.value;
-      else for (const issue of computed.issues) errors.set(issue.field, issueMessage(issue, labels[issue.field] ?? issue.field));
-    }
-    for (const [key, el] of Object.entries(fields)) setFieldError(el, errors.get(key) ?? null);
-    contributionHint.textContent = `Added once a ${frequencyInfo(Number(frequency.value) as CompoundFrequency).period}, at its ${timing()}. Enter 0 for none.`;
+  const calc = wireCalculator({
+    root,
+    form,
+    fields,
+    evaluate,
+    render,
+    status: out('status'),
+    announce: (_input, result) => `Projected balance ${formatUSD(result.finalBalance)}.`,
+    changed: (current) => {
+      if (!current) tooltips = [];
+      share.refresh();
+    },
+  });
 
-    if (!input || !result) {
-      root!.dataset.state = 'invalid';
-      lastInput = null;
-      lastResult = null;
-      tooltips = [];
-      if (announce) out('status').textContent = 'Results hidden until the highlighted entries are fixed.';
-      return;
-    }
-    root!.dataset.state = 'ok';
-    lastInput = input;
-    lastResult = result;
-    render(input, result);
-    share.refresh();
-    if (announce) out('status').textContent = `Projected balance ${out('final').textContent}.`;
-  }
-
-  // Share links: whole cents, the rate as a percent, and the two choices.
-  const share = wireShare(root, 'ci', (round) => {
-    if (!lastInput) return '';
-    const principal = round ? Math.round(lastInput.principal / 100_000) * 100_000 : lastInput.principal;
-    return encodeShare(SHARE_SCHEMA, {
-      p: principal,
-      r: formatRate(lastInput.annualRate).replace('%', ''),
-      n: String(lastInput.periodsPerYear),
-      y: lastInput.years,
-      c: lastInput.contribution,
-      t: lastInput.timing,
-    });
+  // Share links: the scenario in the fragment, with the amounts exact, rounded or left out.
+  // A rounded link's results are recalculated from its rounded amounts, as the person
+  // opening it will see them.
+  const share = wireShare(root, 'ci', (mode) => {
+    const current = calc.current();
+    if (!current) return null;
+    const state = shareAmounts(compoundShareState(current.input), SHARE_MONEY_KEYS, mode);
+    const fragment = encodeShare(SHARE_SCHEMA, state);
+    if (mode === 'none') return { fragment, preview: 'The link opens with the dollar amounts left blank.' };
+    const shared: CompoundInput = { ...current.input, principal: state.p as number, contribution: typeof state.c === 'number' ? state.c : 0 };
+    const recomputed = compoundInterest(shared);
+    if (!recomputed.ok) return { fragment, preview: '' };
+    const what = mode === 'rounded'
+      ? `The link opens with a starting balance of ${formatUSD(shared.principal)}, ${contributionPhrase(shared, recomputed.value)}, and a projected balance of ${formatUSD(recomputed.value.finalBalance)}.`
+      : `The link opens with a projected balance of ${formatUSD(recomputed.value.finalBalance)}.`;
+    return { fragment, preview: what };
   });
 
   function applyShared(): void {
     const state = decodeShare(SHARE_SCHEMA, location.hash);
+    if (!Object.keys(state).length) return;
     const money = (cents: number) => (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (typeof state.p === 'number') fields.principal.value = money(state.p);
+    const leftOut: string[] = [];
+    const amount = (key: 'principal' | 'contribution', value: unknown) => {
+      if (typeof value === 'number') fields[key].value = money(value);
+      else if (state.a === 'none') {
+        fields[key].value = '';
+        leftOut.push(key);
+      }
+    };
+    amount('principal', state.p);
     if (typeof state.r === 'number') fields.annualRate.value = String(state.r);
-    if (typeof state.n === 'string') frequency.value = state.n;
+    if (typeof state.n === 'string') compounding.value = state.n;
     if (typeof state.y === 'number') fields.years.value = String(state.y);
-    if (typeof state.c === 'number') fields.contribution.value = money(state.c);
+    if (typeof state.f === 'string') contributionFrequency.value = state.f;
+    amount('contribution', state.c);
     if (typeof state.t === 'string') {
       const radio = form.querySelector<HTMLInputElement>(`input[name="ci-timing"][value="${state.t}"]`);
       if (radio) radio.checked = true;
     }
+    calc.leaveBlank(leftOut);
+    sharedNote.textContent =
+      state.a === 'none'
+        ? 'This shared link leaves out the dollar amounts. Enter your own to see results.'
+        : state.a === 'rounded'
+          ? 'The amounts in this shared link were rounded, so these results may differ a little from the ones that were shared.'
+          : '';
+    sharedNote.hidden = sharedNote.textContent === '';
   }
 
   $(root, '[data-action="csv"]').addEventListener('click', () => {
-    if (lastResult) downloadText('compound-interest.csv', compoundCsv(lastResult));
+    const current = calc.current();
+    if (current) downloadText('compound-interest.csv', compoundCsv(current.result));
   });
-
-  const later = debounce(() => update(true), 250);
-  form.addEventListener('input', (event) => (event.target instanceof HTMLSelectElement || (event.target as HTMLInputElement).type === 'radio' ? update(true) : later()));
-  form.addEventListener('change', () => update(true));
-  form.addEventListener('submit', (event) => event.preventDefault());
 
   wireChartTooltip(chartBox, () => tooltips);
 
@@ -174,9 +201,10 @@ if (root) {
     new ResizeObserver(
       debounce(() => {
         const next = chartWidth();
-        if (next !== width && lastInput && lastResult) {
+        const current = calc.current();
+        if (next !== width && current) {
           width = next;
-          out('chart').innerHTML = compoundView(lastInput, lastResult, next).chartSvg;
+          out('chart').innerHTML = compoundView(current.input, current.result, next).chartSvg;
         }
       }, 100),
     ).observe(chartBox);
@@ -186,9 +214,9 @@ if (root) {
   // A different share link pasted into this tab changes only the fragment: apply it too.
   window.addEventListener('hashchange', () => {
     applyShared();
-    update(true);
+    calc.refresh(true);
   });
 
   applyShared();
-  update(false);
+  calc.refresh(false);
 }

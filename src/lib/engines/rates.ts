@@ -79,8 +79,11 @@ export function dailyCompoundedInterest(principal: Cents, segments: readonly Rat
 /**
  * Interest on a single deposit with no transactions, compounded daily on a 365-day basis
  * and credited, rounded to the cent, at the end of each 365-day year of the term and at
- * maturity (ENGINE_CONVENTIONS section 4, v1.1). A rate change inside a year is not a
- * crediting point. This reproduces every Regulation DD Appendix A example.
+ * maturity; a rate change inside a year is not a crediting point (ENGINE_CONVENTIONS
+ * section 4). This crediting rule is an inference: Regulation DD Appendix A does not say
+ * when its example accounts credit interest, and this is the rule that reproduces every
+ * published figure. It is used only for those examples. It is not a required crediting
+ * practice: 12 CFR 1030.7(b) lets institutions compound and credit at any frequency.
  */
 export function creditedDailyInterest(principal: Cents, segments: readonly RateSegment[]): Cents {
   if (!Number.isInteger(principal) || principal < 0) throw new RangeError('principal must be whole cents, 0 or more');

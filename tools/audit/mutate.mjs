@@ -41,11 +41,26 @@ const MUTANTS = [
   ['nominal-n-minus-one', `${E}rates.ts`, 'periodsPerYear * Math.expm1(Math.log1p(apy) / periodsPerYear)', '(periodsPerYear - 1) * Math.expm1(Math.log1p(apy) / periodsPerYear)'],
   ['credit-late', `${E}rates.ts`, 'if (daysInPeriod === DAYS_IN_YEAR) credit();', 'if (daysInPeriod === DAYS_IN_YEAR + 1) credit();'],
   ['credit-only-at-maturity', `${E}rates.ts`, 'if (daysInPeriod === DAYS_IN_YEAR) credit();', 'if (false) credit();'],
+  // Exact average-balance posting (money.ts averageBalanceInterest)
+  ['average-days-ignored', `${E}money.ts`, 'const denominator = rate.scale * BigInt(periodsPerYear) * BigInt(days);', 'const denominator = rate.scale * BigInt(periodsPerYear);'],
+  // Calendar (calendar.ts)
+  ['calendar-30-day-months', `${E}calendar.ts`, 'export const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const;', 'export const MONTH_DAYS = [30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30] as const;'],
+  ['calendar-february-30', `${E}calendar.ts`, 'export const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const;', 'export const MONTH_DAYS = [31, 30, 31, 30, 31, 30, 31, 31, 30, 31, 30, 29] as const;'],
+  ['calendar-weekly-6-days', `${E}calendar.ts`, '{ weekly: 7, biweekly: 14 }', '{ weekly: 6, biweekly: 14 }'],
+  ['calendar-biweekly-15-days', `${E}calendar.ts`, '{ weekly: 7, biweekly: 14 }', '{ weekly: 7, biweekly: 15 }'],
+  ['calendar-quarters-shifted', `${E}calendar.ts`, '4: [MONTH_STARTS[0]!, MONTH_STARTS[3]!, MONTH_STARTS[6]!, MONTH_STARTS[9]!],', '4: [MONTH_STARTS[0]!, MONTH_STARTS[2]!, MONTH_STARTS[5]!, MONTH_STARTS[8]!],'],
+  ['calendar-half-year-june', `${E}calendar.ts`, '2: [MONTH_STARTS[0]!, MONTH_STARTS[6]!],', '2: [MONTH_STARTS[0]!, MONTH_STARTS[5]!],'],
+  ['calendar-start-includes-term-end', `${E}calendar.ts`, 'intervals.filter((t) => t < term) : intervals', 'intervals.filter((t) => t <= term) : intervals'],
+  ['calendar-end-includes-day-0', `${E}calendar.ts`, ': intervals.filter((t) => t > 0);', ': intervals.filter((t) => t >= 0);'],
   // Compound interest (compound.ts)
-  ['compound-periods-up', `${E}compound.ts`, 'periodicInterest(balance, annualRate, n);', 'periodicInterest(balance, annualRate, n + 1);'],
-  ['compound-periods-down', `${E}compound.ts`, 'periodicInterest(balance, annualRate, n);', 'periodicInterest(balance, annualRate, Math.max(1, n - 1));'],
-  ['compound-timing-swapped', `${E}compound.ts`, "if (timing === 'start') balance += contribution;", "if (timing === 'end') balance += contribution;"],
-  ['compound-contributions-total', `${E}compound.ts`, 'contributions: contribution * n,', 'contributions: contribution * (n + 1),'],
+  ['compound-periods-up', `${E}compound.ts`, 'averageBalanceInterest(balanceDays, days, annualRate, n);', 'averageBalanceInterest(balanceDays, days, annualRate, n + 1);'],
+  ['compound-periods-down', `${E}compound.ts`, 'averageBalanceInterest(balanceDays, days, annualRate, n);', 'averageBalanceInterest(balanceDays, days, annualRate, Math.max(1, n - 1));'],
+  ['compound-held-days-plus-one', `${E}compound.ts`, 'heldDays += end - deposits[next]!;', 'heldDays += end - deposits[next]! + 1;'],
+  ['compound-held-whole-period', `${E}compound.ts`, 'heldDays += end - deposits[next]!;', 'heldDays += days;'],
+  ['compound-held-no-days', `${E}compound.ts`, 'heldDays += end - deposits[next]!;', 'heldDays += 0;'],
+  ['compound-belongs-swapped', `${E}compound.ts`, "timing === 'start' ? (t: number, end: number) => t < end : (t: number, end: number) => t <= end;", "timing === 'start' ? (t: number, end: number) => t <= end : (t: number, end: number) => t < end;"],
+  ['compound-year-count', `${E}compound.ts`, 'contributions: contribution * yearCount,', 'contributions: contribution * (yearCount + 1),'],
+  ['compound-none-validates', `${E}compound.ts`, "&& input.contributionFrequency !== 'none') {", '&& true) {'],
   ['compound-cap-doubled', `${E}compound.ts`, 'if (balance > Number.MAX_SAFE_INTEGER) {', 'if (balance > 2 * Number.MAX_SAFE_INTEGER) {'],
   // Loans (loan.ts)
   ['loan-months-per-year-11', `${E}loan.ts`, 'return periodicInterest(balance, annualRate, 12);', 'return periodicInterest(balance, annualRate, 11);'],
@@ -63,6 +78,8 @@ const MUTANTS = [
 ];
 
 // Equivalent mutants, deliberately not listed because no test can tell them apart:
+// - compound.ts using `input.contribution` when the frequency is none: there are no
+//   contribution dates then, so the amount is multiplied by zero everywhere.
 // - loan.ts `balance + interest <= payment` changed to `<`: when balance + interest equals
 //   the payment exactly, the regular branch posts principal = balance, extra = min(due, 0)
 //   = 0 and a zero balance, which is the same row the final-payment branch posts.

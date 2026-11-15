@@ -12,14 +12,33 @@ const dollars = (cents: number) => {
   return `${sign}$${Math.floor(abs / 100).toLocaleString('en-US')}.${String(abs % 100).padStart(2, '0')}`;
 };
 
-async function fill(page: Page, values: { principal?: string; rate?: string; years?: string; contribution?: string; frequency?: string; timing?: 'start' | 'end' }) {
+async function fill(page: Page, values: { principal?: string; rate?: string; years?: string; contribution?: string; frequency?: string; every?: string; timing?: 'start' | 'end' }) {
+  if (values.every !== undefined) await page.selectOption('#ci-contribution-frequency', values.every);
   if (values.principal !== undefined) await page.fill('#ci-principal', values.principal);
   if (values.rate !== undefined) await page.fill('#ci-rate', values.rate);
   if (values.years !== undefined) await page.fill('#ci-years', values.years);
-  if (values.contribution !== undefined) await page.fill('#ci-contribution', values.contribution);
+  if (values.contribution !== undefined && values.every !== 'none') await page.fill('#ci-contribution', values.contribution);
   if (values.frequency !== undefined) await page.selectOption('#ci-frequency', values.frequency);
-  if (values.timing !== undefined) await page.check(`input[name="ci-timing"][value="${values.timing}"]`);
+  if (values.timing !== undefined && values.every !== 'none') await page.check(`input[name="ci-timing"][value="${values.timing}"]`);
 }
+
+interface Case {
+  id: string;
+  principal_cents: number;
+  annual_rate: string;
+  periods_per_year: number;
+  years: number;
+  contribution_frequency: string;
+  contribution_cents: number;
+  timing: 'start' | 'end';
+  final_balance_cents: number;
+  total_interest_cents: number;
+  yearly: number[][];
+}
+
+/** The first oracle case matching a description, so the tests do not depend on case ids. */
+const pick = (want: Partial<Case>, extra: (c: Case) => boolean = () => true): Case | undefined =>
+  (compound.cases as Case[]).find((c) => Object.entries(want).every(([k, v]) => c[k as keyof Case] === v) && extra(c));
 
 const hero = (page: Page) => page.locator('[data-out="final"]');
 
@@ -44,25 +63,68 @@ test.describe('compound interest calculator', () => {
     }
   });
 
-  for (const id of ['n12-end', 'n365-start', 'n1-start', 'n4-end', 'exact-half-annual-10-cents', 'exact-half-daily-3650-cents', 'daily-5.25-percent-30-years-contribution-1000-start']) {
-    test(`displays the oracle's result for ${id} to the cent`, async ({ page }) => {
-      const c = compound.cases.find((x: { id: string }) => x.id === id);
-      test.skip(!c, `fixture ${id} not present`);
+  const displayed: [string, Case | undefined][] = [
+    ['weekly contributions, daily compounding, start timing', pick({ contribution_frequency: 'weekly', periods_per_year: 365, timing: 'start' })],
+    ['biweekly contributions, monthly compounding, end timing', pick({ contribution_frequency: 'biweekly', periods_per_year: 12, timing: 'end' })],
+    ['weekly contributions inside quarterly compounding periods', pick({ contribution_frequency: 'weekly', periods_per_year: 4, timing: 'end' })],
+    ['monthly contributions, daily compounding', pick({ contribution_frequency: 'monthly', periods_per_year: 365, timing: 'start' })],
+    ['monthly contributions, monthly compounding', pick({ contribution_frequency: 'monthly', periods_per_year: 12, timing: 'end' })],
+    ['annual contributions, semiannual compounding', pick({ contribution_frequency: 'annually', periods_per_year: 2, timing: 'start' })],
+    ['quarterly contributions, annual compounding', pick({ contribution_frequency: 'quarterly', periods_per_year: 1, timing: 'end' })],
+    ['no contributions', pick({ contribution_frequency: 'none', periods_per_year: 365 })],
+    ['a long weekly case', pick({ contribution_frequency: 'weekly' }, (c) => c.years >= 30)],
+  ];
+  for (const [name, c] of displayed) {
+    test(`displays the oracle's result to the cent: ${name}`, async ({ page }) => {
+      test.skip(!c, `no fixture for ${name}`);
       await page.goto(PAGE);
       await fill(page, {
-        principal: (c.principal_cents / 100).toFixed(2),
-        rate: percentText(c.annual_rate),
-        years: String(c.years),
-        contribution: (c.contribution_cents / 100).toFixed(2),
-        frequency: String(c.periods_per_year),
-        timing: c.timing,
+        every: c!.contribution_frequency,
+        principal: (c!.principal_cents / 100).toFixed(2),
+        rate: percentText(c!.annual_rate),
+        years: String(c!.years),
+        contribution: (c!.contribution_cents / 100).toFixed(2),
+        frequency: String(c!.periods_per_year),
+        timing: c!.timing,
       });
-      await expect(hero(page)).toHaveText(dollars(c.final_balance_cents));
-      await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c.total_interest_cents));
+      await expect(hero(page)).toHaveText(dollars(c!.final_balance_cents));
+      await expect(page.locator('[data-out="interest"]')).toHaveText(dollars(c!.total_interest_cents));
       const lastRow = page.locator('.calc-table tbody tr').last();
-      await expect(lastRow.locator('td').last()).toHaveText(dollars(c.yearly.at(-1)[4]));
+      await expect(lastRow.locator('td').last()).toHaveText(dollars(c!.yearly.at(-1)![4]!));
     });
   }
+
+  test('without contributions, the amount and timing fields are hidden and ignored', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.fill('#ci-contribution', 'not a number');
+    await page.selectOption('#ci-contribution-frequency', 'none');
+    await expect(page.locator('#ci-contribution')).toBeHidden();
+    await expect(page.locator('input[name="ci-timing"]').first()).toBeHidden();
+    await expect(page.locator('.calc')).toHaveAttribute('data-state', 'ok');
+    await expect(page.locator('[data-out="contributions"]')).toHaveText('$0.00');
+    await page.selectOption('#ci-contribution-frequency', 'weekly');
+    await expect(page.locator('#ci-contribution')).toBeVisible();
+    await expect(page.locator('#ci-contribution-error')).toContainText('as a number');
+    await expect(page.locator('[data-choice-label="start"]')).toHaveText('Start of each week');
+    await expect(page.locator('#ci-contribution-hint')).toHaveText('Added once a week, at the end of each week.');
+  });
+
+  test('withholds the results the moment an edit makes the input invalid, before any message appears', async ({ page }) => {
+    await page.goto(PAGE);
+    await expect(hero(page)).toHaveText(EXAMPLE_FINAL);
+    // Edit and read the state in one step: no 250 ms pause has passed yet.
+    const state = await page.evaluate(() => {
+      const rate = document.querySelector<HTMLInputElement>('#ci-rate')!;
+      rate.value = '150';
+      rate.dispatchEvent(new Event('input', { bubbles: true }));
+      return { state: document.querySelector<HTMLElement>('.calc')!.dataset.state, invalid: rate.getAttribute('aria-invalid') };
+    });
+    expect(state).toEqual({ state: 'invalid', invalid: null });
+    await expect(hero(page)).toBeHidden();
+    // After the pause the field explains the problem.
+    await expect(page.locator('#ci-rate')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#ci-rate-error')).toContainText('100%');
+  });
 
   test('breakdown adds up to the final balance exactly', async ({ page }) => {
     await page.goto(PAGE);
@@ -93,24 +155,72 @@ test.describe('compound interest calculator', () => {
   test('a share link restores every input, and malformed links are ignored', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto(PAGE);
-    await fill(page, { principal: '7,500', rate: '3.75', years: '12', contribution: '50', frequency: '4', timing: 'start' });
+    await fill(page, { every: 'biweekly', principal: '7,500', rate: '3.75', years: '12', contribution: '50', frequency: '4', timing: 'start' });
     const final = await hero(page).textContent();
     await page.click('[data-action="share"]');
     const link = await page.locator('#ci-share-link').inputValue();
     expect(link).toContain('#s=');
     expect(new URL(link).search).toBe('');
+    await expect(page.locator('[data-out="share-preview"]')).toContainText(final!);
     const fresh = await context.newPage();
     await fresh.goto(link);
     await expect(fresh.locator('#ci-principal')).toHaveValue('7,500.00');
+    await expect(fresh.locator('#ci-contribution-frequency')).toHaveValue('biweekly');
     await expect(hero(fresh)).toHaveText(final!);
+    await expect(fresh.locator('[data-out="shared-note"]')).toBeHidden();
     // A second link in the same tab changes only the fragment; the calculator follows it.
     await fresh.goto(`${PAGE}#${link.split('#')[1]!.replace(encodeURIComponent('y=12'), encodeURIComponent('y=20'))}`);
     await expect(fresh.locator('#ci-years')).toHaveValue('20');
     // A malformed link in a new tab is ignored field by field, falling back to the example.
     const other = await context.newPage();
-    await other.goto(`${PAGE}#s=${encodeURIComponent('v=1&p=-5&r=999&n=7&x=1')}`);
+    await other.goto(`${PAGE}#s=${encodeURIComponent('v=1&p=-5&r=999&n=7&f=daily&x=1')}`);
     await expect(hero(other)).toHaveText(EXAMPLE_FINAL);
     await expect(other.locator('#ci-rate')).toHaveValue('5');
+  });
+
+  test('a rounded share link rounds each amount separately and recalculates from them', async ({ page, context }) => {
+    await page.goto(PAGE);
+    await fill(page, { principal: '12,345.67', contribution: '137.50' });
+    await page.click('[data-action="share"]');
+    await page.check('input[name="ci-share-amounts"][value="rounded"]');
+    const link = await page.locator('#ci-share-link').inputValue();
+    const inner = decodeURIComponent(link.split('#s=')[1]!);
+    expect(inner).toContain('p=1200000');
+    expect(inner).toContain('c=14000');
+    expect(inner).toContain('a=rounded');
+    expect(inner).not.toContain('1234567');
+    const fresh = await context.newPage();
+    await fresh.goto(link);
+    await expect(fresh.locator('#ci-principal')).toHaveValue('12,000.00');
+    await expect(fresh.locator('#ci-contribution')).toHaveValue('140.00');
+    await expect(fresh.locator('[data-out="shared-note"]')).toContainText('rounded');
+    // The preview the sharer saw is what the person opening the link gets.
+    await expect(page.locator('[data-out="share-preview"]')).toContainText((await hero(fresh).textContent())!);
+  });
+
+  test('a No amounts share link carries no dollar amount and asks for them without errors', async ({ page, context }) => {
+    await page.goto(PAGE);
+    await fill(page, { principal: '54,321.09', contribution: '432.10' });
+    await page.click('[data-action="share"]');
+    await page.check('input[name="ci-share-amounts"][value="none"]');
+    const link = await page.locator('#ci-share-link').inputValue();
+    const inner = decodeURIComponent(link.split('#s=')[1]!);
+    expect(inner).not.toMatch(/(^|&)(p|c)=/);
+    expect(inner).not.toContain('5432109');
+    expect(inner).toContain('a=none');
+    const fresh = await context.newPage();
+    await fresh.goto(link);
+    await expect(fresh.locator('#ci-principal')).toHaveValue('');
+    await expect(fresh.locator('#ci-contribution')).toHaveValue('');
+    await expect(fresh.locator('.calc')).toHaveAttribute('data-state', 'incomplete');
+    await expect(fresh.locator('[data-out="incomplete"]')).toBeVisible();
+    await expect(fresh.locator('[data-out="shared-note"]')).toContainText('leaves out the dollar amounts');
+    await expect(fresh.locator('#ci-principal')).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(hero(fresh)).toBeHidden();
+    await fresh.fill('#ci-principal', '1,000');
+    await fresh.fill('#ci-contribution', '10');
+    await expect(fresh.locator('.calc')).toHaveAttribute('data-state', 'ok');
+    await expect(hero(fresh)).toBeVisible();
   });
 
   test('downloads the yearly table as CSV with unformatted numbers', async ({ page }) => {
@@ -187,6 +297,8 @@ test.describe('compound interest calculator', () => {
       const page = await context.newPage();
       await page.goto(PAGE);
       await page.locator('.calc-table summary').click();
+      await page.click('[data-action="share"]');
+      await page.locator('.calc-share__privacy summary').click();
       const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
       expect((await new AxeBuilder({ page }).withTags(tags).analyze()).violations.map((v) => v.id)).toEqual([]);
       await page.fill('#ci-years', '0');
