@@ -52,6 +52,6 @@ describe('What Is Money? data', () => {
 
   it('states time-sensitive facts with their date', () => {
     expect(INSTRUMENTS.find((i) => i.id === 'reserves')!.answers.backing.text).toMatch(/3\.90 percent as of October 29, 2026/);
-    expect(INSTRUMENTS.find((i) => i.id === 'stablecoins')!.answers.legal.text).toMatch(/as of November 15, 2026/);
+    expect(INSTRUMENTS.find((i) => i.id === 'stablecoins')!.answers.legal.text).toMatch(/as of November 16, 2026/);
   });
 });

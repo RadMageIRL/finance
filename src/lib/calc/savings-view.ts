@@ -60,9 +60,9 @@ export const SAVINGS_ASSUMPTIONS: readonly string[] = [
 ];
 
 export const SAVINGS_SOURCES: readonly string[] = [
-  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.4, 1030.6, 1030.7 and appendix A, and the official commentary (Supplement I). Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
-  '12 CFR part 229 (Regulation CC, Availability of Funds and Collection of Checks), sections 229.14 and 229.19. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
-  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
+  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.4, 1030.6, 1030.7 and appendix A, and the official commentary (Supplement I). Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 16, 2026.',
+  '12 CFR part 229 (Regulation CC, Availability of Funds and Collection of Checks), sections 229.14 and 229.19. Code of Federal Regulations, revised as of January 1, 2025, verified November 16, 2026.',
+  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 16, 2026.',
 ];
 
 /** An APY as disclosed: two decimals (12 CFR 1030.3(f)(1)). */

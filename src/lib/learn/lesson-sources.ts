@@ -1,10 +1,10 @@
-// Sources for How Banks Create Money and How Money Flows, checked on November 15, 2026
+// Sources for How Banks Create Money and How Money Flows, checked on November 16, 2026
 // (local/research/m18/REPORT.md). Each lesson numbers its own list.
 
 import type { Source } from './money';
 
-export const LESSONS_REVIEWED = '2026-11-15';
-export const LESSONS_REVIEWED_LABEL = 'November 15, 2026';
+export const LESSONS_REVIEWED = '2026-11-16';
+export const LESSONS_REVIEWED_LABEL = 'November 16, 2026';
 
 const BOE: Source = { id: 'boe-2014', publisher: 'Bank of England, Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas)', title: 'Money creation in the modern economy', date: 'March 14, 2014', url: 'https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/2014/money-creation-in-the-modern-economy.pdf' };
 const FEDS_2022: Source = { id: 'feds-2022', publisher: 'Board of Governors of the Federal Reserve System, FEDS Notes (Castro, Cavallo and Zarutskie)', title: 'Understanding Bank Deposit Growth during the COVID-19 Pandemic', date: 'June 3, 2022', url: 'https://www.federalreserve.gov/econres/notes/feds-notes/understanding-bank-deposit-growth-during-the-covid-19-pandemic-20220603.html' };

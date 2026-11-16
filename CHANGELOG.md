@@ -2,7 +2,7 @@
 
 All notable changes to RadMage Finance are recorded here.
 
-## Unreleased
+## 0.1.0 (2026-11-16)
 
 ### Added
 
@@ -33,9 +33,11 @@ All notable changes to RadMage Finance are recorded here.
 - A strict Content Security Policy on every page, no third-party requests and no cookies.
 - Local checks: house-style text scan, type check, unit tests, build output checks (links, origins, metadata, sitemap, page weight, words run into links), and browser tests for the theme, accessibility in every theme, layout at 320 px, privacy, and the reports (offline viewing, print layout, CSV values).
 - Schedules by year on all five calculators: each year has a button that shows its months underneath (its payments on the loan calculators), one year at a time or with Expand all and Collapse all, by mouse or keyboard. The months are the engine's own month rows, never a year divided by twelve, and each year's month table ends with the year's totals, which match the year's row. On the APR and APY page the months show each account's opening balance, interest accrued, interest credited and closing balance, and how far each later account is from the first (calculation conventions v1.7 define the illustration's accrued interest; the independent oracle checks it). The Chart, Table and Both views and the Day, Month and Year groupings are unchanged. A new export option includes each year's months under the year in the HTML report and the printout and makes the CSV the full monthly schedule, whatever is expanded on the page. The loan month column is now "Regular payment".
+- Release tooling: the MIT License for the original application code, a manual GitHub Pages workflow (`.github/workflows/pages.yml`), `tools/dist-manifest.mjs` (SHA-256 of every built file, to compare a deployment with a local build) and `tools/verify-prod.mjs` (read-only checks of a deployment: pages, canonicals, headers, the 404 page, redirects, sitemap and the other RadMage Labs apps).
 
 ### Changed
 
+- Privacy: names the services that deliver the pages (Vercel for radmagelabs.com, which fetches them from GitHub Pages) and quotes what each says it logs, with links to their privacy statements.
 - How Banks Create Money and How Money Flows: the simulator's 5 percent capital rule is labeled a hypothetical rule for teaching, not a regulatory minimum, in the lesson text, the step, the free-mode switch and its refusal message, and in each lesson's list of simplifications.
 - Write-offs: the lessons now say that a charge-off is the bank's accounting entry and does not cancel the borrower's debt (citing the OCC), that the simulation also removes the loan from the borrower's balance sheet as if forgiven, and the free-mode action is named "writes off and forgives a loan". The flow view draws a write-off as the bank writing off the loan instead of as a repayment.
 - The money multiplier quote is attributed to its authors at the Federal Reserve Board and the St. Louis Fed instead of to St. Louis Fed economists.

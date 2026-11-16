@@ -153,7 +153,7 @@ export const CALCULATORS: readonly CatalogItem[] = [
 ];
 
 /** The date the Phase 1 pages' text and facts were last reviewed. */
-export const PHASE1_REVIEWED = '2026-11-15';
+export const PHASE1_REVIEWED = '2026-11-16';
 
 const ORGANIZATION = { '@type': 'Organization', name: SITE.publisher, url: SITE.publisherUrl } as const;
 

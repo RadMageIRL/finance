@@ -1,8 +1,8 @@
 # RadMage Finance
 
-A free financial education and research site from RadMage Labs, planned for `https://radmagelabs.com/finance/`.
+A free financial education and research site from RadMage Labs at `https://radmagelabs.com/finance/`.
 
-**Status: v0.1.0 release candidate, not yet published.** Phase 1 is complete: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
+**Version 0.1.0 (2026-11-16).** Phase 1: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
 
 ## What it will be
 
@@ -36,3 +36,18 @@ npm run preview   # serve the build at http://127.0.0.1:4329/finance/
 npm run check     # full local check: text rules, oracle fixtures, types, unit tests, test-integrity audits, build, output checks, browser tests
 node tools/dist-manifest.mjs > SHA256SUMS.txt   # checksums of the build in dist/
 ```
+
+## Release and deployment
+
+The site is published to GitHub Pages by `.github/workflows/pages.yml`, which runs only by hand, and the RadMage Labs site serves it at `https://radmagelabs.com/finance/` through a rewrite to `https://radmageirl.github.io/finance/`. The repository name matches the `/finance/` base path, so both addresses work.
+
+1. Recheck every dated fact the pages cite, bump the review dates, and run `npm run check`; every step must pass.
+2. Commit, tag the release (`vX.Y.Z`), push, and run the workflow (`gh workflow run pages.yml`).
+3. Compare the SHA-256 list in the workflow log with `node tools/dist-manifest.mjs` from a local build of the same commit. Builds of one commit match within a calendar month: the loan calculators' default first payment is the month after the build.
+4. Verify the deployment: `node tools/verify-prod.mjs https://radmageirl.github.io --origin-only` for GitHub Pages, and `node tools/verify-prod.mjs` for `radmagelabs.com` (pages, canonicals, security headers, the 404 page, trailing-slash redirects, sitemap, `robots.txt`, and the other RadMage Labs apps).
+
+Rollback: run the workflow again from the previous release tag. If the problem is in the RadMage Labs routing, revert that change in the Labs repository.
+
+## License
+
+The original application code in this repository is released under the MIT License (see `LICENSE`). Third-party material is not covered by it and stays under its own terms: the quotations from statutes, regulations, agency publications and other works that the lessons and calculators cite, and the npm dependencies, each under its own license.

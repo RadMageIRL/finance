@@ -2,6 +2,7 @@
   "name": "radmage-finance",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "RadMage Finance: free financial education, calculators and source-linked financial information from RadMage Labs.",
   "type": "module",
   "engines": {

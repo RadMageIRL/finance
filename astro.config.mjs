@@ -9,7 +9,7 @@ const headScriptHash = `sha256-${createHash('sha256').update(HEAD_SCRIPT).digest
 
 // Pages that must not be indexed: review and error pages, and News while it is a preview
 // (NEWS_LIVE in src/lib/site.ts; remove 'news' here when feeds go live).
-const LAST_REVIEWED = '2026-11-15';
+const LAST_REVIEWED = '2026-11-16';
 
 const NOT_IN_SITEMAP = /\/finance\/(design-system|404|news)\/$/;
 

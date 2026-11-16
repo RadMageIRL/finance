@@ -231,9 +231,9 @@ export const RATES_ASSUMPTIONS: readonly string[] = [
 ];
 
 export const RATES_SOURCES: readonly string[] = [
-  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
-  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.2, 1026.4, 1026.18 and 1026.22 and appendix J. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
-  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
+  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 16, 2026.',
+  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.2, 1026.4, 1026.18 and 1026.22 and appendix J. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 16, 2026.',
+  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 16, 2026.',
 ];
 
 /** What the illustration's rows mean, shown with the table and in the report. */

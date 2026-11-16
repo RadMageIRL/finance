@@ -1,10 +1,10 @@
 // What Is Money?: the instruments compared and the sources behind every answer. One data
 // module feeds the page (build time), the comparison panel (browser) and the tests, so the
-// two views can never disagree. Facts verified from primary sources on November 15, 2026
+// two views can never disagree. Facts verified from primary sources on November 16, 2026
 // (local/research/m16/REPORT.md); quotations are exact.
 
-export const REVIEWED = '2026-11-15';
-export const REVIEWED_LABEL = 'November 15, 2026';
+export const REVIEWED = '2026-11-16';
+export const REVIEWED_LABEL = 'November 16, 2026';
 
 export interface Source {
   id: string;
@@ -168,7 +168,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
     owedBy: 'The issuer',
     answers: {
       promise: a('A liability of its issuer, who under the GENIUS Act "is obligated to convert, redeem, or repurchase" it "for a fixed amount of monetary value."', 'genius-act'),
-      legal: a('Governed by the GENIUS Act (signed July 18, 2025), which takes effect on January 18, 2027. Once it does, only a "permitted payment stablecoin issuer" may issue one in the US, issuers may not market one as legal tender, and one from a permitted issuer is not a security. Rules issued so far, as of November 15, 2026: a final rule from the OCC (effective January 18, 2027) and an interim final rule from the Treasury on state certifications; the FDIC, Federal Reserve Board and NCUA rules are still proposals.', 'genius-act', 'occ-genius-final', 'treasury-genius-ifr'),
+      legal: a('Governed by the GENIUS Act (signed July 18, 2025), which takes effect on January 18, 2027. Once it does, only a "permitted payment stablecoin issuer" may issue one in the US, issuers may not market one as legal tender, and one from a permitted issuer is not a security. Rules issued so far, as of November 16, 2026: a final rule from the OCC (effective January 18, 2027) and an interim final rule from the Treasury on state certifications; the FDIC, Federal Reserve Board and NCUA rules are still proposals.', 'genius-act', 'occ-genius-final', 'treasury-genius-ifr'),
       holders: a('Anyone with a wallet or platform that supports them.'),
       settlement: a('A transfer is recorded on a "cryptographically secured distributed ledger." Getting dollars back means redeeming with the issuer, which must publish "procedures for timely redemption," or selling to someone else.', 'genius-act'),
       backing: a('Reserves of at least 1 to 1 in US coins and currency or balances at a Federal Reserve Bank, bank deposits, Treasury bills, notes or bonds with 93 days or less to maturity, overnight repurchase agreements, government money market funds that hold only such assets, and other similarly liquid federal government assets a regulator approves. Not "backed by the full faith and credit of the United States" and not "subject to deposit insurance." If the issuer fails, holders\' claims have priority over other creditors\' claims "with respect to required payment stablecoin reserves."', 'genius-act'),

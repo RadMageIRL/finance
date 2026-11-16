@@ -81,7 +81,7 @@ export const LOAN_SOURCES: readonly string[] = [
   'Consumer Financial Protection Bureau, "How does paying down a mortgage work?" (last reviewed May 28, 2024), consumerfinance.gov/ask-cfpb/how-does-paying-down-a-mortgage-work-en-1943/.',
   'Consumer Financial Protection Bureau, "What\'s the difference between a simple interest rate and precomputed interest on an auto loan?" (last reviewed January 30, 2024), consumerfinance.gov/ask-cfpb/whats-the-difference-between-a-simple-interest-rate-and-precomputed-interest-on-an-auto-loan-en-841/.',
   'Consumer Financial Protection Bureau, "What is a prepayment penalty?" (last reviewed September 11, 2024), consumerfinance.gov/ask-cfpb/what-is-a-prepayment-penalty-en-1957/.',
-  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J, on the finance charge and the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J, on the finance charge and the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 16, 2026.',
 ];
 
 export interface LoanView {
