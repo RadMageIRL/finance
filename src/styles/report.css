@@ -272,6 +272,16 @@
   white-space: nowrap;
 }
 
+/* Column headers may wrap (figures never do), so a long label such as "Balance without extra
+   payments" does not make its column wider than its figures; labels sit on the rule. */
+.rmf-report thead th.num {
+  white-space: normal;
+}
+
+.rmf-report thead th {
+  vertical-align: bottom;
+}
+
 .rmf-report tbody th {
   font-weight: 500;
   white-space: nowrap;

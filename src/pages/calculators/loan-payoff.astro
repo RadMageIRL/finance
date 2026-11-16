@@ -129,7 +129,7 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       <strong data-out="hero-sticky">{view.hero}</strong>
     </div>
 
-    <ScheduleView id="mp-schedule" heading="Balance and schedule" series={PAYOFF_SERIES} svg={payoffChartSvg(c, 'year')} table={loanTable(c.accelerated, 'year', { extra: true, baseline: c.baseline })} notes={loanScheduleNotes('year', true, true)} groupings={LOAN_GROUPINGS} chartHelp="the balance left with and without the extra payments" />
+    <ScheduleView id="mp-schedule" heading="Balance and schedule" series={PAYOFF_SERIES} svg={payoffChartSvg(c, 'year')} table={loanTable(c.accelerated, 'year', { extra: true, baseline: c.baseline })} notes={loanScheduleNotes('year', true)} groupings={LOAN_GROUPINGS} chartHelp="the balance left with and without the extra payments" />
 
     <div class="prose calc-notes">
       <h2>Why extra payments save so much</h2>

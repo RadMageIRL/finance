@@ -110,6 +110,10 @@ const MUTANTS = [
   ['loan-total-without-hoa', `${E}loan-report.ts`, 'total: mortgagePayment + costs.hoaMonthly,', 'total: mortgagePayment,'],
   ['loan-mortgage-payment-with-hoa', `${E}loan-report.ts`, 'const mortgagePayment = payment + escrow + costs.mortgageInsuranceMonthly;', 'const mortgagePayment = payment + escrow + costs.mortgageInsuranceMonthly + costs.hoaMonthly;'],
   ['loan-escrow-misses-insurance', `${E}loan-report.ts`, 'const escrow = propertyTax + insurance;', 'const escrow = propertyTax;'],
+  // Mortgage payoff Total paid in the table, report and CSV (loan-view.ts, v0.1.1; conventions 6: payment + extra)
+  ['payoff-total-paid-cell-misses-extra', 'src/lib/calc/loan-view.ts', '...(extraCol ? [formatUSD(r.payment + r.extra)] : []),', '...(extraCol ? [formatUSD(r.payment)] : []),'],
+  ['payoff-csv-total-paid-misses-extra', 'src/lib/calc/loan-view.ts', '...(extraCol ? [centsToCsv(r.payment + r.extra)] : []),', '...(extraCol ? [centsToCsv(r.payment)] : []),'],
+  ['payoff-year-csv-total-paid-misses-extra', 'src/lib/calc/loan-view.ts', '...(extraCol ? [centsToCsv(y.scheduled + y.extra)] : [])', '...(extraCol ? [centsToCsv(y.scheduled)] : [])'],
   // Lesson simulator (src/lib/learn/sim.ts)
   ['sim-runs-past-refusal', 'src/lib/learn/sim.ts', 'if (!result.ok) {\n      const short', 'if (!result.ok && false) {\n      const short'],
   ['sim-interbank-wrong-lender', 'src/lib/learn/sim.ts', 'make: () => interbankLoan(other, short.bank, short.amount)', 'make: () => interbankLoan(short.bank, other, short.amount)'],

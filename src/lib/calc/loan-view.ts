@@ -207,11 +207,12 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
   if (grouping === 'month') {
     const rows = plan.months;
     // Compact view: what was paid, the interest in it and the balance left. With extra payments
-    // the first figure is the regular payment plus the extra (a page-only column, so the report
-    // keeps its columns), matching the year rows' Total paid.
+    // the first figure is Total paid, the regular payment plus the extra (conventions section 6:
+    // the total paid in a month is payment + extra), matching the year rows' Total paid. The
+    // report, print view, text summary and CSV (total_paid_usd) carry it too.
     const columns: TableColumn[] = [
       { label: 'Payment', numeric: false },
-      ...(extraCol ? [{ label: 'Total paid', numeric: true, key: 1, screen: true }] : []),
+      ...(extraCol ? [{ label: 'Total paid', numeric: true, key: 1 }] : []),
       { label: 'Regular payment', numeric: true, ...(extraCol ? {} : { key: 1 }) },
       { label: 'Principal', numeric: true },
       { label: 'Interest', numeric: true, key: 2 },
@@ -246,6 +247,8 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
         ...(extraCol ? ['extra_usd'] : []),
         'balance_usd', 'cumulative_interest_usd', 'cumulative_principal_usd',
         ...(base ? ['balance_without_extra_usd'] : []),
+        // Added in v0.1.1 at the end, so every earlier column keeps its name and position.
+        ...(extraCol ? ['total_paid_usd'] : []),
       ],
       csvRow: (i) => {
         const r = rows[i]!;
@@ -254,6 +257,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
           ...(extraCol ? [centsToCsv(r.extra)] : []),
           centsToCsv(r.balance), centsToCsv(r.cumulativeInterest), centsToCsv(r.cumulativePrincipal),
           ...(base ? [centsToCsv(base.months[i]?.balance ?? 0)] : []),
+          ...(extraCol ? [centsToCsv(r.payment + r.extra)] : []),
         ];
       },
       pageSize: 120,
@@ -307,10 +311,11 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
         ],
       };
     },
-    csvHeader: ['year', 'payments', 'scheduled_usd', 'principal_usd', 'interest_usd', ...(extraCol ? ['extra_usd'] : []), 'end_balance_usd', 'cumulative_interest_usd', 'cumulative_principal_usd', ...(base ? ['balance_without_extra_usd'] : [])],
+    // total_paid_usd (scheduled plus extra, the year's Total paid) was added in v0.1.1 at the end.
+    csvHeader: ['year', 'payments', 'scheduled_usd', 'principal_usd', 'interest_usd', ...(extraCol ? ['extra_usd'] : []), 'end_balance_usd', 'cumulative_interest_usd', 'cumulative_principal_usd', ...(base ? ['balance_without_extra_usd'] : []), ...(extraCol ? ['total_paid_usd'] : [])],
     csvRow: (i) => {
       const y = rows[i]!;
-      return [y.year, y.payments, centsToCsv(y.scheduled), centsToCsv(y.principal), centsToCsv(y.interest), ...(extraCol ? [centsToCsv(y.extra)] : []), centsToCsv(y.endBalance), centsToCsv(y.cumulativeInterest), centsToCsv(y.cumulativePrincipal), ...(base ? [centsToCsv(baseByYear.get(y.year) ?? 0)] : [])] as CsvCell[];
+      return [y.year, y.payments, centsToCsv(y.scheduled), centsToCsv(y.principal), centsToCsv(y.interest), ...(extraCol ? [centsToCsv(y.extra)] : []), centsToCsv(y.endBalance), centsToCsv(y.cumulativeInterest), centsToCsv(y.cumulativePrincipal), ...(base ? [centsToCsv(baseByYear.get(y.year) ?? 0)] : []), ...(extraCol ? [centsToCsv(y.scheduled + y.extra)] : [])] as CsvCell[];
     },
     pageSize: 100,
     pageLabel: () => 'All years',
@@ -439,21 +444,19 @@ export function payoffTooltip(c: PayoffComparison, grouping: LoanGrouping, index
   return [`${dateLabel(m.date)} (#${m.month})`, `Without extra payments ${formatUSD(m.balance)}`, `With extra payments ${formatUSD(c.accelerated.months[index]?.balance ?? 0)}`];
 }
 
-export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean, onPage = false): string[] {
+export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean): string[] {
   const notes = ['Interest is one twelfth of the interest rate on the balance each month, rounded to the cent. Principal is the rest of the payment.'];
   if (extra) notes.push('Extra and one-time payments go entirely to principal, right after that month\'s regular payment.');
   if (grouping === 'year') {
     notes.push('Years are calendar years of the payment dates, so the first and last years usually have fewer than 12 payments.');
     notes.push(extra
-      ? 'Total paid is the year\'s regular payments plus its extra payments; in a year\'s payments, Regular payment is the scheduled payment of principal and interest. In the CSV, scheduled_usd is the regular payments only and extra_usd the extra payments.'
+      ? 'Total paid is the year\'s regular payments plus its extra payments. In a year\'s payments, a payment\'s Total paid is its regular payment plus any extra payment, so the payments add up to the year\'s Total paid, and Regular payment is the scheduled payment of principal and interest. In the CSV, scheduled_usd is the regular payments only, extra_usd the extra payments and total_paid_usd their sum.'
       : 'Total paid is the year\'s regular payments of principal and interest (scheduled_usd in the CSV).');
   } else {
     notes.push(extra
-      ? 'Regular payment is the scheduled payment of principal and interest; extra payments are listed apart. In the CSV, payment_usd is the regular payment and extra_usd the extra payment.'
+      ? 'Total paid is the regular payment plus any extra payment. Regular payment is the scheduled payment of principal and interest; extra payments are listed apart. In the CSV, payment_usd is the regular payment, extra_usd the extra payment and total_paid_usd their sum.'
       : 'Regular payment is the scheduled payment of principal and interest (payment_usd in the CSV).');
   }
-  // The page's payment rows add a Total paid column (regular plus extra); the report does not.
-  if (extra && onPage) notes.push('On this page, a payment\'s Total paid is its regular payment plus any extra payment, so its payments add up to the year\'s Total paid.');
   return notes;
 }
 

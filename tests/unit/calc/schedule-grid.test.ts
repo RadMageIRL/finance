@@ -1,6 +1,7 @@
 // Schedule tables on the page: the compact view's key columns (TableColumn.key) for every
-// calculator, how cells are marked for the compact and detailed views, and the page-only
-// Total paid column of the payoff calculator, which the report and the CSV leave out.
+// calculator, how cells are marked for the compact and detailed views, and the payoff
+// calculator's Total paid on payment rows, which the report, the text summary and the CSV
+// (total_paid_usd, appended in v0.1.1) carry too.
 import { describe, expect, it } from 'vitest';
 import { compoundSchedule, compoundScheduleConfig, DEFAULT_INPUT } from '../../../src/lib/calc/compound-view';
 import { formatUSD } from '../../../src/lib/calc/format';
@@ -15,7 +16,7 @@ import { loanPlan, payoffComparison } from '../../../src/lib/engines/loan-report
 import { compareRates, type RateAccountInput } from '../../../src/lib/engines/rate-compare';
 import { rateIllustration } from '../../../src/lib/engines/rate-illustration';
 import { reportText, tableHtml, type Report } from '../../../src/lib/report/report';
-import { reportColumns, tableCsv, type TableSource } from '../../../src/lib/report/table';
+import { tableCsv, type TableSource } from '../../../src/lib/report/table';
 
 const keyLabels = (t: TableSource) =>
   t.columns
@@ -112,25 +113,42 @@ describe('cell marking', () => {
   });
 });
 
-describe("the payoff calculator's page-only Total paid", () => {
+describe("the payoff calculator's Total paid on the page and in the exports", () => {
   const c = ok(payoffComparison({ principal: 20_000_000, annualRate: 0.06, termMonths: 360, extraMonthly: 10_000, oneTime: [{ month: 13, amount: 500_000 }] }, { year: 2027, month: 4 }));
   const options = { extra: true, baseline: c.baseline };
+  // The v0.1.0 CSV headers: v0.1.1 only appends total_paid_usd, so every earlier column keeps its place.
+  const V010_MONTH = 'payment_number,year,month,payment_usd,principal_usd,interest_usd,extra_usd,balance_usd,cumulative_interest_usd,cumulative_principal_usd,balance_without_extra_usd';
+  const V010_YEAR = 'year,payments,scheduled_usd,principal_usd,interest_usd,extra_usd,end_balance_usd,cumulative_interest_usd,cumulative_principal_usd,balance_without_extra_usd';
 
   it('is the regular payment plus the extra payment on every row and in the total', () => {
     const t = loanTable(c.accelerated, 'month', options);
-    expect(t.columns[1]).toEqual({ label: 'Total paid', numeric: true, key: 1, screen: true });
+    expect(t.columns[1]).toEqual({ label: 'Total paid', numeric: true, key: 1 });
     c.accelerated.months.forEach((m, i) => expect(t.row(i).cells[0]).toBe(formatUSD(m.payment + m.extra)));
     expect(t.footer!.cells[0]).toBe(formatUSD(c.accelerated.schedule.totalPaid));
   });
 
-  it('stays out of the report, the text summary and the CSV, which keep their columns', () => {
+  it('is in the report table, the text summary and the CSV, with every other column unchanged', () => {
     const t = loanTable(c.accelerated, 'month', options);
-    expect(reportColumns(t)).toEqual(t.columns.map((_c, i) => i).filter((i) => i !== 1));
-    const html = tableHtml(t, 3);
-    expect(html).not.toContain('Total paid');
-    expect(html.match(/<th scope="col"/g)).toHaveLength(t.columns.length - 1);
-    expect(html).toContain(`<td>${formatUSD(c.accelerated.months[0]!.payment)}</td>`);
-    expect(tableCsv(t).split('\r\n')[0]).toBe('payment_number,year,month,payment_usd,principal_usd,interest_usd,extra_usd,balance_usd,cumulative_interest_usd,cumulative_principal_usd,balance_without_extra_usd');
+    const html = tableHtml(t);
+    expect(html.match(/<th scope="col"/g)).toHaveLength(t.columns.length);
+    expect(html).toContain('<th scope="col" class="num">Total paid</th><th scope="col" class="num">Regular payment</th>');
+    const m = c.accelerated.months[12]!;
+    expect(m.extra).toBe(510_000);
+    expect(html).toContain(`<td>${formatUSD(m.payment + m.extra)}</td><td>${formatUSD(m.payment)}</td>`);
+    const lines = tableCsv(t).split('\r\n');
+    expect(lines[0]).toBe(`${V010_MONTH},total_paid_usd`);
+    c.accelerated.months.forEach((row, i) => {
+      const cells = lines[i + 1]!.split(',');
+      expect(cells.at(-1), `payment ${i + 1}`).toBe(((row.payment + row.extra) / 100).toFixed(2));
+      expect(Math.round(Number(cells.at(-1)) * 100)).toBe(Math.round(Number(cells[3]) * 100) + Math.round(Number(cells[6]) * 100));
+    });
+    const years = loanTable(c.accelerated, 'year', options);
+    const yearLines = tableCsv(years).split('\r\n');
+    expect(yearLines[0]).toBe(`${V010_YEAR},total_paid_usd`);
+    c.accelerated.years.forEach((y, i) => {
+      expect(yearLines[i + 1]!.split(',').at(-1), String(y.year)).toBe(((y.scheduled + y.extra) / 100).toFixed(2));
+      expect(years.row(i).cells[1]).toBe(formatUSD(y.scheduled + y.extra));
+    });
     const report: Report = {
       calculator: 'Mortgage payoff calculator',
       generated: new Date(0),
@@ -147,14 +165,15 @@ describe("the payoff calculator's page-only Total paid", () => {
       sources: [],
     };
     const text = reportText(report);
-    expect(text).not.toContain('Total paid');
-    expect(text).toContain(`Regular payment ${formatUSD(c.accelerated.months[0]!.payment)}`);
+    const first = c.accelerated.months[0]!;
+    expect(text).toContain(`: Total paid ${formatUSD(first.payment + first.extra)}, Regular payment ${formatUSD(first.payment)}, `);
   });
 
-  it('is not added to the amortization table, which has no extra payments', () => {
+  it('is not added to the amortization tables or CSV, which have no extra payments', () => {
     const plan = ok(loanPlan({ principal: 3_000_000, annualRate: 0.07, termMonths: 60 }, { year: 2027, month: 7 }));
     const t = loanTable(plan, 'month', { extra: false });
-    expect(t.columns.some((col) => col.screen)).toBe(false);
-    expect(reportColumns(t)).toHaveLength(t.columns.length);
+    expect(t.columns.map((col) => col.label)).not.toContain('Total paid');
+    expect(tableCsv(t).split('\r\n')[0]).toBe('payment_number,year,month,payment_usd,principal_usd,interest_usd,balance_usd,cumulative_interest_usd,cumulative_principal_usd');
+    expect(tableCsv(loanTable(plan, 'year', { extra: false })).split('\r\n')[0]).toBe('year,payments,scheduled_usd,principal_usd,interest_usd,end_balance_usd,cumulative_interest_usd,cumulative_principal_usd');
   });
 });

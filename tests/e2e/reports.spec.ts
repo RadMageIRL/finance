@@ -157,6 +157,22 @@ test.describe('schedules and reports', () => {
     });
   }
 
+  test('report column headers wrap so their columns are no wider than the figures (v0.1.1)', async ({ page, browser }) => {
+    await page.goto(SAVINGS);
+    const { text } = await download(page, 'report');
+    const context = await browser.newContext({ viewport: { width: 768, height: 900 } });
+    const viewer = await context.newPage();
+    await viewer.setContent(text, { waitUntil: 'load' });
+    const head = viewer.locator('.rmf-report__schedule thead th.num').first();
+    await expect(head).toHaveCSS('white-space', 'normal');
+    await expect(head).toHaveCSS('vertical-align', 'bottom');
+    // The default savings schedule by year fits a 768 px window (v0.1.0 scrolled sideways here).
+    expect(await viewer.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(768);
+    // Figures still never wrap.
+    await expect(viewer.locator('.rmf-report__schedule tbody td').first()).toHaveCSS('white-space', 'nowrap');
+    await context.close();
+  });
+
   test('printing shows only the report, starts the schedule on a new page and repeats its header', async ({ page }) => {
     await page.addInitScript(() => {
       window.print = () => {

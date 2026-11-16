@@ -2,7 +2,19 @@
 
 All notable changes to RadMage Finance are recorded here.
 
-## 0.1.0 (2026-11-16)
+## 0.1.1 (Unreleased)
+
+A patch release for the schedule tables. Calculations are unchanged: the engines, the calculation conventions (v1.7), the independent oracle and its fixtures are the same as in 0.1.0.
+
+### Changed
+
+- Schedule tables on all five calculators open in a Compact view: the period and three key figures (what went in or was paid, the interest, and the balance). A Table view control above Expand all and Collapse all switches to Detailed, which keeps the same rows and shows every other figure under its row as a labeled pair. A line under the control says the CSV and the HTML report always have every figure. Without JavaScript the table shows every figure.
+- Compact columns: high-yield savings shows Deposits, Interest credited and Closing balance; compound interest shows Contributions, Interest credited and Closing balance; the APR and APY illustration shows each account's balance; loan amortization and mortgage payoff show Total paid (Regular payment on the amortization payment rows), Interest and the balance.
+- Schedule tables no longer scroll sideways at any width. Rows are laid out as grids with table roles, so screen readers still read a table; on phones each period's figures stack as labeled lines; a year's months line up under the year table's header, which stays in view while the table scrolls.
+- Months and payments under a year are indented under an accent rule, each year's total is set apart with a rule, and the overall total is bold with a heavier rule. Figures are right-aligned with tabular numerals.
+- Mortgage payoff: each payment row shows Total paid, the regular payment plus any extra payment, so a year's payments add up to the year's Total paid. The HTML report and the printout show the same column, and the CSV gains a `total_paid_usd` column, added at the end of the schedule by payment and of the schedule by year so every earlier column keeps its name and position. The notes under the schedule explain it. Each exported figure is checked against the independent oracle's own payment and extra amounts.
+- HTML reports and printouts: column headings can wrap onto two lines and sit on the heading rule, while figures still never wrap, so a long heading such as "Balance without extra payments" no longer makes its column wider than its figures. Every calculator's report table is narrower than in 0.1.0, the savings and compound interest reports now fit a 768 pixel window, and the mortgage payoff report stays within its page width at 1280 pixels even with the added column.
+
 
 ### Added
 

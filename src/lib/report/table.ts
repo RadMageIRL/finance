@@ -13,8 +13,6 @@ export interface TableColumn {
    * the row header and these key columns; every other column shows in the detailed view only.
    */
   key?: number;
-  /** Shown on the page only: the HTML report, print view and text summary leave it out. */
-  screen?: boolean;
 }
 
 export interface TableRow {
@@ -52,11 +50,6 @@ export interface TableDetail {
   all: () => TableSource;
   /** What the rows under a year are, for button names and headings: "months" or "payments". */
   noun: string;
-}
-
-/** The indexes of the columns a report shows (every column except the page-only ones). */
-export function reportColumns(table: TableSource): number[] {
-  return table.columns.flatMap((c, i) => (c.screen ? [] : [i]));
 }
 
 export function tableCsv(table: TableSource): string {

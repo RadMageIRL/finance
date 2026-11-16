@@ -137,7 +137,7 @@ test.describe('mortgage payoff calculator', () => {
     await page.fill('#mp-o1a', '5,000');
     await expect(page.locator('#mp-o1-hint')).toHaveText('Payment 13 is in Jan 2028.');
     await page.check('input[name="mp-schedule-group"][value="month"]');
-    // Cells: Total paid (page only), Regular payment, Principal, Interest, Extra, ...
+    // Cells: Total paid, Regular payment, Principal, Interest, Extra, ...
     await expect(page.locator('#mp-schedule [data-out="table-rows"] > tr:not(.sched-detail)').nth(12).locator('td').nth(4)).toHaveText('$5,000.00');
     await page.fill('#mp-o1a', '');
     await expect(page.locator('#mp-o1a-error')).toContainText('Enter both');
@@ -159,6 +159,32 @@ test.describe('mortgage payoff calculator', () => {
     await expect(other.locator('#mp-principal')).toHaveValue('');
     await expect(other.locator('#mp-o1')).toHaveValue('24');
     await expect(other.locator('.calc')).toHaveAttribute('data-state', 'incomplete');
+  });
+
+  test('Total paid by payment is on the page, in the report and in the CSV, the same figures', async ({ page }) => {
+    await page.goto(PAYOFF);
+    await loan(page, 'mp', { principal: '200,000', rate: '6', term: '30', month: '1', year: '2027' });
+    await page.fill('#mp-extra', '100');
+    await page.fill('#mp-o1', '13');
+    await page.fill('#mp-o1a', '5,000');
+    await expect(page.locator('#mp-o1-hint')).toHaveText('Payment 13 is in Jan 2028.');
+    await page.check('input[name="mp-schedule-group"][value="month"]');
+    const shown = page.locator('#mp-schedule [data-out="table-rows"] > tr:not(.sched-detail)').nth(12).locator('td').first();
+    await expect(shown).toHaveText('$6,299.10');
+    const [csvFile] = await Promise.all([page.waitForEvent('download'), page.click('[data-action="csv"]')]);
+    const lines = readFileSync((await csvFile.path())!, 'utf8').trim().split('\r\n');
+    // v0.1.0's columns, unchanged, then total_paid_usd.
+    expect(lines[0]).toBe('payment_number,year,month,payment_usd,principal_usd,interest_usd,extra_usd,balance_usd,cumulative_interest_usd,cumulative_principal_usd,balance_without_extra_usd,total_paid_usd');
+    expect(lines[13]).toMatch(/^13,2028,1,1199\.10,[\d.]+,[\d.]+,5100\.00,.*,6299\.10$/);
+    for (const line of lines.slice(1)) {
+      const c = line.split(',').map((x) => Math.round(Number(x) * 100));
+      expect(c.at(-1), line).toBe(c[3]! + c[6]!);
+    }
+    const [reportFile] = await Promise.all([page.waitForEvent('download'), page.click('[data-action="report"]')]);
+    const html = readFileSync((await reportFile.path())!, 'utf8');
+    expect(html).toContain('<th scope="col">Payment</th><th scope="col" class="num">Total paid</th><th scope="col" class="num">Regular payment</th>');
+    expect(html).toContain('<tr><th scope="row">Jan 2028 (#13)</th><td>$6,299.10</td><td>$1,199.10</td>');
+    expect(html).toContain('total_paid_usd their sum');
   });
 
   test('the report compares both plans and lists the monthly payment parts', async ({ page }) => {
