@@ -27,7 +27,7 @@ const actions = [
   about={['Money creation', 'Bank lending', 'Bank reserves', 'Bank capital']}
   title="How Banks Create Money"
   description="Make a loan and watch a new deposit appear, then follow the payment between banks, repayment with interest, a default and write-off, a reserve shortfall and a capital rule, on balance sheets that always balance."
-  lead="When a bank lends, it does not hand over money someone else deposited. It writes a new deposit into the borrower's account. Step through a loan from start to finish on real accounting, and see what limits how much banks can lend."
+  lead="When a bank lends, it does not hand over money someone else deposited. It writes a new deposit into the borrower's account. Step through a loan from start to finish on double-entry balance sheets, and see what limits how much banks can lend."
   reviewed={LESSONS_REVIEWED}
   minutes={15}
 >
@@ -71,11 +71,14 @@ const actions = [
     <h3>Capital</h3>
     <p class="claim-line"><ClaimLabel kind="fact" /></p>
     <p>
-      A bank's equity absorbs its losses, and regulators require a minimum. US banks must keep
-      "a common equity tier 1 capital ratio of 4.5 percent," "a tier 1 capital ratio of 6
+      A bank's equity absorbs its losses, and regulators require a minimum amount of capital,
+      measured from equity with some adjustments. Under the capital rules of the Federal
+      Reserve Board, the OCC and the FDIC, which set the same minimums, banks must keep "a
+      common equity tier 1 capital ratio of 4.5 percent," "a tier 1 capital ratio of 6
       percent," "a total capital ratio of 8 percent" and "a leverage ratio of 4 percent," among
-      other rules.<Cite ids={['cfr-217-10']} number={n} /> Most of these ratios weigh assets by
-      their risk.
+      other rules.<Cite ids={['cfr-217-10', 'cfr-3-10', 'cfr-324-10']} number={n} /> Most of these ratios weigh assets by
+      their risk. A qualifying community bank can instead elect a simpler community bank
+      leverage ratio framework.<Cite ids={['cfr-217-12']} number={n} />
     </p>
     <p class="claim-line"><ClaimLabel kind="model" /> <span class="small muted">A hypothetical rule for teaching</span></p>
     <p>
@@ -96,8 +99,9 @@ const actions = [
       primarily government-sponsored enterprises," also lend;<Cite ids={['nyfed-effr']} number={n} />
       or from the Federal Reserve's discount window, which lets depository institutions
       "borrow from Federal Reserve Banks after executing legal agreements and pledging
-      collateral."<Cite ids={['fed-discount']} number={n} /> As of October 29, 2026 the primary
-      credit rate is 4.0 percent.<Cite ids={['fed-implementation-2026-10']} number={n} />
+      collateral."<Cite ids={['fed-discount']} number={n} /> The rate on the discount window's
+      main program, primary credit, is 4.0 percent as of October 29, 2026, the top of the
+      Federal Reserve's target range for the federal funds rate (3-3/4 to 4 percent).<Cite ids={['fed-implementation-2026-10']} number={n} />
     </p>
     <h3>Credit risk</h3>
     <p class="claim-line"><ClaimLabel kind="fact" /></p>
@@ -107,8 +111,9 @@ const actions = [
       allowance for expected losses in advance, through provisions that are an expense, and
       charges the loan off against that allowance; the reporting rules forbid charging
       uncollectible loans directly to retained earnings.<Cite ids={['ffiec-glossary']} number={n} /> Either way the
-      loss reduces the bank's equity, which is all the simulation shows: it takes the loss
-      straight to equity, one of the simplifications listed below.
+      loss reduces the bank's equity (with an allowance, the hit comes earlier, when the
+      provision is booked), which is all the simulation shows: it takes the loss straight to
+      equity, one of the simplifications listed below.
     </p>
     <p>
       A charge-off is the bank's accounting entry, not a release of the debt. "It does not
@@ -135,17 +140,18 @@ const actions = [
     <h2 id="multiplier">The money multiplier: a historical model</h2>
     <p class="claim-line"><ClaimLabel kind="model" /> <span class="small muted">Shown for history; not how money is created today</span></p>
     <p>
-      Older textbooks describe banks as lending out a multiple of their reserves: each bank
-      keeps a required fraction of deposits as reserves and lends the rest, so a dollar of
-      reserves becomes several dollars of deposits. In the United States the required fraction
+      Older textbooks describe the banking system multiplying reserves: each bank keeps a
+      required fraction of its deposits as reserves and lends the rest; the loans are spent
+      and deposited at other banks, which lend again, so a dollar of reserves ends up
+      supporting several dollars of deposits. In the United States the required fraction
       is now zero: "the Board reduced reserve requirement ratios to zero percent effective
       March 26, 2020," which "eliminated reserve requirements for all depository
       institutions."<Cite ids={['fed-reserve-requirements']} number={n} />
     </p>
     <p>
-      The Bank of England calls the money multiplier "a useful way of introducing money and
-      banking in economic textbooks" that "is not an accurate description of how money is
-      created in reality."<Cite ids={['boe-2014']} number={n} /> A 2021 article published by the
+      The Bank of England says the money multiplier theory "can be a useful way of introducing
+      money and banking in economic textbooks," but "it is not an accurate description of how
+      money is created in reality."<Cite ids={['boe-2014']} number={n} /> A 2021 article published by the
       Federal Reserve Bank of St. Louis, written by Jane Ihrig and Gretchen Weinbach of the
       Federal Reserve Board and Scott Wolla of the St. Louis Fed's economic education staff,
       calls it "an outdated concept."<Cite ids={['stlfed-2021']} number={n} />
@@ -157,6 +163,7 @@ const actions = [
     <ul>
       <li>Two small banks and a handful of customers stand in for the whole system. The amounts are illustrative.</li>
       <li>Interest and losses go straight to equity: there is no income statement, no loss allowance and no tax.</li>
+      <li>Goods and services are not modeled: a payment lowers the payer's equity and raises the payee's, so Household 1's equity turns negative once it spends the loan.</li>
       <li>A write-off also cancels the borrower's debt. In reality a charged-off loan is still owed unless the bank forgives it.</li>
       <li>The capital rule (equity of at least 5 percent of total assets) is a hypothetical one for teaching, not a regulatory minimum.</li>
       <li>Loans are made whenever you choose. Real lending also depends on creditworthy borrowers wanting loans at the prevailing interest rate.</li>
@@ -170,7 +177,7 @@ const actions = [
     <ul>
       <li>A bank loan creates a deposit, which is new money; repaying the loan destroys it.</li>
       <li>Banks settle payments with each other in reserves, which only the Federal Reserve creates.</li>
-      <li>A bank short of reserves borrows them, from other banks or from the Fed's discount window.</li>
+      <li>A bank short of reserves can borrow them, from other banks or from the Fed's discount window.</li>
       <li>Losses come out of a bank's equity, and capital rules limit how much it can lend on its equity.</li>
       <li>Lending also depends on creditworthy borrowers wanting loans at the prevailing interest rate, which the Federal Reserve influences.</li>
       <li>Reserve requirements have been zero since March 2020; the money multiplier is a historical model.</li>

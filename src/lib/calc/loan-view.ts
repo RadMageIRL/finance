@@ -61,24 +61,27 @@ export function durationText(months: number): string {
 export const LOAN_ASSUMPTIONS: readonly string[] = [
   'Each month the loan charges one twelfth of the interest rate on the balance, whatever the length of the month, and the interest is rounded to the nearest cent, half a cent rounding up.',
   'Many loans figure interest by the day instead. On auto loans, simple interest is "far more common," and the CFPB says it "calculates the interest based on the outstanding balance of the loan either on a daily or monthly basis." Where interest is figured daily, paying before or after the due date changes the interest a little; this calculator does not model that.',
-  'The monthly payment of principal and interest is rounded to the cent. The last payment is the remaining balance plus that month\'s interest, so it differs a little from the others.',
+  'The monthly payment of principal and interest is rounded to the cent. The last payment is the remaining balance plus that month\'s interest, so it can differ from the others: usually by a little, and by more when extra payments end the loan early.',
   'The interest rate is the note rate, fixed for the whole loan. It is not the loan\'s APR, which also counts certain fees.',
   'Payments are made on time, in full, once a month, starting in the month you choose. Dates only label the payments; they do not change the interest.',
-  'No late fees, prepayment penalties, rate changes or loan modifications.',
+  'No late fees, prepayment penalties, rate changes or loan modifications. A real loan\'s terms may include a prepayment penalty or other restrictions on paying early. The CFPB says a prepayment penalty is "a fee that some lenders charge if you pay off all or part of your mortgage early" and that "not all mortgages have a prepayment penalty"; check your loan documents.',
 ];
 
 export const PAYOFF_ASSUMPTIONS: readonly string[] = [
   ...LOAN_ASSUMPTIONS,
+  'For a loan you already have, the payment is worked out from today\'s balance, the interest rate and the time left, so it can differ a little from the payment on your statement.',
   'Extra payments go entirely to principal, applied right after that month\'s regular payment. A one-time payment is applied in the month you give it. Servicers handle extra payments in different ways; check how yours applies them.',
   'An extra payment is never more than the balance left; once the loan is paid off, later extra payments are not made.',
+  'The regular payment stays the same after extra payments, so they end the loan sooner instead of lowering the payment.',
   'Property tax, homeowners insurance, mortgage insurance and HOA dues stay the same every month and never enter the loan\'s balance. In real life they change, and mortgage insurance can end before the loan does; this calculator does not model when it ends.',
 ];
 
 export const LOAN_SOURCES: readonly string[] = [
-  'Consumer Financial Protection Bureau, "On a mortgage, what\'s the difference between my principal and interest payment and my total monthly payment?" (last reviewed August 28, 2023), consumerfinance.gov/ask-cfpb/what-is-piti-en-1941/.',
+  'Consumer Financial Protection Bureau, "On a mortgage, what\'s the difference between my principal and interest payment and my total monthly payment?" (last reviewed August 28, 2023), consumerfinance.gov/ask-cfpb/on-a-mortgage-whats-the-difference-between-my-principal-and-interest-payment-and-my-total-monthly-payment-en-1941/.',
   'Consumer Financial Protection Bureau, "How does paying down a mortgage work?" (last reviewed May 28, 2024), consumerfinance.gov/ask-cfpb/how-does-paying-down-a-mortgage-work-en-1943/.',
   'Consumer Financial Protection Bureau, "What\'s the difference between a simple interest rate and precomputed interest on an auto loan?" (last reviewed January 30, 2024), consumerfinance.gov/ask-cfpb/whats-the-difference-between-a-simple-interest-rate-and-precomputed-interest-on-an-auto-loan-en-841/.',
-  '12 CFR part 1026 (Regulation Z, Truth in Lending), section 1026.22 and appendix J, on the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  'Consumer Financial Protection Bureau, "What is a prepayment penalty?" (last reviewed September 11, 2024), consumerfinance.gov/ask-cfpb/what-is-a-prepayment-penalty-en-1957/.',
+  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J, on the finance charge and the loan APR. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
 ];
 
 export interface LoanView {
@@ -269,7 +272,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
   const columns: TableColumn[] = [
     { label: 'Year', numeric: false },
     { label: 'Payments', numeric: true },
-    { label: 'Paid', numeric: true },
+    { label: 'Total paid', numeric: true },
     { label: 'Principal', numeric: true },
     { label: 'Interest', numeric: true },
     ...(extraCol ? [{ label: 'Extra', numeric: true }] : []),
@@ -431,7 +434,16 @@ export function payoffTooltip(c: PayoffComparison, grouping: LoanGrouping, index
 export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean): string[] {
   const notes = ['Interest is one twelfth of the interest rate on the balance each month, rounded to the cent. Principal is the rest of the payment.'];
   if (extra) notes.push('Extra and one-time payments go entirely to principal, right after that month\'s regular payment.');
-  if (grouping === 'year') notes.push('Years are calendar years of the payment dates, so the first and last years usually have fewer than 12 payments.');
+  if (grouping === 'year') {
+    notes.push('Years are calendar years of the payment dates, so the first and last years usually have fewer than 12 payments.');
+    notes.push(extra
+      ? 'Total paid is the year\'s regular payments plus its extra payments; in a year\'s payments, Regular payment is the scheduled payment of principal and interest. In the CSV, scheduled_usd is the regular payments only and extra_usd the extra payments.'
+      : 'Total paid is the year\'s regular payments of principal and interest (scheduled_usd in the CSV).');
+  } else {
+    notes.push(extra
+      ? 'Regular payment is the scheduled payment of principal and interest; extra payments are listed apart. In the CSV, payment_usd is the regular payment and extra_usd the extra payment.'
+      : 'Regular payment is the scheduled payment of principal and interest (payment_usd in the CSV).');
+  }
   return notes;
 }
 

@@ -68,9 +68,13 @@ const n = sourceNumber;
       stable prices, and moderate long-term interest rates."<Cite ids={['fed-faq-inflation', 'fra-2a']} number={n} />
     </p>
     <p>
-      The Federal Reserve's own measure of the money supply is narrower than everything this
-      lesson compares: "cash, coins, and balances in bank accounts."<Cite ids={['fed-money-supply']} number={n} />
-      Its broader measure, M2, adds small time deposits and retail money market fund shares.
+      The Federal Reserve describes the money supply more narrowly than everything this lesson
+      compares: "cash, coins, and balances in bank accounts." Of its standard measures, M1 is
+      currency held by the public plus checking accounts and other very liquid deposits, and
+      M2 adds small time deposits (under $100,000) and retail money market fund shares.
+      Neither includes bank reserves, Treasury bills, stablecoins, bitcoin or gold; reserves
+      appear only in a third measure, the monetary base, which adds them to the currency in
+      circulation.<Cite ids={['fed-money-supply']} number={n} />
     </p>
   </section>
 
@@ -78,11 +82,12 @@ const n = sourceNumber;
     <h2 id="promise">Money as a promise</h2>
     <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">Whose liability each one is</span></p>
     <p>
-      Much of what people call money is somebody's debt. The cash in your wallet is an
-      obligation of the United States and a liability of the Federal Reserve; the balance in
-      your bank account is a debt your bank owes you. As the Federal Reserve puts it, the money
+      Much of what people call money is somebody's debt. The paper money in your wallet
+      (Federal Reserve notes) is an obligation of the United States and a liability of the
+      Federal Reserve, while coins are issued by the Treasury; the balance in your bank account
+      is a debt your bank owes you. As the Federal Reserve puts it, the money
       people use in everyday digital payments is made of "liabilities of private entities, such
-      as commercial banks."<Cite ids={['usc-12-411', 'fed-balance-sheet', 'fed-money-payments']} number={n} />
+      as commercial banks."<Cite ids={['usc-12-411', 'fed-balance-sheet', 'usc-31-5111', 'fed-money-payments']} number={n} />
       Every asset on this list is held by someone; the question is who, if anyone, owes it to
       them.
     </p>
@@ -190,21 +195,25 @@ const n = sourceNumber;
         <strong>Insurance is narrower than it looks.</strong> FDIC insurance covers deposits at
         insured banks. It does not cover money market funds, Treasury securities or crypto
         assets, "even if they were purchased from an insured bank," and the GENIUS Act rules it
-        out for payment stablecoins.<Cite ids={['fdic-not-insured', 'fdic-crypto', 'genius-act']} number={n} />
+        out for payment stablecoins. A money market deposit account at a bank is a deposit and
+        is insured; a money market fund is not.<Cite ids={['fdic-not-insured', 'fdic-crypto', 'genius-act', 'fdic-faq']} number={n} />
       </li>
       <li>
         <strong>Where a payment finally settles.</strong> When a payment passes between
-        customers of two different banks, the banks settle with each other by moving reserves
+        customers of two different banks, the banks ultimately settle with each other by moving reserves
         between their accounts at the Federal Reserve, for example over Fedwire, where a
         payment is final once processed. That is why reserves matter even though the public
         never holds them.<Cite ids={['fed-fedwire', 'fed-iorb-faq']} number={n} />
       </li>
       <li>
         <strong>A fixed dollar amount, or a market price.</strong> Cash, deposits and reserves
-        are always worth their face value in dollars. A Treasury bill pays its face value at
-        maturity; a stablecoin is meant to hold its value. Bitcoin and gold have no face value
-        in dollars at all: their price is set by the market, and virtual currencies "are more
-        volatile than traditional fiat currencies."<Cite ids={['treasury-bills', 'genius-act', 'cftc-virtual-currency']} number={n} />
+        are fixed amounts of dollars, though deposit insurance protects a deposit only up to the
+        insured amount if its bank fails. A Treasury bill pays its face value at maturity; a
+        stablecoin is meant to hold its value. Bitcoin and gold bullion have no face value in
+        dollars (a one-ounce US gold coin has a $50 face value but is sold for the market value of its
+        gold plus the cost of minting and selling it):
+        their price is set by the market, and virtual currencies "are more
+        volatile than traditional fiat currencies."<Cite ids={['fdic-faq', 'treasury-bills', 'genius-act', 'usc-31-5112', 'cftc-virtual-currency']} number={n} />
       </li>
       <li>
         <strong>Not interchangeable.</strong> Each of these can serve as money for some purposes
@@ -218,7 +227,7 @@ const n = sourceNumber;
     <h2 id="key-ideas">Key ideas</h2>
     <ul>
       <li>Money is described by three jobs: a means of payment, a unit of account and a store of value.</li>
-      <li>Most money is a promise: cash and reserves are liabilities of the Federal Reserve, deposits of your bank, stablecoins of their issuer.</li>
+      <li>Most money is a promise: paper currency and reserves are liabilities of the Federal Reserve, deposits of your bank, stablecoins of their issuer.</li>
       <li>Only US coins and currency are legal tender; bank deposits, reserves, Treasury bills, fund shares, stablecoins and bitcoin are not.</li>
       <li>FDIC insurance covers bank deposits up to the standard amount, and nothing else on this list.</li>
       <li>Banks can settle payments with each other by moving reserves at the Federal Reserve, where a Fedwire payment is final.</li>

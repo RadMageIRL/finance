@@ -95,7 +95,7 @@ const VERIFIED = 'November 15, 2026';
                 <tr>
                   <th scope="col">Months</th>
                   <th scope="col" class="num">APY</th>
-                  <th scope="col" class="num col-rate">Interest rate</th>
+                  <th scope="col" class="num col-rate">Interest rate (from the APY)</th>
                   <th scope="col" class="num">APY earned</th>
                 </tr>
               </thead>
@@ -134,7 +134,7 @@ const VERIFIED = 'November 15, 2026';
       <ul>
         <li><strong>The interest rate</strong>, which does not include compounding. Banks must figure interest "for each day" using "a daily rate of at least 1/365 of the interest rate." <span class="cite">12 CFR 1030.7(a)(1)</span></li>
         <li><strong>How often interest is compounded and credited.</strong> The rules do "not require institutions to compound or credit interest at any particular frequency," but the disclosure must state it. <span class="cite">12 CFR 1030.7(b); 1030.4(b)(2)(i)</span></li>
-        <li><strong>Whether the rate can change.</strong> For a variable-rate account the disclosure must say that "the interest rate and annual percentage yield may change." <span class="cite">12 CFR 1030.4(b)(1)(ii)</span></li>
+        <li><strong>Whether the rate can change.</strong> For a variable-rate account the disclosure must say that "the interest rate and annual percentage yield may change." <span class="cite">12 CFR 1030.4(b)(1)(ii)(A)</span></li>
       </ul>
       <p>
         This calculator starts from the advertised APY and works out the interest rate that
@@ -143,26 +143,29 @@ const VERIFIED = 'November 15, 2026';
 
       <h2>The APY you actually earn</h2>
       <p>
-        Statements show an "annual percentage yield earned," which "reflects the relationship
+        If a bank sends periodic statements, each must show the "annual percentage yield
+        earned," which "reflects the relationship
         between the amount of interest actually earned on the consumer's account during the
         statement period and the average daily balance in the account for the statement
-        period." <span class="cite">12 CFR part 1030, appendix A, part II</span> It moves around
+        period." <span class="cite">12 CFR 1030.6(a)(1); part 1030, appendix A, part II</span> It moves around
         the advertised APY from month to month for three reasons: interest is rounded to the
         cent each month; with monthly compounding a short month like February earns a slightly
-        higher yield than a long one; and deposits made during a month count only for the days
-        they were in the account.
+        higher yield than a long one; and with daily compounding a deposit made during the month
+        has fewer days to compound, which pulls that month's yield down slightly.
       </p>
       <p>
         As the official commentary requires for monthly statements on an account that
         compounds daily and credits monthly, the average balance here leaves out interest
         accrued but not yet credited, and the interest is the amount actually paid, rounded to
-        the cent. <span class="cite">Supplement I to part 1030, appendix A, part II.A, comments 1 and 2</span>
+        the cent. <span class="cite">Supplement I to part 1030, appendix A, part II.A, comments 1.i and 2</span>
       </p>
 
       <h2>Assumptions</h2>
       <p>
         Regulation DD leaves several conventions to each bank. This calculator picks one for
-        each, labeled as an assumption below; your bank's own disclosure may differ.
+        each, labeled as an assumption below; your bank's own disclosure may differ. Credit
+        unions are not covered by Regulation DD; they follow parallel Truth in Savings rules
+        from the National Credit Union Administration. <span class="cite">12 CFR 1030.1(c); 12 CFR part 707</span>
       </p>
       <ul>
         {SAVINGS_ASSUMPTIONS.map((a) => <li>{a}</li>)}
@@ -186,7 +189,9 @@ const VERIFIED = 'November 15, 2026';
 
       <h2>Sources</h2>
       <ul class="small">
-        <li>12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.2, 1030.4, 1030.7 and appendix A. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.4, 1030.6, 1030.7 and appendix A, and the official commentary (Supplement I). Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 229 (Regulation CC, Availability of Funds and Collection of Checks), sections 229.14 and 229.19. Code of Federal Regulations, revised as of January 1, 2025. Verified {VERIFIED}.</li>
+        <li>12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025. Verified {VERIFIED}.</li>
       </ul>
     </div>
   </div>

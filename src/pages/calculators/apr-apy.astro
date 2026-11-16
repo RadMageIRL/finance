@@ -35,7 +35,7 @@ const VERIFIED = 'November 15, 2026';
   schema={calculatorSchema()}
   image="calc-apr-apy"
   title="APR and APY Calculator"
-  description="Convert a savings account's interest rate to its APY, or an APY back to the rate, for any compounding frequency, and compare up to three accounts. Why a savings APR and a loan APR differ."
+  description="Convert a savings account's interest rate to its APY, or an APY back to the rate, from annual to daily compounding, and compare up to three accounts. Why a savings APR and a loan APR differ."
 >
   <div class="page-head">
     <div class="wrap">
@@ -63,7 +63,7 @@ const VERIFIED = 'November 15, 2026';
               <CalcChoice name={`ra-kind-${i}`} legend="Rate given as" value={kind} options={[{ value: 'rate', label: 'Interest rate (APR)' }, { value: 'apy', label: 'APY' }]} />
               <div class="calc-account__row">
                 <CalcField id={`ra-value-${i}`} label="Rate" unitLabel="in percent" kind="percent" value={a ? percentText(a.value, 4).replace('%', '') : ''} hint={a ? hintFor(kind) : 'Leave blank to compare fewer accounts.'} />
-                <CalcSelect id={`ra-n-${i}`} label="Compounding" value={String(a?.periodsPerYear ?? BLANK_ACCOUNT.periodsPerYear)} options={frequencyOptions} hint="How often interest is added." />
+                <CalcSelect id={`ra-n-${i}`} label="Compounding" value={String(a?.periodsPerYear ?? BLANK_ACCOUNT.periodsPerYear)} options={frequencyOptions} hint="How often interest is compounded: added to the balance so it earns interest too." />
               </div>
             </fieldset>
           );
@@ -171,7 +171,9 @@ const VERIFIED = 'November 15, 2026';
 
       <h2>Interest rate, APY and APR on a savings account</h2>
       <p>
-        US banks follow the Truth in Savings rules, Regulation DD. It defines two rates for a
+        US banks follow the Truth in Savings rules, Regulation DD. Credit unions are not
+        covered; they follow parallel Truth in Savings rules from the National Credit Union
+        Administration. <span class="cite">12 CFR 1030.1(c); 12 CFR part 707</span> Regulation DD defines two rates for a
         deposit account:
       </p>
       <ul>
@@ -182,19 +184,27 @@ const VERIFIED = 'November 15, 2026';
         So on a savings account, APR and interest rate mean the same thing, and the APY is the
         figure that includes compounding. Two accounts with different compounding can be
         compared fairly only by their APYs. Banks round the APY and the interest rate to two
-        decimal places, though a disclosure may show the interest rate with more. <span class="cite">12 CFR 1030.3(f)(1)</span>
+        decimal places, though a disclosure may show the interest rate with more. <span class="cite">12 CFR 1030.3(f)(1)</span> A
+        disclosed APY counts as accurate if it is within 0.05 percentage point of the APY
+        figured by the regulation's formulas. <span class="cite">12 CFR 1030.3(f)(2)</span>
       </p>
 
       <h2>A loan's APR is a different measure</h2>
       <p>
-        For loans, the Truth in Lending rules, Regulation Z, use APR for something else: "a
+        For closed-end loans such as mortgages and auto loans, the Truth in Lending rules,
+        Regulation Z, use APR for something else: "a
         measure of the cost of credit, expressed as a yearly rate." <span class="cite">12 CFR 1026.22(a)(1)</span> It
         is built from the finance charge, "the cost of consumer credit as a dollar amount,"
         which includes interest and also charges such as "points, loan fees, assumption fees,
-        finder's fees, and similar charges." <span class="cite">12 CFR 1026.4(a), (b)(3)</span>
+        finder's fees, and similar charges." <span class="cite">12 CFR 1026.4(a), (b)(1), (b)(3)</span>
+      </p>
+      <p>
+        Fees paid up front (prepaid finance charges) are subtracted from the loan amount to give
+        the amount financed, the figure the APR is measured against. That is why a loan's APR
+        can be higher than its note rate. <span class="cite">12 CFR 1026.2(a)(23); 1026.18(b)</span>
       </p>
       <ul>
-        <li>A loan's APR can be higher than its interest rate (the note rate), because it also counts those fees.</li>
+        <li>A loan's APR can be higher than its interest rate (the note rate), because it also counts those charges.</li>
         <li>A loan's APR is not compounded the way an APY is: it is "the unit-period rate" multiplied "by the number of unit-periods in a year." <span class="cite">12 CFR part 1026, appendix J, (b)(1)</span></li>
       </ul>
       <p>
@@ -220,8 +230,9 @@ const VERIFIED = 'November 15, 2026';
 
       <h2>Sources</h2>
       <ul class="small">
-        <li>12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
-        <li>12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.2, 1026.4, 1026.18 and 1026.22 and appendix J. Electronic Code of Federal Regulations, eCFR, text as of November 1, 2026. Verified {VERIFIED}.</li>
+        <li>12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025. Verified {VERIFIED}.</li>
       </ul>
     </div>
   </div>

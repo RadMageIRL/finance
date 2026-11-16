@@ -6,7 +6,7 @@ import type { Source } from './money';
 export const LESSONS_REVIEWED = '2026-11-15';
 export const LESSONS_REVIEWED_LABEL = 'November 15, 2026';
 
-const BOE: Source = { id: 'boe-2014', publisher: 'Bank of England, Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas)', title: 'Money creation in the modern economy', date: 'March 14, 2014', url: 'https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy' };
+const BOE: Source = { id: 'boe-2014', publisher: 'Bank of England, Quarterly Bulletin 2014 Q1 (McLeay, Radia and Thomas)', title: 'Money creation in the modern economy', date: 'March 14, 2014', url: 'https://www.bankofengland.co.uk/-/media/boe/files/quarterly-bulletin/2014/money-creation-in-the-modern-economy.pdf' };
 const FEDS_2022: Source = { id: 'feds-2022', publisher: 'Board of Governors of the Federal Reserve System, FEDS Notes (Castro, Cavallo and Zarutskie)', title: 'Understanding Bank Deposit Growth during the COVID-19 Pandemic', date: 'June 3, 2022', url: 'https://www.federalreserve.gov/econres/notes/feds-notes/understanding-bank-deposit-growth-during-the-covid-19-pandemic-20220603.html' };
 const IORB_FAQ: Source = { id: 'fed-iorb-faq', publisher: 'Board of Governors of the Federal Reserve System', title: 'Interest on Reserve Balances (IORB) Frequently Asked Questions', date: 'last updated December 12, 2025', url: 'https://www.federalreserve.gov/monetarypolicy/iorb-faqs.htm' };
 const FEDWIRE: Source = { id: 'fed-fedwire', publisher: 'Board of Governors of the Federal Reserve System', title: 'Fedwire Funds Services', date: 'last updated June 25, 2024', url: 'https://www.federalreserve.gov/paymentsystems/fedfunds_about.htm' };
@@ -18,6 +18,9 @@ export const BANK_SOURCES: readonly Source[] = [
   IORB_FAQ,
   FEDWIRE,
   { id: 'cfr-217-10', publisher: 'Code of Federal Regulations (govinfo, 2026 edition)', title: '12 CFR 217.10, Minimum capital requirements', date: 'revised as of January 1, 2026', url: 'https://www.govinfo.gov/content/pkg/CFR-2026-title12-vol2/xml/CFR-2026-title12-vol2-sec217-10.xml' },
+  { id: 'cfr-3-10', publisher: 'Code of Federal Regulations (govinfo, 2026 edition)', title: '12 CFR 3.10, Minimum capital requirements (Office of the Comptroller of the Currency)', date: 'revised as of January 1, 2026', url: 'https://www.govinfo.gov/content/pkg/CFR-2026-title12-vol1/xml/CFR-2026-title12-vol1-sec3-10.xml' },
+  { id: 'cfr-324-10', publisher: 'Code of Federal Regulations (govinfo, 2026 edition)', title: '12 CFR 324.10, Minimum capital requirements (Federal Deposit Insurance Corporation)', date: 'revised as of January 1, 2026', url: 'https://www.govinfo.gov/content/pkg/CFR-2026-title12-vol5/xml/CFR-2026-title12-vol5-sec324-10.xml' },
+  { id: 'cfr-217-12', publisher: 'Electronic Code of Federal Regulations (eCFR)', title: '12 CFR 217.12, Community bank leverage ratio framework (as amended effective July 1, 2026)', date: 'current as of November 12, 2026', url: 'https://www.ecfr.gov/current/title-12/chapter-II/subchapter-A/part-217/subpart-B/section-217.12' },
   { id: 'fed-omo', publisher: 'Board of Governors of the Federal Reserve System', title: 'Open Market Operations', date: 'last updated September 16, 2026', url: 'https://www.federalreserve.gov/monetarypolicy/openmarket.htm' },
   { id: 'nyfed-effr', publisher: 'Federal Reserve Bank of New York', title: 'Effective Federal Funds Rate', date: 'undated', url: 'https://www.newyorkfed.org/markets/reference-rates/effr' },
   { id: 'fed-discount', publisher: 'Board of Governors of the Federal Reserve System', title: 'Discount Window', date: 'last updated May 20, 2024', url: 'https://www.federalreserve.gov/monetarypolicy/discountrate.htm' },
@@ -37,6 +40,7 @@ export const FLOW_SOURCES: readonly Source[] = [
   { id: 'feds-2025-tga', publisher: 'Board of Governors of the Federal Reserve System, FEDS Notes (Vissing-Jorgensen)', title: "Fluctuations in the Treasury General Account and their effect on the Fed's balance sheet", date: 'August 6, 2025', url: 'https://www.federalreserve.gov/econres/notes/feds-notes/fluctuations-in-the-treasury-general-account-and-their-effect-on-the-feds-balance-sheet-20250806.html' },
   IORB_FAQ,
   FEDS_2022,
+  { id: 'fed-h41', publisher: 'Board of Governors of the Federal Reserve System', title: 'Factors Affecting Reserve Balances (H.4.1), note 8 to table 6', date: 'November 12, 2026', url: 'https://www.federalreserve.gov/releases/h41/20261112/' },
   { id: 'fed-explained', publisher: 'Board of Governors of the Federal Reserve System', title: 'The Fed Explained: What the Central Bank Does (11th edition)', date: 'August 2021', url: 'https://www.federalreserve.gov/aboutthefed/files/the-fed-explained.pdf' },
   { id: 'nyfed-rrp', publisher: 'Federal Reserve Bank of New York', title: 'FAQs: Reverse Repurchase Agreement Operations', date: 'September 16, 2026', url: 'https://www.newyorkfed.org/markets/rrp_faq' },
 ];

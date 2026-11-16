@@ -43,10 +43,11 @@ export const SOURCES: readonly Source[] = [
   { id: 'occ-genius-final', publisher: 'Office of the Comptroller of the Currency, Federal Register 91 FR 67000', title: 'Implementing the Guiding and Establishing National Innovation for U.S. Stablecoins Act for the Issuance of Stablecoins by Entities Subject to the Jurisdiction of the Office of the Comptroller of the Currency (final rule)', date: 'October 23, 2026', url: 'https://www.govinfo.gov/content/pkg/FR-2026-10-23/html/2026-21706.htm' },
   { id: 'treasury-genius-ifr', publisher: 'U.S. Department of the Treasury, Federal Register 91 FR 61688', title: 'Forms and Procedures for Review of State Certifications by the Stablecoin Certification Review Committee (interim final rule)', date: 'September 30, 2026', url: 'https://www.govinfo.gov/content/pkg/FR-2026-09-30/html/2026-19966.htm' },
   { id: 'cftc-virtual-currency', publisher: 'Commodity Futures Trading Commission', title: 'Customer Advisory: Understand the Risks of Virtual Currency Trading', date: 'first issued December 2017', url: 'https://www.cftc.gov/LearnAndProtect/AdvisoriesAndArticles/understand_risks_of_virtual_currency.html' },
-  { id: 'irs-digital-assets', publisher: 'Internal Revenue Service', title: 'Digital assets', date: 'last reviewed September 2, 2026', url: 'https://www.irs.gov/businesses/small-businesses-self-employed/digital-assets' },
+  { id: 'irs-digital-assets', publisher: 'Internal Revenue Service', title: 'Digital assets', date: 'last reviewed September 2, 2026', url: 'https://www.irs.gov/filing/digital-assets' },
+  { id: 'usc-31-5111', publisher: 'U.S. Code (govinfo, 2023 edition)', title: '31 U.S.C. 5111, Minting and issuing coins, medals, and numismatic items', date: '2023 edition', url: 'https://www.govinfo.gov/content/pkg/USCODE-2023-title31/html/USCODE-2023-title31-subtitleIV-chap51-subchapII-sec5111.htm' },
   { id: 'usc-31-5112', publisher: 'U.S. Code (govinfo, 2023 edition)', title: '31 U.S.C. 5112, Denominations, specifications, and design of coins', date: '2023 edition', url: 'https://www.govinfo.gov/content/pkg/USCODE-2023-title31/html/USCODE-2023-title31-subtitleIV-chap51-subchapII-sec5112.htm' },
   { id: 'fed-gold-faq', publisher: 'Board of Governors of the Federal Reserve System', title: 'Does the Federal Reserve own or hold gold?', date: 'last updated November 5, 2024', url: 'https://www.federalreserve.gov/faqs/does-the-federal-reserve-own-or-hold-gold.htm' },
-  { id: 'treasury-gold', publisher: 'U.S. Department of the Treasury, Fiscal Data', title: 'Status Report of U.S. Government Gold Reserve', date: 'updated November 3, 2026', url: 'https://fiscaldata.treasury.gov/datasets/status-report-government-gold-reserve/' },
+  { id: 'treasury-gold', publisher: 'U.S. Department of the Treasury, Fiscal Data', title: 'U.S. Treasury-Owned Gold', date: 'updated November 3, 2026', url: 'https://fiscaldata.treasury.gov/datasets/status-report-government-gold-reserve/' },
 ];
 
 const NUMBER = new Map(SOURCES.map((s, i) => [s.id, i + 1]));
@@ -96,7 +97,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
     summary: 'Federal Reserve notes and coins: the paper money and coins in your wallet.',
     owedBy: 'The United States and the Federal Reserve',
     answers: {
-      promise: a('Federal Reserve notes are by law "obligations of the United States," and the Federal Reserve lists them as a liability on its balance sheet.', 'usc-12-411', 'fed-balance-sheet'),
+      promise: a('Federal Reserve notes are by law "obligations of the United States," and the Federal Reserve lists them as a liability on its balance sheet. Coins are different: the Secretary of the Treasury "shall mint and issue" them.', 'usc-12-411', 'fed-balance-sheet', 'usc-31-5111'),
       legal: a('Legal tender: US coins and currency, including Federal Reserve notes, "are legal tender for all debts, public charges, taxes, and dues."', 'usc-31-5103'),
       holders: a('Anyone.'),
       settlement: a('Handing the cash over completes the payment. No bank stands between the payer and the payee.'),
@@ -111,7 +112,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
     owedBy: 'Your bank',
     answers: {
       promise: a('A debt the bank owes you. The Federal Reserve notes that the money used in everyday digital payments is made of "liabilities of private entities, such as commercial banks."', 'fed-money-payments'),
-      legal: a('Not legal tender, which the statute limits to US coins and currency. A deposit is a claim on the bank under your account agreement.', 'usc-31-5103'),
+      legal: a('Not legal tender: by statute, legal tender is US coins and currency. A deposit is a claim on the bank under your account agreement.', 'usc-31-5103'),
       holders: a('Anyone with an account at a bank.'),
       settlement: a('Within one bank, the bank moves the balance from one account to another. Between banks, the banks settle with each other, for example over the Federal Reserve\'s Fedwire Funds Service, whose payments are "immediate, final, and irrevocable once processed."', 'fed-fedwire'),
       backing: a('FDIC insurance at insured banks: "$250,000 per depositor, per FDIC-insured bank, per ownership category." The amount is set by statute. Balances above it are not insured.', 'fdic-faq', 'usc-12-1821'),
@@ -126,7 +127,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
     answers: {
       promise: a('"Reserve balances (or "reserves") are a liability of the Federal Reserve and an asset of the depository institutions" that hold them. "Only the Federal Reserve, as the central bank, can create reserves."', 'fed-iorb-faq'),
       legal: a('Balances in accounts at the Federal Reserve Banks, which an institution may hold only if it is eligible "under the Federal Reserve Act or other federal statute."', 'fed-account-guidelines'),
-      holders: a('Banks and certain other eligible financial institutions, never households or ordinary businesses. "More than 5,000 depository institutions maintain accounts at the Federal Reserve Banks."', 'fed-account-guidelines', 'fed-liabilities'),
+      holders: a('Banks and certain other eligible financial institutions, never households or ordinary businesses. In 2021 the Federal Reserve said that "more than 5,000 depository institutions maintain accounts at the Federal Reserve Banks."', 'fed-account-guidelines', 'fed-liabilities'),
       settlement: a('Moved from one institution\'s Reserve Bank account to another\'s, for example over Fedwire, where a payment is final once processed. This is how banks settle payments between themselves.', 'fed-fedwire'),
       backing: a('A liability of the central bank itself, which creates them. The Federal Reserve pays interest on them at the IORB rate, 3.90 percent as of October 29, 2026.', 'fed-iorb-faq', 'fed-iorb-2026-10'),
       price: a('One dollar of reserves is always one dollar.'),
@@ -156,7 +157,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
       legal: a('A security, regulated by the Securities and Exchange Commission under its money market fund rule (rule 2a-7), last overhauled in 2023.', 'sec-mmf-2023'),
       holders: a('Any investor. Funds for individuals (retail) and for institutions follow different rules.', 'sec-mmf-2023'),
       settlement: a('The holder sells (redeems) shares with the fund and is paid in dollars, usually into a bank account.'),
-      backing: a('The fund\'s investments. Not FDIC insured: deposit insurance "does not apply to financial products such as stocks, bonds, money market mutual funds." Since the 2023 reforms a fund can no longer suspend redemptions, and some funds must charge a fee when redemptions are heavy.', 'fdic-crypto', 'sec-mmf-2023'),
+      backing: a('The fund\'s investments. Not FDIC insured: deposit insurance "does not apply to financial products such as stocks, bonds, money market mutual funds." Since the 2023 reforms a fund can no longer temporarily suspend redemptions (it can still suspend them permanently in order to close down in an orderly way), and institutional prime and institutional tax-exempt funds must charge a liquidity fee when a day\'s net redemptions exceed 5 percent of the fund\'s net assets.', 'fdic-crypto', 'sec-mmf-2023'),
       price: a('"Government and retail money market funds" can generally keep "a stable share price, typically $1.00." Institutional prime and institutional tax-exempt funds must use a floating share price.', 'sec-mmf-2023'),
     },
   },
@@ -170,7 +171,7 @@ export const INSTRUMENTS: readonly Instrument[] = [
       legal: a('Governed by the GENIUS Act (signed July 18, 2025), which takes effect on January 18, 2027. Once it does, only a "permitted payment stablecoin issuer" may issue one in the US, issuers may not market one as legal tender, and one from a permitted issuer is not a security. Rules issued so far, as of November 15, 2026: a final rule from the OCC (effective January 18, 2027) and an interim final rule from the Treasury on state certifications; the FDIC, Federal Reserve Board and NCUA rules are still proposals.', 'genius-act', 'occ-genius-final', 'treasury-genius-ifr'),
       holders: a('Anyone with a wallet or platform that supports them.'),
       settlement: a('A transfer is recorded on a "cryptographically secured distributed ledger." Getting dollars back means redeeming with the issuer, which must publish "procedures for timely redemption," or selling to someone else.', 'genius-act'),
-      backing: a('Reserves of at least 1 to 1 in cash, bank deposits, Treasury bills of 93 days or less, overnight repurchase agreements and government money market funds. Not "backed by the full faith and credit of the United States" and not "subject to deposit insurance." If the issuer fails, holders\' claims "rank senior to" other creditors\'.', 'genius-act'),
+      backing: a('Reserves of at least 1 to 1 in US coins and currency or balances at a Federal Reserve Bank, bank deposits, Treasury bills, notes or bonds with 93 days or less to maturity, overnight repurchase agreements, government money market funds that hold only such assets, and other similarly liquid federal government assets a regulator approves. Not "backed by the full faith and credit of the United States" and not "subject to deposit insurance." If the issuer fails, holders\' claims have priority over other creditors\' claims "with respect to required payment stablecoin reserves."', 'genius-act'),
       price: a('The issuer represents that it will keep "a stable value relative to the value of a fixed amount of monetary value." Holding that value depends on the issuer\'s reserves and its keeping the promise.', 'genius-act'),
     },
   },

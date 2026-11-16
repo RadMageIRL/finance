@@ -118,14 +118,14 @@ export const CALCULATORS: readonly CatalogItem[] = [
   {
     title: 'Compound interest',
     path: 'calculators/compound-interest/',
-    summary: 'See how a balance grows with any compounding frequency and regular contributions.',
+    summary: 'See how a balance grows with annual to daily compounding and regular contributions.',
     detail: 'Schedules by day, month or year, contributions versus interest.',
     status: 'available',
   },
   {
     title: 'APR and APY',
     path: 'calculators/apr-apy/',
-    summary: 'Convert between a stated rate and the annual percentage yield, and compare up to three accounts.',
+    summary: 'Convert between an interest rate and the annual percentage yield, from annual to daily compounding, and compare up to three accounts.',
     detail: 'Why a savings APY and a loan APR measure different things.',
     status: 'available',
   },

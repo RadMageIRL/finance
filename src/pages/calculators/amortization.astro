@@ -48,7 +48,7 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
         <h2 class="calc__heading" id="la-inputs-title">Your loan</h2>
         <p class="calc__note" data-out="shared-note" hidden></p>
         <CalcField id="la-principal" label="Loan amount" unitLabel="in dollars" kind="money" value="30,000.00" hint="The amount you borrow." />
-        <CalcField id="la-rate" label="Interest rate (note rate)" unitLabel="in percent" kind="percent" value="7" hint="The rate in the loan agreement, for example 6.5. Not the APR, which also counts fees." />
+        <CalcField id="la-rate" label="Interest rate (note rate)" unitLabel="in percent" kind="percent" value="7" hint="The rate in the loan agreement, for example 6.5. Not the APR, which also counts certain fees." />
         <div class="calc-account__row">
           <CalcField id="la-term" label="Term" kind="whole" value="5" hint="Up to 50 years (600 months)." />
           <CalcSelect id="la-term-unit" label="Term in" value="years" options={TERM_UNITS.map((u) => ({ value: u.value, label: u.label }))} hint="Years or months." />

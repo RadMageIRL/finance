@@ -9,10 +9,10 @@ import { href } from '../lib/url';
   lead="How RadMage Finance decides what to say, how it labels each kind of claim, and how its calculators and simulations are built and checked."
   updated="2026-11-15"
 >
-  <h2>Five kinds of statement</h2>
+  <h2>Six kinds of statement</h2>
   <p>
     Financial writing often blends facts, definitions, theories and predictions in a single
-    paragraph. This site keeps them apart and labels them.
+    paragraph. This site keeps them apart: each section says which kind of claim it makes.
   </p>
   <dl class="kinds">
     <div>
@@ -51,10 +51,10 @@ import { href } from '../lib/url';
 
   <h2>Calculators</h2>
   <ul>
-    <li>Balances are kept to the cent. Interest is calculated at full precision and rounded to the cent when it is posted, as it would be on a real account or loan, and each calculator states its rounding rule. Totals are sums of the posted amounts, so tables always add up.</li>
+    <li>Balances are kept to the cent. Interest is calculated at full precision and rounded to the cent when it is posted, as it would be on a real account or loan, and each calculator states its rounding rule. Totals are sums of the posted amounts, so tables always add up. Interest accrued but not yet credited is shown separately and is never part of a balance. The one exception to rounding is the balance illustration on the APR and APY page, which does not round interest, so it can show the APY exactly; its balances are shown rounded to the cent.</li>
     <li>Compounding frequency, deposit and payment timing, and rate conventions are either inputs you control or assumptions stated on the page.</li>
     <li>Schedules by day, month or year show the same calculation at a different grain. Each day's interest accrued comes from the calculation itself, and interest appears as credited only on the day a crediting period ends, so a monthly-credited account never shows a daily credit. Every grouping adds up to the same final balance, and the reports, CSV files and printouts use exactly the figures on the page.</li>
-    <li>Results are checked against worked examples published by regulators, such as the annual percentage yield examples in Regulation DD, and against a separate reference implementation written independently in Python.</li>
+    <li>Where a regulator publishes worked examples, such as the annual percentage yield examples in Regulation DD, the formulas reproduce them. Every calculator is also checked against a separate reference implementation written independently in Python.</li>
     <li>Where a worked example leaves a detail unstated, the assumption needed to reproduce it is labeled as an inference. For example, the Regulation DD examples do not say when interest is credited; they are reproduced by crediting at the end of each year of the term and at maturity. That is not a rule banks must follow: the regulation lets banks compound and credit interest at whatever frequency they choose and disclose.</li>
     <li>Results are estimates. Your bank or lender's disclosures and agreements govern your actual account or loan.</li>
   </ul>

@@ -47,19 +47,22 @@ export const SAVINGS_CALCULATOR = 'High-yield savings calculator';
  * the M1.5 review (ENGINE_CONVENTIONS 10.8, items A to E) say so in their own words.
  */
 export const SAVINGS_ASSUMPTIONS: readonly string[] = [
-  'Interest is figured with a daily rate of 1/365 of the interest rate on each day\'s balance, the method 12 CFR 1030.7(a)(1) sets as the minimum.',
+  'Interest is figured each day on that day\'s balance (the daily balance method), with a daily rate of 1/365 of the interest rate, the lowest daily rate 12 CFR 1030.7(a)(1) allows.',
   'Assumption (interest rate from the APY): the interest rate is worked out from the advertised APY so that a single deposit left for one year with no other transactions earns exactly that APY before rounding. Banks do not publish which formula they used, and advertised APYs are rounded to two decimals, so a bank\'s own rate can differ slightly.',
   'Assumption (rounding): each month\'s interest is rounded to the nearest cent, with half a cent rounding up, and no fraction of a cent is carried over. Some banks drop fractions of a cent instead, or carry them to the next month.',
   'Assumption (monthly crediting): interest is credited at the end of each calendar month. Some accounts credit quarterly or on another schedule.',
+  'Statements are assumed to be monthly, one per calendar month, so the APY earned is shown for each month. Regulation DD does not require any particular statement period.',
   'Daily compounding: interest accrued each day earns interest from the next day, though it is credited only at the end of the month. Monthly compounding: interest earns nothing until it is credited.',
   'Assumption (calendar): every year has 365 days and starts on January 1, months have their real lengths, and leap days are ignored, so results are not tied to real dates. With a real start date, deposits and monthly credits would fall on different days, so results would differ. A leap day adds about one more day\'s interest on the balance at a bank that uses 1/365 of the interest rate every day; at a bank that uses 1/366 in leap years, as 12 CFR 1030.7(a)(1) allows, the year\'s interest comes out about the same. A rate change starts on the first day of its month.',
-  'Assumption (deposit day): each deposit earns interest from the day it is made. For deposits by check a bank may start a day or more later (12 CFR 1030.7(c)).',
-  'Deposits follow the same schedule as the compound interest calculator: monthly, quarterly and yearly deposits on the first or last day of the period, weekly and biweekly ones every 7 or 14 days.',
+  'Assumption (deposit day): each deposit earns interest from the day it is made. A bank may start later: it must begin by the business day it receives credit for the funds, which for a check can be after the day of the deposit, and a deposit made after its cutoff hour or on a day that is not a banking day can count as made the next banking day (12 CFR 1030.7(c); 12 CFR 229.14(a), 229.19(a)(5)).',
+  'Monthly, quarterly and yearly deposits are made on the first day of each period (start) or at the close of its last day (end). Weekly and biweekly deposits are made every 7 or 14 days from the first day, so the number per year varies; with deposits at the end of each interval, a partial interval left at the end of the term gets none. A deposit at the end of the last period is added on the final day and earns no interest.',
   'No withdrawals, fees, minimum balances, balance tiers, bonuses or taxes, and amounts are not adjusted for inflation.',
 ];
 
 export const SAVINGS_SOURCES: readonly string[] = [
-  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.2, 1030.4, 1030.7 and appendix A, and the official commentary (Supplement I). Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.4, 1030.6, 1030.7 and appendix A, and the official commentary (Supplement I). Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 229 (Regulation CC, Availability of Funds and Collection of Checks), sections 229.14 and 229.19. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
+  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
 ];
 
 /** An APY as disclosed: two decimals (12 CFR 1030.3(f)(1)). */
@@ -155,7 +158,7 @@ export function savingsScheduleConfig(result: HysaResult): ScheduleConfig {
 /** Notes printed with the schedule: what accrued and credited mean for these settings. */
 export function savingsScheduleNotes(input: HysaInput, grouping: Grouping): string[] {
   const notes = [
-    'Interest accrued is figured each day and shown unrounded, to a hundredth of a cent. It is credited, rounded to the cent, at the end of each month, and only credited interest is part of the balance.',
+    'Interest accrued is figured each day without rounding and shown to a hundredth of a cent. It is credited, rounded to the cent, at the end of each month, and only credited interest is part of the balance.',
     input.compounding === 'daily'
       ? 'With daily compounding, interest accrued earlier in the month also earns interest each day, though it is credited only at the end of the month.'
       : 'With monthly compounding, interest accrued during a month earns nothing until it is credited at the end of the month.',

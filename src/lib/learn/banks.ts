@@ -64,13 +64,13 @@ export const BANK_STEPS: readonly GuidedStep[] = [
   {
     id: 'repay',
     title: 'The first monthly payment, with interest',
-    text: `The loan is repaid monthly over a year at 12 percent. The first payment of $${(pay.payment / 100).toFixed(2)} is $${(pay.interest / 100).toFixed(2)} of interest and $${(pay.principal / 100).toFixed(2)} of principal, from the amortization calculator's engine. Repaying principal removes the deposit and the loan together, so money shrinks; the interest becomes Bank A's income, adding to its equity.`,
+    text: `The loan is repaid monthly over a year at 12 percent. The first payment of $${(pay.payment / 100).toFixed(2)} is $${(pay.interest / 100).toFixed(2)} of interest and $${(pay.principal / 100).toFixed(2)} of principal, from the amortization calculator's engine. The whole $${(pay.payment / 100).toFixed(2)} comes out of Household 1's deposit, so money in the model shrinks by that much: the $${(pay.principal / 100).toFixed(2)} of principal cancels part of the loan, and the $${(pay.interest / 100).toFixed(2)} of interest becomes Bank A's income, adding to its equity.`,
     make: () => [payInterest('H1', pay.interest), repayPrincipal('H1', pay.principal)],
   },
   {
     id: 'default',
     title: 'The borrower defaults',
-    text: 'Household 1 loses its income and cannot pay the rest. In this simulation Bank A writes off the remaining loan and also forgives it, two things a real bank does separately. The write-off (charge-off) is the bank\'s accounting entry: the loan asset disappears and the loss comes out of Bank A\'s equity. The forgiveness takes the debt off Household 1\'s balance sheet, so its equity rises. In real life a charge-off by itself does not cancel the debt: the borrower still owes it unless the bank forgives it. Deposits are untouched, so the money supply does not change, but the bank is weaker. This is credit risk.',
+    text: 'Household 1 loses its income and cannot pay the rest. In this simulation Bank A writes off the remaining loan and also forgives it, two things a real bank does separately. The write-off (charge-off) is the bank\'s accounting entry: the loan asset disappears and the loss comes out of Bank A\'s equity. The forgiveness takes the debt off Household 1\'s balance sheet, so its equity rises. In real life a charge-off by itself does not cancel the debt: the borrower still owes it unless the bank forgives it. Deposits are untouched, so money in the model does not change, but the bank is weaker. This is credit risk.',
     make: (s) => [writeOff('H1', claimAmount(s, { instrument: 'loan', holder: 'BankA', issuer: 'H1' }))],
   },
   {
@@ -93,7 +93,7 @@ export const BANK_STEPS: readonly GuidedStep[] = [
 export function bankCounterRows(c: Counters): { label: string; value: string }[] {
   return [
     { label: 'Money in the model', value: formatUSD(c.money) },
-    { label: 'Total reserves', value: formatUSD(c.reserves) },
+    { label: 'Bank reserves', value: formatUSD(c.reserves) },
     { label: 'Bank A equity', value: `${formatUSD(c.equity.BankA)} (${c.capitalRatio.BankA.toFixed(1)}% of assets)` },
     { label: 'Bank B equity', value: `${formatUSD(c.equity.BankB)} (${c.capitalRatio.BankB.toFixed(1)}% of assets)` },
   ];

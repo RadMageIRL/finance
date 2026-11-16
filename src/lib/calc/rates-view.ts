@@ -222,7 +222,7 @@ export const RATES_CALCULATOR = 'APR and APY calculator';
 /** The page's assumptions, also printed in every report. */
 export const RATES_ASSUMPTIONS: readonly string[] = [
   'Each rate stays the same for the whole time shown. Savings rates change.',
-  'The interest for a year is the balance times the APY, rounded once to the cent. It assumes the balance stays in the account all year with no deposits or withdrawals, the same assumption the APY itself makes. A bank rounds each interest payment, so its total can differ by a cent or two.',
+  'The interest for a year is the balance times the APY (before the APY is rounded for display), rounded once to the cent. It assumes the balance stays in the account all year with no deposits or withdrawals, the same assumption the APY itself makes. A bank rounds each interest payment, so its total can differ by a cent or two.',
   'A year has 365 days. Weekly compounding means 52 times a year.',
   'Balance illustration: a single deposit of the balance above on the first day, then no deposits or withdrawals for the years shown.',
   'In the illustration each account adds its rate per period (the interest rate divided by the compounding periods in a year) at the end of each compounding period, on the calendar the other calculators use: 365-day years from January 1, real month lengths, quarters from January, April, July and October, and 52 weeks a year with the last week of each year 8 days long.',
@@ -231,8 +231,9 @@ export const RATES_ASSUMPTIONS: readonly string[] = [
 ];
 
 export const RATES_SOURCES: readonly string[] = [
-  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
-  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.4 and 1026.22 and appendix J. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 1030 (Regulation DD, Truth in Savings), sections 1030.1, 1030.2, 1030.3 and appendix A. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 1026 (Regulation Z, Truth in Lending), sections 1026.2, 1026.4, 1026.18 and 1026.22 and appendix J. Electronic Code of Federal Regulations, text as of November 1, 2026, verified November 15, 2026.',
+  '12 CFR part 707 (National Credit Union Administration, Truth in Savings), section 707.1. Code of Federal Regulations, revised as of January 1, 2025, verified November 15, 2026.',
 ];
 
 /** What the illustration's rows mean, shown with the table and in the report. */

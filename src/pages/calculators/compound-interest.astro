@@ -30,7 +30,7 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
   schema={calculatorSchema()}
   image="calc-compound-interest"
   title="Compound Interest Calculator"
-  description="See how a balance grows when interest earns interest, with any compounding frequency and weekly, monthly or other regular contributions. Year-by-year table, chart and CSV, calculated in your browser."
+  description="See how a balance grows when interest earns interest, with annual to daily compounding and weekly, monthly or other regular contributions. Year-by-year table, chart and CSV, calculated in your browser."
 >
   <div class="page-head">
     <div class="wrap">
@@ -49,7 +49,7 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
         <h2 class="calc__heading" id="ci-inputs-title">Your scenario</h2>
         <p class="calc__note" data-out="shared-note" hidden></p>
         <CalcField id="ci-principal" label="Starting balance" unitLabel="in dollars" kind="money" value="10,000.00" hint="The amount in the account on day one." />
-        <CalcField id="ci-rate" label="Annual interest rate" unitLabel="in percent" kind="percent" value="5" hint="The yearly rate before compounding, for example 4.5." />
+        <CalcField id="ci-rate" label="Annual interest rate" unitLabel="in percent" kind="percent" value="5" hint="The yearly rate before compounding (not the APY), for example 4.5." />
         <CalcSelect id="ci-frequency" label="Compounding" value={String(DEFAULT_INPUT.periodsPerYear)} options={FREQUENCIES.map((f) => ({ value: String(f.value), label: f.label }))} hint="How often interest is added to the balance and starts earning interest itself. Here it is credited at the same time; a bank account can compound daily and credit monthly." />
         <CalcField id="ci-years" label="Years" kind="whole" value="10" hint="From 1 to 100." />
         <CalcSelect id="ci-contribution-frequency" label="Contribution frequency" value={DEFAULT_INPUT.contributionFrequency} options={CONTRIBUTION_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} hint="How often you add money. This is separate from compounding." />
@@ -117,16 +117,17 @@ const interval = contributionOption(DEFAULT_INPUT.contributionFrequency).interva
       </p>
       <p>
         where P is the starting balance, r the annual rate, n the compounding periods per year,
-        t the years and C the contribution each period. For contributions at the start of each
+        t the years and C the contribution at the end of each period. For contributions at the start of each
         period, the contribution term is multiplied by (1 + r/n). The formula never rounds, so it
-        can differ from the period-by-period result by a few cents. When contributions and
+        can differ from the period-by-period result by a few cents, or more over very long terms. When contributions and
         compounding follow different schedules, no single formula applies, and the calculator
         adds each contribution on its own date.
       </p>
       <p>
-        This is the textbook model. A bank figures savings interest a little differently: with
-        a daily rate of 1/365 of the interest rate on each day's balance, so a 31-day month
-        earns slightly more than a 28-day one. The <a href={href('calculators/savings-growth/')}>high-yield savings calculator</a> works
+        This is the textbook model. A bank figures savings interest a little differently:
+        Regulation DD requires interest on the full balance "for each day," using "a daily rate
+        of at least 1/365 of the interest rate," so a 31-day month earns slightly more than a
+        28-day one. <span class="cite">12 CFR 1030.7(a)(1)</span> The <a href={href('calculators/savings-growth/')}>high-yield savings calculator</a> works
         that way, starting from the APY a bank advertises.
       </p>
       <p>

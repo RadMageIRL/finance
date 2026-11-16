@@ -70,7 +70,7 @@ export interface Report {
 }
 
 export const REPORT_NOTICE =
-  'For illustration only. This is not a bank or account statement, not an offer of any product, and not financial, tax or legal advice. The results follow from the inputs and assumptions listed in this report; real accounts and rates will differ.';
+  'For illustration only. This is not a bank or account statement, not an offer of any product, and not financial, tax or legal advice. The results follow from the inputs and assumptions listed in this report; real accounts, loans and rates will differ.';
 
 const COMPOSITION_DEFAULT = { heading: 'Interest versus what was put in', caption: 'How the final balance is made up', shareLabel: 'Share of the final balance' };
 

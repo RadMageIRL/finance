@@ -39,8 +39,8 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       <Breadcrumbs items={[{ label: 'Home', path: '' }, { label: 'Calculators', path: 'calculators/' }, { label: 'Mortgage payoff' }]} />
       <h1>Mortgage payoff calculator</h1>
       <p class="lead">
-        See what extra payments do to a mortgage: when it is paid off, how many payments you
-        skip, and how much interest you save, next to the same loan without them.
+        See what extra payments do to a mortgage: when it is paid off, how many fewer payments
+        you make, and how much interest you save, next to the same loan without them.
       </p>
     </div>
   </div>
@@ -53,7 +53,7 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
         <CalcField id="mp-principal" label="Loan balance" unitLabel="in dollars" kind="money" value="300,000.00" hint="For a new loan, the amount borrowed. For a loan you have, today's balance." />
         <CalcField id="mp-rate" label="Interest rate (note rate)" unitLabel="in percent" kind="percent" value="6.5" hint="The rate in the loan agreement, not the APR." />
         <div class="calc-account__row">
-          <CalcField id="mp-term" label="Term" kind="whole" value="30" hint="For a loan you have, the time left." />
+          <CalcField id="mp-term" label="Term" kind="whole" value="30" hint="For a loan you have, the time left; in months for an exact count." />
           <CalcSelect id="mp-term-unit" label="Term in" value="years" options={TERM_UNITS.map((u) => ({ value: u.value, label: u.label }))} hint="Years or months." />
         </div>
         <div class="calc-account__row">
@@ -144,9 +144,12 @@ const months = MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }));
       </p>
       <p>
         Whether paying extra makes sense depends on your other financial obligations, such as
-        other debts and savings, and on the loan's own terms, such as its interest rate and
-        how your servicer applies extra payments. This calculator shows only the effect on
-        this loan.
+        other debts and savings, and on the loan's own terms, such as its interest rate, any
+        prepayment penalty or other restrictions on paying early, and how your servicer
+        applies extra payments. A prepayment penalty typically applies only if you pay off the
+        whole balance within a set number of years, though "in some cases, a prepayment
+        penalty could apply if you pay off a large amount of your mortgage all at once." <span class="cite">CFPB</span> This
+        calculator shows only the effect on this loan.
       </p>
       <p>
         On a mortgage, the total monthly payment usually includes "additional costs like

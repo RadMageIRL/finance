@@ -45,10 +45,11 @@ export const COMPOUND_ASSUMPTIONS: readonly string[] = [
   'The interest rate stays the same for the whole period. Real savings rates change.',
   'Interest is credited at the end of each compounding period and rounded to the nearest cent when it is credited, half a cent rounding up.',
   'Each compounding period earns the annual rate divided by the number of periods in a year, whatever its length: February earns the same monthly rate as January.',
-  'Contributions follow their own schedule, separate from compounding. A contribution earns interest from the day it is made. One made part way through a compounding period earns that period\'s interest in proportion to the days it was in the account.',
+  'Contributions follow their own schedule, separate from compounding. A contribution at the start of an interval earns interest from that day; one at the end is added at the close of the interval\'s last day and earns interest from the next day. One made part way through a compounding period earns that period\'s interest in proportion to the days it was in the account.',
   'The calendar: every year has 365 days and starts on January 1, months have their real lengths (31 days in January, 28 in February, and so on), quarters start in January, April, July and October, and leap days are ignored. Months are never treated as 30 days.',
   'Monthly, quarterly and yearly contributions are made on the first day of each month, quarter or year (start), or on its last day (end). Weekly and biweekly contributions are made every 7 or 14 days, counted from the first day.',
   'A 365-day year is 52 weeks and 1 day, so the number of weekly or biweekly contributions changes a little from year to year. With contributions at the start of each week, the first year has 53.',
+  'With weekly or biweekly contributions at the end of each interval, a partial interval left at the end of the term gets no contribution.',
   'A contribution at the end of the last interval is added on the final day and earns no interest.',
   'No taxes, fees or withdrawals, and amounts are not adjusted for inflation.',
 ];
@@ -107,7 +108,7 @@ export function compoundScheduleNotes(input: CompoundInput, grouping: Grouping):
     input.periodsPerYear === 365
       ? ['Interest is compounded and credited every day, rounded to the cent; interest accrued is the unrounded amount for the day, shown to a hundredth of a cent.']
       : [
-          `Interest is credited at the end of each ${f.period}, rounded to the cent, and only then becomes part of the balance. Interest accrued is each day's share of the ${f.period}'s interest, shown unrounded to a hundredth of a cent.`,
+          `Interest is credited at the end of each ${f.period}, rounded to the cent, and only then becomes part of the balance. Interest accrued is each day's share of the ${f.period}'s interest, figured without rounding and shown to a hundredth of a cent.`,
         ];
   if (input.periodsPerYear < 12 && grouping !== 'year') notes.push(`Rows that do not end a ${f.period} show interest accrued but no interest credited.`);
   if (input.periodsPerYear !== 365 && grouping === 'day') notes.push(`Day rows show a credit only on the last day of each ${f.period}.`);
