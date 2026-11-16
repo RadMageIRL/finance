@@ -6,7 +6,7 @@
 // value could never become markup even if one day it came from the visitor. The document
 // carries a Content-Security-Policy that allows no scripts and no network requests at all.
 
-import { pageCount, type TableRow, type TableSource } from './table';
+import { pageCount, reportColumns, type TableRow, type TableSource } from './table';
 
 export interface ReportItem {
   label: string;
@@ -126,24 +126,27 @@ function items(list: readonly ReportItem[]): string {
   return `<dl class="rmf-report__items">${list.map((i) => `<div><dt>${e(i.label)}</dt><dd>${e(i.value)}</dd></div>`).join('')}</dl>`;
 }
 
-function rowHtml(row: TableRow): string {
+/** A row with only the cells of the given columns (column indexes; 0 is the row header). */
+function rowHtml(row: TableRow, shown: readonly number[]): string {
   const note = row.note ? ` <span class="rmf-report__note">${e(row.note)}</span>` : '';
-  return `<tr${row.strong ? ' class="rmf-report__strong"' : ''}><th scope="row">${e(row.head)}${note}</th>${row.cells.map((c) => `<td>${e(c)}</td>`).join('')}</tr>`;
+  const cells = shown.filter((i) => i > 0).map((i) => `<td>${e(row.cells[i - 1] ?? '')}</td>`);
+  return `<tr${row.strong ? ' class="rmf-report__strong"' : ''}><th scope="row">${e(row.head)}${note}</th>${cells.join('')}</tr>`;
 }
 
-/** The whole table, every row, with the numeric columns marked for alignment. */
+/** The whole table, every row, with the numeric columns marked for alignment. Page-only columns are left out. */
 export function tableHtml(table: TableSource, limit = Number.POSITIVE_INFINITY, options: { detail?: boolean } = {}): string {
-  const numeric = table.columns.map((c) => c.numeric);
+  const shown = reportColumns(table);
+  const numeric = shown.map((i) => table.columns[i]!.numeric);
   const cols = numeric.map((n) => `<col${n ? ' class="num"' : ''}>`).join('');
-  const head = table.columns.map((c, i) => `<th scope="col"${numeric[i] ? ' class="num"' : ''}>${e(c.label)}</th>`).join('');
+  const head = shown.map((i, k) => `<th scope="col"${numeric[k] ? ' class="num"' : ''}>${e(table.columns[i]!.label)}</th>`).join('');
   const body: string[] = [];
   const detail = options.detail ? table.detail : undefined;
   for (let i = 0; i < Math.min(table.count, limit); i += 1) {
-    body.push(rowHtml(table.row(i)));
+    body.push(rowHtml(table.row(i), shown));
     // The year's months as their own table, in a row that spans the year table (section 14).
-    if (detail) body.push(`<tr class="rmf-report__detail"><td colspan="${table.columns.length}">${tableHtml(detail.table(i))}</td></tr>`);
+    if (detail) body.push(`<tr class="rmf-report__detail"><td colspan="${shown.length}">${tableHtml(detail.table(i))}</td></tr>`);
   }
-  const foot = table.footer ? `<tfoot>${rowHtml(table.footer)}</tfoot>` : '';
+  const foot = table.footer ? `<tfoot>${rowHtml(table.footer, shown)}</tfoot>` : '';
   return `<table><caption>${e(table.caption)}</caption><colgroup>${cols}</colgroup><thead><tr>${head}</tr></thead><tbody>${body.join('')}</tbody>${foot}</table>`;
 }
 
@@ -272,7 +275,8 @@ export function reportText(report: Report): string {
     heading(t.heading);
     for (let i = 0; i < t.table.count; i += 1) {
       const row = t.table.row(i);
-      out.push(`${row.head}: ${row.cells.map((c, k) => `${t.table.columns[k + 1]!.label} ${c}`).join(', ')}`);
+      const shown = reportColumns(t.table).filter((k) => k > 0);
+      out.push(`${row.head}: ${shown.map((k) => `${t.table.columns[k]!.label} ${row.cells[k - 1]}`).join(', ')}`);
     }
   }
   heading('Assumptions');

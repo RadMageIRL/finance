@@ -756,9 +756,11 @@ fieldset.calc-field {
   margin: 0;
 }
 
+/* Long schedules scroll down inside their box; nothing scrolls sideways. */
 .schedule__wrap {
   max-height: 36rem;
   overflow: auto;
+  container: sched / inline-size;
 }
 
 .schedule__wrap:focus-visible {
@@ -766,21 +768,164 @@ fieldset.calc-field {
   outline-offset: 2px;
 }
 
-.schedule__wrap thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+/* Compact or detailed table, with its help line. */
+.schedule__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
-.schedule__wrap tbody th {
+.schedule__tools-help {
+  flex: 1 1 18rem;
+  max-width: var(--measure);
+  margin: 0;
+}
+
+/*
+ * Schedule tables as grids (src/lib/calc/schedule-grid.ts). Each row is a grid: the period,
+ * then one track per key column, so a year's month table lines up under the year table's
+ * header. Compact shows the key columns only; Detailed adds every other figure, labeled, in
+ * lines under its row; a narrow table stacks each period's figures as labeled lines. The
+ * markup carries every table role, so assistive technology reads a table whatever the display.
+ */
+.sched-grid {
+  --sched-pad-y: 0.5rem;
+  --sched-pad-x: 0.75rem;
+  display: block;
+  width: 100%;
+}
+
+.sched-cols-1 {
+  --sched-cols: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.sched-cols-2 {
+  --sched-cols: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+}
+
+.sched-cols-3 {
+  --sched-cols: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+}
+
+.sched-grid > caption,
+.sched-grid > thead,
+.sched-grid > tbody,
+.sched-grid > tfoot {
+  display: block;
+}
+
+.sched-grid tr {
+  display: grid;
+  grid-template-columns: var(--sched-cols);
+  border-top: 1px solid var(--line);
+}
+
+.sched-grid tr[hidden] {
+  display: none;
+}
+
+.sched-grid > thead > tr {
+  border-top: 0;
+}
+
+.sched-grid th,
+.sched-grid td {
+  min-width: 0;
+  padding: var(--sched-pad-y) var(--sched-pad-x);
+  border-top: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Figures stay on one line unless one cannot fit at all; then it wraps rather than spill. */
+.sched-grid .num {
+  white-space: normal;
+}
+
+.sched-grid thead th {
+  white-space: normal;
+}
+
+.sched-grid .sched-period {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.sched-grid .sched-key--1 {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sched-grid .sched-key--2 {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.sched-grid .sched-key--3 {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+/* The year table's header stays in view while the rows scroll. */
+.schedule__wrap > .sched-grid > thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-sunk);
+}
+
+.sched-grid tbody .sched-period {
   font-weight: 500;
+}
+
+/* Compact view (the default with JavaScript): only the period and the key columns. */
+.js .schedule[data-columns="compact"] .sched-x {
+  display: none;
+}
+
+/* Detailed view: every other figure, labeled, in the lines under its row. Their headers stay
+   in the table for assistive technology; each figure shows its own label. */
+.sched-grid thead .sched-x {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
-.schedule__wrap tfoot th,
-.schedule__wrap tfoot td {
-  border-top: 2px solid var(--line-strong);
-  font-weight: 700;
+/* Each extra figure is its own label and value pair (label left, figure right; the figure drops
+   under its label, still right-aligned, when both do not fit on one line). */
+.sched-grid td.sched-x {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  column-gap: var(--space-3);
+  padding-block: 0.125rem;
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.sched-grid td.sched-x::before {
+  content: attr(data-label);
+  content: attr(data-label) / "";
+  margin-right: auto;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: left;
+}
+
+.js .schedule[data-columns="detailed"] .sched-grid tbody > tr:not(.sched-detail),
+.js .schedule[data-columns="detailed"] .sched-grid tfoot > tr,
+html:not(.js) .sched-grid tbody > tr:not(.sched-detail),
+html:not(.js) .sched-grid tfoot > tr {
+  padding-bottom: var(--space-2);
+}
+
+.sched-grid td:empty {
+  display: none;
 }
 
 .row-note {
@@ -865,36 +1010,127 @@ fieldset.calc-field {
   }
 }
 
-.sched-year.is-expanded > th,
-.sched-year.is-expanded > td {
-  border-bottom-color: transparent;
+/* Row hierarchy: years (the yearly totals), their months indented under an accent rule, each
+   year's month total, then the overall total. */
+.sched-year.is-expanded {
   background: var(--bg-sunk);
 }
 
-.sched-detail > td {
-  padding: 0 0 var(--space-3) var(--space-4);
+.sched-grid tr.sched-detail {
+  border-top: 0;
   background: var(--bg-sunk);
 }
 
-.sched-sub {
-  border-left: 3px solid var(--accent);
-  padding-left: var(--space-3);
+.sched-grid tr.sched-detail:hover {
+  background: var(--bg-sunk);
+}
+
+.sched-grid .sched-detail > td {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  padding: 0 0 var(--space-2);
 }
 
 .sched-sub table {
   font-size: var(--step--1);
 }
 
-.sched-sub caption {
-  padding-top: var(--space-2);
-  text-align: left;
-  color: var(--text-muted);
-  font-weight: 600;
+.sched-sub tr {
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
-/* The month table's header scrolls with it: only the year table's header sticks. */
-.schedule__wrap .sched-sub thead th {
-  position: static;
+.sched-sub tbody .sched-period {
+  padding-left: calc(var(--sched-pad-x) + 1.25rem);
+  color: var(--text-muted);
+}
+
+/* The month columns line up under the year table's header, which labels them on screen; the
+   month table keeps its own caption and header for assistive technology. */
+.sched-sub caption,
+.sched-sub thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sched-sub tfoot tr {
+  border-top: 1px solid var(--line-strong);
+  font-weight: 650;
+}
+
+.sched-sub tfoot .sched-period {
+  padding-left: calc(var(--sched-pad-x) + 1.25rem);
+}
+
+.schedule__wrap > .sched-grid > tfoot > tr {
+  border-top: 2px solid var(--line-strong);
+  background: var(--bg-sunk);
+  font-weight: 700;
+}
+
+/* A narrow table: each period's figures as labeled lines, label left and figure right. */
+@container sched (max-width: 34rem) {
+  .sched-grid tr {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: var(--space-1);
+  }
+
+  .schedule__wrap > .sched-grid > thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sched-grid .sched-period,
+  .sched-grid .sched-key--1,
+  .sched-grid .sched-key--2,
+  .sched-grid .sched-key--3,
+  .sched-grid td.sched-x {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .sched-grid .sched-period {
+    padding-bottom: var(--space-1);
+  }
+
+  .sched-grid td {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: baseline;
+    column-gap: var(--space-3);
+    padding-block: 0.125rem;
+    font-size: var(--step--1);
+  }
+
+  .sched-grid td.sched-x {
+    order: 1;
+  }
+
+  .sched-grid td::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    margin-right: auto;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .sched-grid .sched-detail > td {
+    display: block;
+    padding: 0 0 var(--space-1);
+  }
+
+  .sched-grid .sched-detail > td::before {
+    content: none;
+  }
 }
 
 .calc-actions__months {

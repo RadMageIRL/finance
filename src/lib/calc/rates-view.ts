@@ -274,13 +274,14 @@ function illustrationMonths(comparison: RateComparison, months: readonly Illustr
   const names = comparison.accounts.map((a) => ACCOUNT_NAMES[a.index]!);
   const letters = comparison.accounts.map((a) => ACCOUNT_LETTERS[a.index]!.toLowerCase());
   const opening = (i: number, a: number) => (i === 0 ? deposit : months[i - 1]!.shown[a]!);
+  // Compact view: each account's closing balance, under the year rows' balances.
   const columns: TableColumn[] = [{ label: 'Month', numeric: false }];
-  names.forEach((name) =>
+  names.forEach((name, a) =>
     columns.push(
       { label: `${name} opening balance`, numeric: true },
       { label: `${name} interest accrued`, numeric: true },
       { label: `${name} interest credited`, numeric: true },
-      { label: `${name} closing balance`, numeric: true },
+      { label: `${name} closing balance`, numeric: true, key: a + 1 },
     ),
   );
   names.slice(1).forEach((name) => columns.push({ label: `${name} minus ${names[0]}`, numeric: true }));
@@ -350,7 +351,8 @@ export function illustrationTable(comparison: RateComparison, rows: readonly Ill
   const names = comparison.accounts.map((a) => ACCOUNT_NAMES[a.index]!);
   const letters = comparison.accounts.map((a) => ACCOUNT_LETTERS[a.index]!.toLowerCase());
   const columns: TableColumn[] = [{ label: groupingOption(grouping).label, numeric: false }];
-  names.forEach((name) => columns.push({ label: `${name} balance`, numeric: true }, { label: `${name} interest to date`, numeric: true }));
+  // Compact view: each account's balance, side by side.
+  names.forEach((name, a) => columns.push({ label: `${name} balance`, numeric: true, key: a + 1 }, { label: `${name} interest to date`, numeric: true }));
   const csvHeader = [...ILLUSTRATION_PERIOD_CSV[grouping]];
   letters.forEach((l) => csvHeader.push(`${l}_periods_completed`, `${l}_balance_usd`, `${l}_interest_in_period_usd`, `${l}_interest_to_date_usd`, `${l}_balance_unrounded_usd`));
   const years = rows.length ? Math.ceil(rows[rows.length - 1]!.end / 365) : 0;

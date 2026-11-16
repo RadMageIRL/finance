@@ -109,14 +109,16 @@ export function scheduleTable(schedule: Schedule, grouping: Grouping, config: Sc
     grouping === 'year'
       ? { table: (i) => yearMonthsTable(schedule, i + 1, config), all: () => scheduleTable(schedule, 'month', config), noun: 'months' }
       : undefined;
+  // Compact view: what went in, the interest credited (the interest that became part of the
+  // balance) and the balance; the opening balance plus these reconciles each row.
   const columns: TableColumn[] = [
     { label: option.label, numeric: false },
     { label: 'Opening balance', numeric: true },
-    { label: config.depositsLabel, numeric: true },
+    { label: config.depositsLabel, numeric: true, key: 1 },
     { label: 'Interest accrued', numeric: true },
-    { label: 'Interest credited', numeric: true },
+    { label: 'Interest credited', numeric: true, key: 2 },
     { label: config.rates.label, numeric: true },
-    { label: 'Closing balance', numeric: true },
+    { label: 'Closing balance', numeric: true, key: 3 },
     { label: 'Cumulative interest', numeric: true },
     ...(extra ? [{ label: extra.label, numeric: true }] : []),
   ];

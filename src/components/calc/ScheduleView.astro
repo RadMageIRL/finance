@@ -1,8 +1,11 @@
 ---
 // A calculator's schedule: a chart and a table of the same rows, by day, month or year.
-// Without JavaScript it shows both, by year (rendered at build time); with JavaScript the
-// visitor chooses Chart, Table or Both and the grouping, and long tables are paged.
+// Without JavaScript it shows both, by year (rendered at build time), with every column; with
+// JavaScript the visitor chooses Chart, Table or Both, the grouping, and a compact or detailed
+// table, and long tables are paged. The table never scrolls sideways: its rows are grids
+// (src/lib/calc/schedule-grid.ts, styles in calc.css), so every element carries its table role.
 // The script is src/scripts/calc/schedule.ts.
+import { cellClass, gridClass } from '../../lib/calc/schedule-grid';
 import type { TableSource } from '../../lib/report/table';
 import { pageCount } from '../../lib/report/table';
 
@@ -45,7 +48,7 @@ const first = Array.from({ length: Math.min(table.count, table.pageSize) }, (_, 
 const pages = pageCount(table);
 const noun = groupings.find((g) => g.value === grouping)?.label.toLowerCase() ?? 'year';
 ---
-<section class="schedule" id={id} aria-labelledby={`${id}-heading`} data-schedule data-view="both" data-grouping={grouping}>
+<section class="schedule" id={id} aria-labelledby={`${id}-heading`} data-schedule data-view="both" data-grouping={grouping} data-columns="compact">
   <div class="schedule__head">
     <h2 id={`${id}-heading`}>{heading}</h2>
     <div class="schedule__controls" data-js-only>
@@ -89,6 +92,16 @@ const noun = groupings.find((g) => g.value === grouping)?.label.toLowerCase() ??
       </p>
     </div>
     <div class="schedule__table" data-part="table">
+      <div class="schedule__tools" data-js-only>
+        <fieldset class="segmented">
+          <legend>Table view</legend>
+          <div class="segmented__options">
+            <label><input type="radio" name={`${id}-columns`} value="compact" checked data-action="columns" /><span>Compact</span></label>
+            <label><input type="radio" name={`${id}-columns`} value="detailed" data-action="columns" /><span>Detailed</span></label>
+          </div>
+        </fieldset>
+        <p class="small muted schedule__tools-help">Compact shows the main figures. Detailed adds every other figure under each row. The CSV and the report always have the full detail.</p>
+      </div>
       <div class="schedule__expand" data-out="expand-controls" data-js-only hidden={!table.detail}>
         <p class="small muted schedule__expand-help">Select a year to show its <span data-out="expand-noun">{table.detail?.noun ?? 'months'}</span> underneath.</p>
         <div class="button-row">
@@ -109,26 +122,26 @@ const noun = groupings.find((g) => g.value === grouping)?.label.toLowerCase() ??
         <p class="pager__status small muted" data-out="page-status" aria-live="polite"></p>
       </div>
       <div class="table-wrap schedule__wrap" role="region" tabindex="0" aria-labelledby={`${id}-caption`}>
-        <table>
+        <table class={gridClass(table.columns)} role="table">
           <caption id={`${id}-caption`} data-out="table-caption">{table.caption}</caption>
-          <thead>
-            <tr data-out="table-head">
-              {table.columns.map((c) => <th scope="col" class:list={{ num: c.numeric }}>{c.label}</th>)}
+          <thead role="rowgroup">
+            <tr role="row" data-out="table-head">
+              {table.columns.map((c, i) => <th scope="col" role="columnheader" class={cellClass(c, i)}>{c.label}</th>)}
             </tr>
           </thead>
-          <tbody data-out="table-rows">
+          <tbody role="rowgroup" data-out="table-rows">
             {first.map((r) => (
-              <tr>
-                <th scope="row">{r.head}{r.note && <span class="row-note">{r.note}</span>}</th>
-                {r.cells.map((c, i) => <td class:list={{ num: table.columns[i + 1]?.numeric }}>{c}</td>)}
+              <tr role="row">
+                <th scope="row" role="rowheader" class="sched-period">{r.head}{r.note && <span class="row-note">{r.note}</span>}</th>
+                {r.cells.map((c, i) => <td role="cell" class={cellClass(table.columns[i + 1], i + 1)} data-label={table.columns[i + 1]?.label}>{c}</td>)}
               </tr>
             ))}
           </tbody>
           {table.footer && (
-            <tfoot data-out="table-foot">
-              <tr>
-                <th scope="row">{table.footer.head}</th>
-                {table.footer.cells.map((c, i) => <td class:list={{ num: table.columns[i + 1]?.numeric }}>{c}</td>)}
+            <tfoot role="rowgroup" data-out="table-foot">
+              <tr role="row">
+                <th scope="row" role="rowheader" class="sched-period">{table.footer.head}</th>
+                {table.footer.cells.map((c, i) => <td role="cell" class={cellClass(table.columns[i + 1], i + 1)} data-label={table.columns[i + 1]?.label}>{c}</td>)}
               </tr>
             </tfoot>
           )}

@@ -89,14 +89,15 @@ test.describe('months under each year', () => {
     const first = toggles(page, 'mp-schedule').first();
     await first.click();
     const months = detail(page, 'mp-schedule', 0);
-    await expect(months.locator('thead th')).toHaveText(['Payment', 'Regular payment', 'Principal', 'Interest', 'Extra', 'Remaining balance', 'Cumulative interest', 'Balance without extra payments']);
+    await expect(months.locator('thead th')).toHaveText(['Payment', 'Total paid', 'Regular payment', 'Principal', 'Interest', 'Extra', 'Remaining balance', 'Cumulative interest', 'Balance without extra payments']);
     const yearRow = first.locator('xpath=ancestor::tr[1]');
     const payments = Number((await yearRow.locator('td').first().textContent())!);
     await expect(months.locator('tbody tr')).toHaveCount(payments);
     const yearCells = await yearRow.locator('td').allTextContents();
     const foot = await months.locator('tfoot td').allTextContents();
-    // Principal, interest, extra, balance at year end and cumulative interest all match the year.
-    expect(foot.slice(1, 6)).toEqual(yearCells.slice(2, 7));
+    // Total paid, principal, interest, extra, balance at year end and cumulative interest all match the year.
+    expect(foot[0]).toBe(yearCells[1]);
+    expect(foot.slice(2, 7)).toEqual(yearCells.slice(2, 7));
   });
 
   test('APR and APY months show opening, accrued, credited and closing balances, and the difference between accounts', async ({ page }) => {

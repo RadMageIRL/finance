@@ -173,7 +173,7 @@ if (root) {
       table: (g) => loanTable(c.accelerated, g as LoanGrouping, { extra: true, baseline: c.baseline }),
       chart: (g, width) => payoffChartSvg(c, g as LoanGrouping, width ? { width } : {}),
       tooltip: (g, i) => payoffTooltip(c, g as LoanGrouping, i),
-      notes: (g) => loanScheduleNotes(g as LoanGrouping, true),
+      notes: (g) => loanScheduleNotes(g as LoanGrouping, true, true),
     });
   }
 

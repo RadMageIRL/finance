@@ -155,7 +155,10 @@ describe('months under each year: loans', () => {
       expect(ms.reduce((s, m) => s + m.extra, 0)).toBe(y.extra);
       const foot = loanYearMonths(plan, y.year, options).footer!;
       expect(foot.head).toBe(`${y.year} total`);
+      // The page-only Total paid (regular plus extra) totals to the year row's Total paid.
+      expect(foot.cells[0]).toBe(table.row(i).cells[1]);
       expect(foot.cells).toEqual([
+        formatUSD(y.scheduled + y.extra),
         formatUSD(y.scheduled),
         formatUSD(y.principal),
         formatUSD(y.interest),

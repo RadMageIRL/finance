@@ -137,7 +137,8 @@ test.describe('mortgage payoff calculator', () => {
     await page.fill('#mp-o1a', '5,000');
     await expect(page.locator('#mp-o1-hint')).toHaveText('Payment 13 is in Jan 2028.');
     await page.check('input[name="mp-schedule-group"][value="month"]');
-    await expect(page.locator('#mp-schedule [data-out="table-rows"] > tr:not(.sched-detail)').nth(12).locator('td').nth(3)).toHaveText('$5,000.00');
+    // Cells: Total paid (page only), Regular payment, Principal, Interest, Extra, ...
+    await expect(page.locator('#mp-schedule [data-out="table-rows"] > tr:not(.sched-detail)').nth(12).locator('td').nth(4)).toHaveText('$5,000.00');
     await page.fill('#mp-o1a', '');
     await expect(page.locator('#mp-o1a-error')).toContainText('Enter both');
   });

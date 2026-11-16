@@ -4,8 +4,9 @@
 // gives it: the same table source that the CSV and the report read. Text is set as text;
 // the chart SVG is built from numbers and fixed labels only (src/lib/calc/chart.ts).
 
+import { cellClass, gridClass } from '../../lib/calc/schedule-grid';
 import type { Grouping } from '../../lib/engines/schedule';
-import { pageCount, pageRows, type TableRow, type TableSource } from '../../lib/report/table';
+import { pageCount, pageRows, type TableColumn, type TableRow, type TableSource } from '../../lib/report/table';
 import { $, debounce, wireChartTooltip } from './kit';
 
 export interface ScheduleSource {
@@ -23,10 +24,17 @@ export interface ScheduleControl {
 
 const NOUN: Readonly<Record<Grouping, string>> = { day: 'day', month: 'month', year: 'year' };
 
+// The rows are laid out as CSS grids (compact and detailed views, src/lib/calc/schedule-grid.ts),
+// so every table element carries its role explicitly: assistive technology keeps reading a table
+// whatever the display. Each cell carries its column label for the views that show it inline.
+
 function rowElement(row: TableRow, columns: TableSource['columns'], toggle?: HTMLButtonElement): HTMLTableRowElement {
   const tr = document.createElement('tr');
+  tr.setAttribute('role', 'row');
   const th = document.createElement('th');
   th.scope = 'row';
+  th.setAttribute('role', 'rowheader');
+  th.className = 'sched-period';
   if (toggle) th.append(toggle);
   else th.textContent = row.head;
   if (row.note) {
@@ -38,33 +46,49 @@ function rowElement(row: TableRow, columns: TableSource['columns'], toggle?: HTM
   tr.append(th);
   row.cells.forEach((text, i) => {
     const td = document.createElement('td');
-    if (columns[i + 1]?.numeric) td.className = 'num';
+    td.setAttribute('role', 'cell');
+    td.className = cellClass(columns[i + 1], i + 1);
+    td.dataset.label = columns[i + 1]?.label ?? '';
     td.textContent = text;
     tr.append(td);
   });
   return tr;
 }
 
+function headCells(columns: readonly TableColumn[]): HTMLTableCellElement[] {
+  return columns.map((c, i) => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.setAttribute('role', 'columnheader');
+    th.className = cellClass(c, i);
+    th.textContent = c.label;
+    return th;
+  });
+}
+
+function rowGroup(tag: 'thead' | 'tbody' | 'tfoot'): HTMLTableSectionElement {
+  const group = document.createElement(tag);
+  group.setAttribute('role', 'rowgroup');
+  return group;
+}
+
 /** A table source as a table element: caption, header, rows and footer, all set as text. */
 function tableElement(source: TableSource): HTMLTableElement {
   const table = document.createElement('table');
+  table.className = gridClass(source.columns);
+  table.setAttribute('role', 'table');
   const caption = document.createElement('caption');
   caption.textContent = source.caption;
   const head = document.createElement('tr');
-  for (const c of source.columns) {
-    const th = document.createElement('th');
-    th.scope = 'col';
-    if (c.numeric) th.className = 'num';
-    th.textContent = c.label;
-    head.append(th);
-  }
-  const thead = document.createElement('thead');
+  head.setAttribute('role', 'row');
+  head.append(...headCells(source.columns));
+  const thead = rowGroup('thead');
   thead.append(head);
-  const tbody = document.createElement('tbody');
+  const tbody = rowGroup('tbody');
   for (let i = 0; i < source.count; i += 1) tbody.append(rowElement(source.row(i), source.columns));
   table.append(caption, thead, tbody);
   if (source.footer) {
-    const foot = document.createElement('tfoot');
+    const foot = rowGroup('tfoot');
     foot.append(rowElement(source.footer, source.columns));
     table.append(foot);
   }
@@ -111,9 +135,11 @@ export function wireSchedule(section: HTMLElement, onGrouping?: (grouping: Group
   function detailRow(i: number, span: number): HTMLTableRowElement {
     const tr = document.createElement('tr');
     tr.className = 'sched-detail';
+    tr.setAttribute('role', 'row');
     tr.id = detailId(i);
     tr.hidden = !expanded.has(i);
     const td = document.createElement('td');
+    td.setAttribute('role', 'cell');
     td.colSpan = span;
     tr.append(td);
     if (expanded.has(i)) fillDetail(tr, i);
@@ -184,19 +210,12 @@ export function wireSchedule(section: HTMLElement, onGrouping?: (grouping: Group
     expandControls.hidden = !current.detail;
     if (current.detail) out('expand-noun').textContent = current.detail.noun;
     out('table-caption').textContent = current.caption;
-    const head = out('table-head');
-    head.replaceChildren(
-      ...current.columns.map((c) => {
-        const th = document.createElement('th');
-        th.scope = 'col';
-        if (c.numeric) th.className = 'num';
-        th.textContent = c.label;
-        return th;
-      }),
-    );
+    // The number of key columns can change with the result (one to three accounts).
+    table.className = gridClass(current.columns);
+    out('table-head').replaceChildren(...headCells(current.columns));
     table.querySelector('tfoot')?.remove();
     if (current.footer) {
-      const foot = document.createElement('tfoot');
+      const foot = rowGroup('tfoot');
       foot.dataset.out = 'table-foot';
       foot.append(rowElement(current.footer, current.columns));
       table.append(foot);
@@ -234,6 +253,13 @@ export function wireSchedule(section: HTMLElement, onGrouping?: (grouping: Group
       section.dataset.view = radio.value;
       // A chart drawn while hidden has no width; draw it now that it shows.
       renderChart();
+    }),
+  );
+  // Compact or detailed: only the CSS changes (data-columns), so expanded years, the page and
+  // the scroll position stay as they are.
+  section.querySelectorAll<HTMLInputElement>('[data-action="columns"]').forEach((radio) =>
+    radio.addEventListener('change', () => {
+      section.dataset.columns = radio.value;
     }),
   );
   section.querySelectorAll<HTMLInputElement>('[data-action="group"]').forEach((radio) =>

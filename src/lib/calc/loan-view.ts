@@ -206,16 +206,21 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
   const base = options.baseline;
   if (grouping === 'month') {
     const rows = plan.months;
+    // Compact view: what was paid, the interest in it and the balance left. With extra payments
+    // the first figure is the regular payment plus the extra (a page-only column, so the report
+    // keeps its columns), matching the year rows' Total paid.
     const columns: TableColumn[] = [
       { label: 'Payment', numeric: false },
-      { label: 'Regular payment', numeric: true },
+      ...(extraCol ? [{ label: 'Total paid', numeric: true, key: 1, screen: true }] : []),
+      { label: 'Regular payment', numeric: true, ...(extraCol ? {} : { key: 1 }) },
       { label: 'Principal', numeric: true },
-      { label: 'Interest', numeric: true },
+      { label: 'Interest', numeric: true, key: 2 },
       ...(extraCol ? [{ label: 'Extra', numeric: true }] : []),
-      { label: 'Remaining balance', numeric: true },
+      { label: 'Remaining balance', numeric: true, key: 3 },
       { label: 'Cumulative interest', numeric: true },
       ...(base ? [{ label: 'Balance without extra payments', numeric: true }] : []),
     ];
+    const extraTotal = plan.months.reduce((s, r) => s + r.extra, 0);
     return {
       caption: 'Each payment: principal, interest and the balance left',
       columns,
@@ -225,6 +230,7 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
         return {
           head: `${dateLabel(r.date)} (#${r.month})`,
           cells: [
+            ...(extraCol ? [formatUSD(r.payment + r.extra)] : []),
             formatUSD(r.payment),
             formatUSD(r.principal),
             formatUSD(r.interest),
@@ -255,10 +261,11 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
       footer: {
         head: 'Total',
         cells: [
-          formatUSD(plan.schedule.totalPaid - plan.months.reduce((s, r) => s + r.extra, 0)),
+          ...(extraCol ? [formatUSD(plan.schedule.totalPaid)] : []),
+          formatUSD(plan.schedule.totalPaid - extraTotal),
           formatUSD(plan.months.reduce((s, r) => s + r.principal, 0)),
           formatUSD(plan.schedule.totalInterest),
-          ...(extraCol ? [formatUSD(plan.months.reduce((s, r) => s + r.extra, 0))] : []),
+          ...(extraCol ? [formatUSD(extraTotal)] : []),
           formatUSD(0),
           formatUSD(plan.schedule.totalInterest),
           ...(base ? [''] : []),
@@ -272,11 +279,11 @@ export function loanTable(plan: LoanPlan, grouping: LoanGrouping, options: Table
   const columns: TableColumn[] = [
     { label: 'Year', numeric: false },
     { label: 'Payments', numeric: true },
-    { label: 'Total paid', numeric: true },
+    { label: 'Total paid', numeric: true, key: 1 },
     { label: 'Principal', numeric: true },
-    { label: 'Interest', numeric: true },
+    { label: 'Interest', numeric: true, key: 2 },
     ...(extraCol ? [{ label: 'Extra', numeric: true }] : []),
-    { label: 'Balance at year end', numeric: true },
+    { label: 'Balance at year end', numeric: true, key: 3 },
     { label: 'Cumulative interest', numeric: true },
     ...(base ? [{ label: 'Balance without extra payments', numeric: true }] : []),
   ];
@@ -348,6 +355,7 @@ export function loanYearMonths(plan: LoanPlan, year: number, options: TableOptio
     footer: {
       head: `${year} total`,
       cells: [
+        ...(options.extra ? [formatUSD(sum((m) => m.payment + m.extra))] : []),
         formatUSD(sum((m) => m.payment)),
         formatUSD(sum((m) => m.principal)),
         formatUSD(sum((m) => m.interest)),
@@ -431,7 +439,7 @@ export function payoffTooltip(c: PayoffComparison, grouping: LoanGrouping, index
   return [`${dateLabel(m.date)} (#${m.month})`, `Without extra payments ${formatUSD(m.balance)}`, `With extra payments ${formatUSD(c.accelerated.months[index]?.balance ?? 0)}`];
 }
 
-export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean): string[] {
+export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean, onPage = false): string[] {
   const notes = ['Interest is one twelfth of the interest rate on the balance each month, rounded to the cent. Principal is the rest of the payment.'];
   if (extra) notes.push('Extra and one-time payments go entirely to principal, right after that month\'s regular payment.');
   if (grouping === 'year') {
@@ -444,6 +452,8 @@ export function loanScheduleNotes(grouping: LoanGrouping, extra: boolean): strin
       ? 'Regular payment is the scheduled payment of principal and interest; extra payments are listed apart. In the CSV, payment_usd is the regular payment and extra_usd the extra payment.'
       : 'Regular payment is the scheduled payment of principal and interest (payment_usd in the CSV).');
   }
+  // The page's payment rows add a Total paid column (regular plus extra); the report does not.
+  if (extra && onPage) notes.push('On this page, a payment\'s Total paid is its regular payment plus any extra payment, so its payments add up to the year\'s Total paid.');
   return notes;
 }
 
