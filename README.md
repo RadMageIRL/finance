@@ -2,7 +2,7 @@
 
 A free financial education and research site from RadMage Labs at `https://radmagelabs.com/finance/`.
 
-**Version 0.1.0 (2026-11-16).** Phase 1: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
+**Version 0.1.1 (2026-11-18).** Phase 1: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
 
 ## What it will be
 

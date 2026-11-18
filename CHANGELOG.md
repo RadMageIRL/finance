@@ -2,7 +2,7 @@
 
 All notable changes to RadMage Finance are recorded here.
 
-## 0.1.1 (Unreleased)
+## 0.1.1 (2026-11-18)
 
 A patch release for the schedule tables. Calculations are unchanged: the engines, the calculation conventions (v1.7), the independent oracle and its fixtures are the same as in 0.1.0.
 
