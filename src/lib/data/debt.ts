@@ -463,8 +463,10 @@ export function debtRegistry(registry: unknown): DebtRegistry {
 /** The registry copy named by the dataset's manifest (`rules.registry`), parsed. */
 export function readRegistry(ds: EconDataset): DebtRegistry {
   const ref = (ds.manifest.rules as { registry?: { path?: unknown } } | null)?.registry;
-  if (!ref || typeof ref.path !== 'string') throw new Error('the manifest names no registry copy');
-  return debtRegistry(JSON.parse(ds.readText(ref.path)));
+  if (ref && typeof ref.path === 'string') return debtRegistry(JSON.parse(ds.readText(ref.path)));
+  // The dataset of amendment 1 (a manifest/3, no rule files): the registry the build supplies (22.8).
+  if (ds.compat) return debtRegistry(JSON.parse(ds.compat.registryText));
+  throw new Error('the manifest names no registry copy');
 }
 
 // ---------------------------------------------------------------------------------------------

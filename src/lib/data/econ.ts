@@ -54,12 +54,26 @@ export interface Manifest {
   [k: string]: unknown;
 }
 
+/**
+ * What the build supplies for the one manifest/3 dataset the site accepts (DATA_CONVENTIONS v0.8
+ * amendment 1, 22.2 and 22.8; owner authorization P107): the registry text from the finance-data
+ * checkout, in place of the `rules` a manifest/3 does not have. Never deployed.
+ */
+export interface CompatInfo {
+  /** The published manifest's own schema, `rmf.econ.manifest/3`. */
+  schema: string;
+  /** The canonical registry text of the finance-data checkout the build used. */
+  registryText: string;
+}
+
 /** A dataset: its manifest and a reader for the files it names (paths relative to the econ root). */
 export interface EconDataset {
   /** 'fixture' for the appendix B test data (never a publication); 'release' for a verified release. */
   source: 'fixture' | 'release';
   manifest: Manifest;
   readText(path: string): string;
+  /** Set only for the dataset of amendment 1 (a manifest/3 published unchanged); absent otherwise. */
+  compat?: CompatInfo;
 }
 
 /** A parsed CSV segment: its `# ` comment lines (without the prefix), header and rows. */
@@ -228,4 +242,20 @@ export function segmentComments(ds: EconDataset, id: string): string[] {
   const newest = refs[refs.length - 1];
   if (!newest) throw new Error(`the series ${id} has no segments`);
   return parseSegmentCsv(ds.readText(newest.path)).comments;
+}
+
+/**
+ * The address of a series' provider terms: the `Terms:` line of its newest CSV segment (16), or,
+ * for the dataset of amendment 1, the registry's `terms_url` for the series' source, since its
+ * v0.7 New York Fed segments carry the old address (DATA_CONVENTIONS 22.8, 22.9). Null when none.
+ */
+export function termsUrl(ds: EconDataset, id: string): string | null {
+  if (ds.compat) {
+    const registry = JSON.parse(ds.compat.registryText) as { series?: { id?: unknown; source?: unknown }[]; sources?: Record<string, { terms_url?: unknown } | undefined> };
+    const source = registry.series?.find((s) => s.id === id)?.source;
+    const url = typeof source === 'string' ? registry.sources?.[source]?.terms_url : undefined;
+    if (typeof url !== 'string') throw new Error(`the registry gives no terms address for ${id}`);
+    return url;
+  }
+  return segmentComments(ds, id).find((c) => c.startsWith('Terms: '))?.slice('Terms: '.length) ?? null;
 }

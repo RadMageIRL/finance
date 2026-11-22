@@ -1,12 +1,16 @@
 ---
 import ReferenceLayout from '../layouts/ReferenceLayout.astro';
 import { dataPagesOn } from '../lib/data/shell-dist';
+import { loadEconDataset } from '../lib/data/econ-load';
 import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
 
 // The economic data sections appear only when the data pages are built (DATA_PAGES=on; rule D5
 // of src/lib/data/shell-dist.ts; owner brief T): the held build is this page as it was.
 const dataOn = dataPagesOn(process.env);
+// The dataset of DATA_CONVENTIONS v0.8 amendment 1 (a manifest/3 published unchanged) has no
+// notice file; its CSV files carry the attribution, notice and terms in their header lines.
+const hasNoticeFile = !(dataOn && loadEconDataset()?.compat);
 const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
 ---
 <ReferenceLayout
@@ -52,7 +56,7 @@ const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
       </ul>
       <p>
         Each data page shows the attribution and notice its publisher requires, and the data files
-        carry them too, in <code>NOTICE.txt</code>. RadMage Finance claims no ownership of this data
+        carry them too{hasNoticeFile ? <>, in <code>NOTICE.txt</code></> : ', in the header lines of each CSV file'}. RadMage Finance claims no ownership of this data
         and does not relicense it. The FOMC target is derived by RadMage Finance from the New York
         Fed's records and labeled so wherever it appears. How each kind of value is labeled is on
         the <a href={href('methodology/')}>Methodology</a> page.

@@ -641,7 +641,8 @@ export interface RegistryNotes {
 /** The registry copy that the manifest names (rules.registry), parsed; null when it names none. */
 export function registryCopy(ds: EconDataset): Record<string, unknown> | null {
   const ref = ds.manifest.rules?.registry as { path?: unknown } | undefined;
-  if (!ref || typeof ref.path !== 'string') return null;
+  // The dataset of amendment 1 (a manifest/3, no rule files): the registry the build supplies (22.8).
+  if (!ref || typeof ref.path !== 'string') return ds.compat ? (JSON.parse(ds.compat.registryText) as Record<string, unknown>) : null;
   return JSON.parse(ds.readText(ref.path)) as Record<string, unknown>;
 }
 

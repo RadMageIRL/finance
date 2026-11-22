@@ -114,10 +114,14 @@ jobs:
         run: |
           node econ-tools/pipeline/bin/site-data.mjs fetch --release-repository "$DATA_REPOSITORY" --tag "$TAG" --snapshot "$SNAPSHOT" --manifest-sha256 "$MANIFEST_SHA256" --assets "$RUNNER_TEMP/assets" --out "$RUNNER_TEMP/econ" --verified "$RUNNER_TEMP/econ-verified.json"
           python3 -I econ-tools/tests/datacheck/check_p22.py --release "$RUNNER_TEMP/assets" --expect "$SNAPSHOT:$MANIFEST_SHA256"
+          # Data conventions v0.8 amendment 1 (22.8): for the one manifest/3 dataset the site accepts,
+          # the manifest/4 fields its pages read, outside dist and never deployed; nothing for a manifest/4.
+          ECON_TOOLS=econ-tools node tools/econ-compat.mjs "$RUNNER_TEMP/econ" "$RUNNER_TEMP/econ-compat.json"
           {
             echo "ECON_DIR=$RUNNER_TEMP/econ"
             echo "ECON_SOURCE=release"
             echo "ECON_VERIFIED=$RUNNER_TEMP/econ-verified.json"
+            if [ -f "$RUNNER_TEMP/econ-compat.json" ]; then echo "ECON_COMPAT=$RUNNER_TEMP/econ-compat.json"; fi
           } >> "$GITHUB_ENV"
       # The data pages (rule D5) only with BOTH the owner's approval, the repository variable
       # DATA_PAGES set to on at P8, AND a release placed by the step above; otherwise the pages and

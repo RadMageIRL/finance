@@ -6,7 +6,7 @@
 // statement on RadMage Finance's own contributions. Series of one source with the same
 // attribution, notice and terms share one entry, so nothing is repeated.
 import type { EconDataset } from '../../lib/data/econ';
-import { segmentComments, seriesInfo } from '../../lib/data/econ';
+import { segmentComments, seriesInfo, termsUrl } from '../../lib/data/econ';
 import { href } from '../../lib/url';
 
 interface Props {
@@ -27,7 +27,7 @@ const entries: Entry[] = [];
 for (const id of seriesIds) {
   const s = seriesInfo(dataset, id);
   const comments = segmentComments(dataset, id);
-  const terms = comments.find((c) => c.startsWith('Terms: '))?.slice('Terms: '.length) ?? null;
+  const terms = termsUrl(dataset, id);
   const derived = comments.find((c) => c.startsWith('Derived by RadMage Finance')) ?? null;
   const key = JSON.stringify([s.attribution, s.notice, terms]);
   let entry = entries.find((e) => e.key === key);

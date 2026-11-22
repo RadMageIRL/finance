@@ -17,7 +17,7 @@ import HeadlineFigure from '../components/data/HeadlineFigure.astro';
 import RangeSwitch from '../components/data/RangeSwitch.astro';
 import SeriesStatus from '../components/data/SeriesStatus.astro';
 import SourceNote from '../components/data/SourceNote.astro';
-import { changePoints, observations, revisionRows, segmentComments, seriesInfo } from '../lib/data/econ';
+import { changePoints, observations, revisionRows, seriesInfo, termsUrl } from '../lib/data/econ';
 import type { ChangePoint, Observation } from '../lib/data/econ';
 import { loadEconDataset } from '../lib/data/econ-load';
 import { DETECTED_LABEL, easternDate, formatDay } from '../lib/data/format';
@@ -255,7 +255,7 @@ const revisionFiles = [
   ...logFiles('fomc-target', targetInfo?.revision_csvs, 'CSV'),
   ...logFiles('fomc-target', targetInfo?.revisions, 'JSON'),
 ];
-const terms = ds ? segmentComments(ds, 'effr').find((c) => c.startsWith('Terms: '))?.slice('Terms: '.length) : undefined;
+const terms = ds ? (termsUrl(ds, 'effr') ?? undefined) : undefined;
 
 // JSON-LD Dataset (design 11.2): the New York Fed as creator, the target labeled as derived.
 const schema: Record<string, unknown> = {
