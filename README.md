@@ -2,7 +2,7 @@
 
 A free financial education and research site from RadMage Labs at `https://radmagelabs.com/finance/`.
 
-**Version 0.3.0 (2026-11-22).** Financial News: official releases of the Federal Reserve Board, the SEC, the OCC, the CFPB and the CFTC, by topic, each headline linked to its publisher. From 0.2.0, Economic Conditions: three data dashboards (the federal funds rate, the money supply and the national debt) built from verified public releases of official data from the Federal Reserve and the Treasury. Phase 1, from 0.1.x: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
+**Version 0.3.1 (2026-11-22).** Share, feedback and Buy Me a Coffee links on every page. From 0.3.0, Financial News: official releases of the Federal Reserve Board, the SEC, the OCC, the CFPB and the CFTC, by topic, each headline linked to its publisher. From 0.2.0, Economic Conditions: three data dashboards (the federal funds rate, the money supply and the national debt) built from verified public releases of official data from the Federal Reserve and the Treasury. Phase 1, from 0.1.x: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
 
 ## What it will be
 

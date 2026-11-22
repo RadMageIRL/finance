@@ -2,6 +2,16 @@
 
 All notable changes to RadMage Finance are recorded here.
 
+## 0.3.1 (2026-11-22)
+
+### Added
+
+- Share, feedback and Buy Me a Coffee links in the footer of every page and on the About page. Share opens the device's share sheet, or copies the page's radmagelabs.com address and says so; it is hidden without JavaScript. Feedback opens the site's issues on GitHub, and Buy me a coffee opens buymeacoffee.com/radmageirl. They are plain links: nothing is loaded from those sites unless you follow one.
+
+### Changed
+
+- The news collector identifies itself to the SEC with the site's contact address, as the SEC asks of automated clients. Every other feed gets a generic name.
+
 ## 0.3.0 (2026-11-22)
 
 Financial News: official releases from US financial agencies, newest first, by topic, each headline linked to its publisher. Calculations, lessons and the economic data are unchanged from 0.2.0.
