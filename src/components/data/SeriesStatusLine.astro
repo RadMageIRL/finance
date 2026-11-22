@@ -1,0 +1,43 @@
+---
+// The status of one series, shared by SeriesStatus (full: the latest period, release, retrieval
+// and confirmation) and the overview's indicator cards (compact: the status only). The build
+// writes the status as of the snapshot (rule S2 of src/lib/data/status.ts); the page script
+// computes it again with the device clock from the same attributes (S1, decision D7).
+import type { EconDataset } from '../../lib/data/econ';
+import { seriesInfo } from '../../lib/data/econ';
+import { periodText, releaseText, releasedOf, timeText, isUtcTime } from '../../lib/data/shell-text';
+import { statusLabel, statusSentence, viewStatus } from '../../lib/data/status';
+
+interface Props {
+  dataset: EconDataset;
+  seriesId: string;
+  compact?: boolean;
+}
+
+const { dataset, seriesId, compact = false } = Astro.props;
+const s = seriesInfo(dataset, seriesId);
+const fields = { status: s.status, status_reason: s.status_reason, deadline: s.deadline, stale_at: s.stale_at };
+const kind = viewStatus(fields, dataset.manifest.generated_at);
+const released = releasedOf(s.last_released);
+const when = (t: string | null) => (isUtcTime(t) ? timeText(t) : 'not recorded');
+---
+<div
+  class:list={['data-status', { 'data-status--compact': compact }]}
+  data-status-of={seriesId}
+  data-status={s.status}
+  data-reason={s.status_reason ?? undefined}
+  data-deadline={s.deadline ?? undefined}
+  data-stale-at={s.stale_at ?? undefined}
+  data-view-status={kind}
+>
+  <p class="data-status__line">
+    <span class="data-status__badge" data-status-label>{statusLabel(kind)}</span>
+    {!compact && <strong class="data-status__title">{s.title}.</strong>}
+    <span data-status-text>{statusSentence(kind, fields)}</span>
+  </p>
+  {!compact && (
+    <p class="data-status__meta small muted">
+      {s.last_period ? `Latest period: ${periodText(s.frequency, s.last_period)}.` : 'No period published yet.'} {releaseText(released.basis, released.date)}. Retrieved {when(s.retrieved_at)}; last confirmed unchanged {when(s.checked_at)}.
+    </p>
+  )}
+</div>

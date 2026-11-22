@@ -1,0 +1,848 @@
+/* Economic data dashboards (brief Q, agent 4): the shell, notices, status lines, figures,
+   tables and the line chart of src/lib/data/line-chart.ts. Phones first: everything reflows
+   at 320 CSS px and at 400 percent zoom without sideways scrolling. Colors come from the theme
+   tokens (tokens.css, and the validated series palette in calc.css); states always carry
+   words, never color alone; forced colors and print get textures and system colors. */
+
+/* Light theme, data charts only: series 3 of the calculator palette (#1baf7a) is 2.82:1 on the
+   white chart surface, under the 3:1 WCAG 1.4.11 asks of chart lines. The data charts use the
+   palette's dark-theme green instead, 3.41:1 on white; the calculators keep their palette. */
+[data-theme="light"] .dchart {
+  --series-3: #199e70;
+}
+
+/* ---- Shell -------------------------------------------------------------------------- */
+
+.data-head h1 {
+  max-width: 28ch;
+}
+
+.data-nav {
+  margin-bottom: var(--space-6);
+}
+
+.data-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.data-nav li + li {
+  margin-top: 0;
+}
+
+.data-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.data-nav a:hover {
+  background: var(--accent-soft);
+}
+
+.data-nav a[aria-current="page"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.data-content > * + * {
+  margin-top: var(--space-6);
+}
+
+.data-content h2 {
+  font-size: var(--step-2);
+}
+
+.data-related {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+  max-width: var(--measure);
+}
+
+.data-related h2 {
+  font-size: var(--step-1);
+}
+
+/* ---- Notices and the stamp ---------------------------------------------------------- */
+
+.data-notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  max-width: var(--measure);
+}
+
+.data-notice[hidden] {
+  display: none;
+}
+
+.data-notice p {
+  margin: 0;
+}
+
+.data-notice__title {
+  font-weight: 700;
+}
+
+.data-notice--unavailable,
+.data-notice--stale,
+.data-notice--failed {
+  border-left-color: var(--caution);
+}
+
+.data-notice--fixture {
+  border-left-color: var(--kind-model);
+  border-left-style: double;
+  border-left-width: 6px;
+}
+
+.data-notice--newer,
+.data-notice--loading {
+  border-left-color: var(--accent);
+}
+
+/* The stamp's stale notice shows only while the page holds a stale series (decision D7). */
+[data-notice-stale] {
+  display: none;
+}
+
+main:has([data-view-status="stale"]) [data-notice-stale] {
+  display: block;
+}
+
+.data-stamp {
+  margin-bottom: var(--space-5);
+}
+
+.data-stamp__asof {
+  margin: 0;
+  font-weight: 600;
+}
+
+.data-stamp__asof code {
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.data-stamp__clock {
+  margin: var(--space-1) 0 0;
+}
+
+.data-stamp__live {
+  margin: 0;
+}
+
+.data-stamp__live:empty {
+  display: none;
+}
+
+.data-stamp__live[data-outcome] {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  max-width: var(--measure);
+}
+
+.data-stamp__live[data-outcome="newer"],
+.data-stamp__live[data-outcome="changed"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.data-stamp__live[data-outcome="failed"] {
+  color: var(--text-muted);
+}
+
+/* ---- Status lines and kind tags ----------------------------------------------------- */
+
+.data-status {
+  margin: 0 0 var(--space-3);
+  max-width: var(--measure);
+}
+
+.data-status p {
+  margin: 0;
+}
+
+.data-status__line {
+  line-height: 1.5;
+}
+
+.data-status__meta {
+  margin-top: var(--space-1);
+}
+
+.data-status__title {
+  margin-right: 0.25em;
+}
+
+.data-status__badge {
+  display: inline-block;
+  margin-right: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+[data-view-status="fresh"] .data-status__badge,
+[data-view-status="due"] .data-status__badge {
+  border-color: var(--positive);
+}
+
+[data-view-status="stale"] .data-status__badge,
+[data-view-status="held"] .data-status__badge,
+[data-view-status="frozen"] .data-status__badge {
+  border-color: var(--caution);
+  border-style: dashed;
+}
+
+.data-status--compact {
+  font-size: var(--step--1);
+}
+
+.data-kind {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* Derived and computed values carry a dashed outline as well as their words. */
+.data-kind--derived,
+.data-kind--computed {
+  border-style: dashed;
+  color: var(--text);
+}
+
+/* ---- Figures ------------------------------------------------------------------------ */
+
+.data-headline,
+.data-computed {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.data-headline p,
+.data-computed p {
+  margin: 0;
+}
+
+.data-headline__label,
+.data-computed__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.data-headline__value,
+.data-computed__value {
+  color: var(--text);
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.data-computed__value--none {
+  font-size: var(--step-0);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.data-indicators {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.data-indicators > li + li {
+  margin-top: 0;
+}
+
+.data-card {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  height: 100%;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.data-card[data-kind="derived"] {
+  border-style: dashed;
+  border-color: var(--line-strong);
+}
+
+.data-card .data-status {
+  margin: 0;
+}
+
+.data-card__link {
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.data-card .data-headline__value {
+  font-size: var(--step-2);
+}
+
+.data-dashboards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.data-dashboards > li + li {
+  margin-top: 0;
+}
+
+/* ---- Tables: stacked labeled rows when narrow --------------------------------------- */
+
+.data-table-wrap {
+  container: data-table / inline-size;
+  margin: 0 0 var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.data-table {
+  width: 100%;
+}
+
+.data-table td,
+.data-table th {
+  overflow-wrap: anywhere;
+}
+
+.data-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table thead th.num {
+  white-space: normal;
+}
+
+.data-table tbody th {
+  font-weight: 500;
+}
+
+.data-table .is-missing {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@container data-table (max-width: 36rem) {
+  .data-table,
+  .data-table > caption,
+  .data-table > tbody,
+  .data-table tr,
+  .data-table th,
+  .data-table td {
+    display: block;
+  }
+
+  .data-table > thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .data-table tbody tr {
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .data-table tbody th,
+  .data-table tbody td {
+    padding: var(--space-1) var(--space-4);
+    border: 0;
+  }
+
+  .data-table tbody th {
+    font-weight: 650;
+    text-align: left;
+  }
+
+  .data-table tbody th.num {
+    text-align: left;
+  }
+
+  .data-table tbody td {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 var(--space-3);
+    text-align: right;
+  }
+
+  .data-table tbody td::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    color: var(--text-muted);
+    font-weight: 500;
+    font-style: normal;
+    text-align: left;
+  }
+}
+
+/* ---- Switches ----------------------------------------------------------------------- */
+
+.data-switch {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.data-switch legend {
+  margin-bottom: var(--space-2);
+  font-size: var(--step--1);
+  font-weight: 650;
+}
+
+.data-switch__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.data-switch label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.data-switch label:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.data-switch label:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---- Sources ------------------------------------------------------------------------ */
+
+.data-source {
+  max-width: var(--measure);
+}
+
+.data-source__item {
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--line-strong);
+}
+
+.data-source__item h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--step-0);
+}
+
+.data-source__item p {
+  margin: 0 0 var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+/* ---- The line chart ----------------------------------------------------------------- */
+
+.dchart {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.dchart__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.dchart__title {
+  font-size: var(--step-1);
+  font-weight: 700;
+}
+
+.dchart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: var(--step--1);
+}
+
+.dchart-legend li + li {
+  margin-top: 0;
+}
+
+.dchart-legend li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.dchart-key {
+  display: block;
+  flex: none;
+}
+
+.dchart__box {
+  position: relative;
+  border-radius: var(--radius-sm);
+}
+
+.dchart__box:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.dchart__axis-title,
+.dchart__x-title {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.dchart__x-title {
+  text-align: right;
+}
+
+/* The value labels sit in an HTML column beside the plot, evenly spaced like the gridlines:
+   each label box is one line tall and the column is one line taller than the plot, so each
+   label's middle is on its gridline. */
+.dchart__frame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+  padding: 0.75rem 1.75rem 0 0;
+  overflow: hidden;
+}
+
+.dchart__yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(240px + 1.5em);
+  margin-top: -0.75em;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--text-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dchart__plot {
+  container: dchart-plot / inline-size;
+  min-width: 0;
+}
+
+.dchart__svg {
+  display: block;
+  width: 100%;
+  height: 240px;
+  overflow: visible;
+}
+
+.dchart__xaxis {
+  display: block;
+  overflow: visible;
+}
+
+.dchart__xaxis text {
+  fill: var(--text-faint);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dchart__xaxis--wide {
+  display: none;
+}
+
+@container dchart-plot (min-width: 36rem) {
+  .dchart__xaxis--wide {
+    display: block;
+  }
+
+  .dchart__xaxis--narrow {
+    display: none;
+  }
+}
+
+.dchart__grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.dchart__grid--zero {
+  stroke: var(--chart-base);
+}
+
+.dchart__line,
+.dchart__edge {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.dchart__line--1,
+.dchart__edge--1,
+.dchart__dot--1,
+.dchart__focus--1 { stroke: var(--series-1); }
+.dchart__line--2,
+.dchart__edge--2,
+.dchart__dot--2,
+.dchart__focus--2 { stroke: var(--series-2); }
+.dchart__line--3,
+.dchart__edge--3,
+.dchart__dot--3,
+.dchart__focus--3 { stroke: var(--series-3); }
+
+/* Dash patterns (rule C9): never color alone. */
+.dchart__line.is-observed-2 { stroke-dasharray: 8 3 2 3; }
+.dchart__line.is-observed-3 { stroke-dasharray: 2 3; }
+.dchart__line.is-derived,
+.dchart__edge.is-derived { stroke-dasharray: 6 4; }
+
+.dchart__edge {
+  stroke-width: 1.5;
+}
+
+.dchart__band--1 { fill: var(--series-1); fill-opacity: 0.16; }
+.dchart__band--2 { fill: var(--series-2); fill-opacity: 0.16; }
+.dchart__band--3 { fill: var(--series-3); fill-opacity: 0.16; }
+
+.dchart-key__band {
+  stroke-width: 1.5;
+}
+
+.dchart-key__band.dchart__band--1 { stroke: var(--series-1); }
+.dchart-key__band.dchart__band--2 { stroke: var(--series-2); }
+.dchart-key__band.dchart__band--3 { stroke: var(--series-3); }
+.dchart-key__band.is-derived { stroke-dasharray: 4 3; }
+
+/* Markers for single points between gaps (rule C5): 8 px with a 2 px surface ring. */
+.dchart__dot,
+.dchart__dot-ring,
+.dchart__focus {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.dchart__dot { stroke-width: 8; }
+.dchart__dot-ring { stroke: var(--surface); stroke-width: 12; }
+.dchart__focus { stroke-width: 10; }
+
+/* Annotations (rule C10): a numbered vertical line, the numbers under the period labels, and
+   the list under the chart. */
+.dchart__mark {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.dchart__marks {
+  display: block;
+  overflow: visible;
+}
+
+.dchart__marks text {
+  fill: var(--text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.dchart__notes-list {
+  margin: var(--space-2) 0 0;
+  padding-left: 1.6em;
+}
+
+.dchart__note-period {
+  font-weight: 600;
+}
+
+.dchart__cursor {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.dchart__tex {
+  display: none;
+}
+
+.dchart__tex-line {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-opacity: 0.55;
+}
+
+.dchart__readout {
+  display: grid;
+  gap: 2px;
+  min-height: 3.5em;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunk);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.dchart__readout:empty::before {
+  content: "Focus the chart or point at it to read its values.";
+  color: var(--text-muted);
+}
+
+.dchart__readout b {
+  font-weight: 700;
+}
+
+.dchart__notes p {
+  margin: var(--space-2) 0 0;
+}
+
+.dchart__empty {
+  margin: var(--space-4) 0;
+  color: var(--text-muted);
+}
+
+@media (forced-colors: active) {
+  .dchart__line,
+  .dchart__edge,
+  .dchart__dot,
+  .dchart__focus,
+  .dchart-key__band {
+    stroke: CanvasText;
+  }
+
+  .dchart__band--1,
+  .dchart__band--2,
+  .dchart__band--3 {
+    fill: Canvas;
+  }
+
+  .dchart__dot-ring {
+    stroke: Canvas;
+  }
+
+  .dchart__grid,
+  .dchart__mark {
+    stroke: GrayText;
+  }
+
+  .dchart__marks text {
+    fill: CanvasText;
+  }
+
+  .dchart__cursor {
+    stroke: Highlight;
+  }
+
+  .dchart__tex {
+    display: inline;
+  }
+
+  .dchart__tex-line {
+    stroke: CanvasText;
+    stroke-opacity: 1;
+  }
+
+  .dchart__xaxis text {
+    fill: CanvasText;
+  }
+
+  .data-notice,
+  .data-status__badge,
+  .data-kind {
+    border-color: CanvasText;
+  }
+}
+
+@media print {
+  .dchart__tex {
+    display: inline;
+  }
+
+  .data-nav,
+  .dchart__readout,
+  .data-stamp__live {
+    display: none;
+  }
+
+  .dchart,
+  .data-card {
+    break-inside: avoid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-nav a,
+  .data-switch label {
+    transition: none;
+  }
+}
+
+.data-claim {
+  margin: 0 0 var(--space-2);
+}

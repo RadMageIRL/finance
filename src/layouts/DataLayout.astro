@@ -1,0 +1,72 @@
+---
+// The layout of the four dashboard pages under /finance/data/ (brief Q, agent 4; design P28
+// 11.2): BaseLayout, breadcrumbs, the page head with the last reviewed date, the dashboard
+// navigation, the page's content, then the lessons and calculators the page links back to and
+// the site's Sources and Methodology. Topic pages carry schema.org Dataset data (the page passes
+// the creator and the rest); the overview is a CollectionPage. The shared script recomputes each
+// series status with the device clock, checks for newer data in a build from a verified
+// release, and wires the charts and range switches; everything works without it.
+//
+// Only a build from a verified release is indexed: with the appendix B fixture root (test data)
+// or without data the pages carry noindex. The sitemap must leave them out in the same builds;
+// it is filtered in astro.config.mjs (see the note in src/lib/data/shell-dist.ts).
+import '../styles/data.css';
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import DashboardNav from '../components/data/DashboardNav.astro';
+import { loadEconDataset } from '../lib/data/econ-load';
+import { RELATED, RELATED_NOTE } from '../components/data/dashboards';
+import { formatDay } from '../lib/data/format';
+import type { DashboardId } from '../lib/data/ui';
+import { href } from '../lib/url';
+
+interface Props {
+  /** Page name without the site name. */
+  title: string;
+  description: string;
+  current: DashboardId;
+  /** The page's last reviewed date, YYYY-MM-DD (design 11.2, SEO 3). */
+  lastReviewed: string;
+  /** schema.org Dataset properties (design 11.2); the target is labeled as derived. */
+  schema?: Record<string, unknown>;
+  /** A short lead paragraph under the heading. */
+  lead?: string;
+}
+
+const { title, description, current, lastReviewed, schema = {}, lead } = Astro.props;
+const crumbs = current === 'overview' ? [{ label: 'Home', path: '' }, { label: 'Economic Conditions' }] : [{ label: 'Home', path: '' }, { label: 'Economic Conditions', path: 'data/' }, { label: title }];
+const structured = current === 'overview' ? { dateModified: lastReviewed, ...schema } : { '@type': 'Dataset', dateModified: lastReviewed, ...schema };
+const related = RELATED[current];
+const indexable = loadEconDataset()?.source === 'release';
+const note = RELATED_NOTE[current];
+---
+<BaseLayout title={title} description={description} schemaType={current === 'overview' ? 'CollectionPage' : 'WebPage'} schema={structured} noindex={!indexable}>
+  <div class="page-head data-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <p class="page-meta">Page last reviewed <time datetime={lastReviewed}>{formatDay(lastReviewed)}</time>.</p>
+    </div>
+  </div>
+  <div class="wrap page-body data-page" data-dashboard={current}>
+    <DashboardNav current={current} />
+    <div class="data-content">
+      <slot />
+    </div>
+    <section class="data-related" aria-labelledby="data-related-heading">
+      <h2 id="data-related-heading">Related lessons and calculators</h2>
+      <ul>
+        {related.map((r) => (
+          <li><a href={href(r.path)}>{r.label}</a>: {r.text}</li>
+        ))}
+      </ul>
+      {note && <p class="small muted">{note}</p>}
+      <p class="small muted">How the site labels its data and its facts: <a href={href('methodology/')}>Methodology</a>. The data's publishers and their terms: <a href={href('sources/')}>Sources</a>.</p>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  import '../scripts/data/shared/page';
+</script>

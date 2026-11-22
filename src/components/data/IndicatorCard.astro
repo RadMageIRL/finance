@@ -1,0 +1,42 @@
+---
+// One indicator of the overview (brief Q): a series' latest value straight from the manifest
+// (`last_value`, or `last_range` for the target range), its period and release worded by the
+// shell's rules, when RadMage Finance retrieved it (conventions 16: each value with its period,
+// its release date and "retrieved <date>"), its status, and a link to its dashboard. Nothing is
+// computed or rounded: the value is the published decimal string with its unit (rule T1 of
+// shell-text.ts).
+import HeadlineFigure from './HeadlineFigure.astro';
+import SeriesStatusLine from './SeriesStatusLine.astro';
+import type { EconDataset } from '../../lib/data/econ';
+import { seriesInfo } from '../../lib/data/econ';
+import { isUtcTime, periodText, rangeText, releaseText, releasedOf, timeText, valueText } from '../../lib/data/shell-text';
+import { href } from '../../lib/url';
+
+interface Props {
+  dataset: EconDataset;
+  seriesId: string;
+  label: string;
+  kind: 'observed' | 'derived';
+  /** One line under the period, for example "Seasonally adjusted, monthly average". */
+  note?: string;
+  dashboard: { path: string; label: string };
+}
+
+const { dataset, seriesId, label, kind, note, dashboard } = Astro.props;
+const s = seriesInfo(dataset, seriesId);
+const range = s.last_range && typeof s.last_range === 'object' ? (s.last_range as { lower?: unknown; upper?: unknown }) : null;
+const value = typeof s.last_value === 'string'
+  ? valueText(s.last_value, s.unit_label)
+  : range && typeof range.lower === 'string' && typeof range.upper === 'string'
+    ? rangeText(range.lower, range.upper, s.unit_label)
+    : 'Not published yet';
+const released = releasedOf(s.last_released);
+const retrieved = isUtcTime(s.retrieved_at) ? `Retrieved ${timeText(s.retrieved_at)}` : 'Retrieval time not recorded';
+const details = [...(note ? [note] : []), releaseText(released.basis, released.date), retrieved];
+---
+<article class="data-card" data-kind={kind} data-indicator={seriesId} aria-labelledby={`indicator-${seriesId}`}>
+  <h3 class="vh" id={`indicator-${seriesId}`}>{label}</h3>
+  <HeadlineFigure figure={{ label, value, period: s.last_period ? periodText(s.frequency, s.last_period) : 'No period yet', kind, details }} />
+  <SeriesStatusLine dataset={dataset} seriesId={seriesId} compact />
+  <p class="data-card__link"><a href={href(dashboard.path)}>{dashboard.label}</a></p>
+</article>

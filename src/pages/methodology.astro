@@ -1,13 +1,20 @@
 ---
 import ReferenceLayout from '../layouts/ReferenceLayout.astro';
 import ClaimLabel from '../components/ClaimLabel.astro';
+import { dataPagesOn } from '../lib/data/shell-dist';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
+
+// The economic data sections appear only when the data pages are built (DATA_PAGES=on; rule D5
+// of src/lib/data/shell-dist.ts; owner brief T): the held build is this page as it was.
+const dataOn = dataPagesOn(process.env);
+const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
 ---
 <ReferenceLayout
   title="Methodology"
   description="How RadMage Finance labels claims, chooses and cites sources, and builds and checks its calculators and balance-sheet simulations."
   lead="How RadMage Finance decides what to say, how it labels each kind of claim, and how its calculators and simulations are built and checked."
-  updated="2026-11-16"
+  updated={updated}
 >
   <h2>Six kinds of statement</h2>
   <p>
@@ -66,6 +73,46 @@ import { href } from '../lib/url';
     <li>Scenarios the model cannot represent are reported as unsupported rather than computed anyway.</li>
     <li>Outputs illustrate mechanisms. They are not predictions about the economy.</li>
   </ul>
+
+  {dataOn && (
+    <>
+      <h2>Economic data</h2>
+      <p>
+        The <a href={href('data/')}>Economic Conditions</a> pages show published series from the
+        Federal Reserve Bank of New York, the Federal Reserve Board and the Treasury. Every value
+        on them is labeled in words as one of these:
+      </p>
+      <ul>
+        <li><strong>As published.</strong> The value exactly as its source published it, with the same digits. Published values are never rounded or adjusted.</li>
+        <li><strong>Derived by RadMage Finance.</strong> A value read from a source's records rather than a series the source publishes. The only one is the FOMC target, taken from the target fields of the New York Fed's daily EFFR records.</li>
+        <li><strong>Computed by RadMage Finance.</strong> A change or a difference worked out from published values, shown with its formula and any rounding.</li>
+        <li><strong>Not published.</strong> A day or month for which the source has no value. It is shown as missing, never filled in or estimated.</li>
+      </ul>
+      <p>
+        Each series also has a status: <em>Up to date</em>; <em>Update pending</em>, when the next
+        value was expected and is not in the data yet; <em>May be out of date</em>, when it is
+        later still; <em>Held for review</em>, when new data from the source is waiting for a
+        person to review it and the page shows the last accepted values; and <em>Updates
+        paused</em>, after a rollback or a review decision. Each dashboard states when its next
+        value is expected. The status is worked out as of the snapshot the page was built from
+        and, with JavaScript on, again with your device's clock.
+      </p>
+      <p>
+        RadMage Finance collects the data every four hours and publishes it as dated snapshots,
+        named by their time in UTC. When a source changes a value it published earlier, the
+        dashboard lists the change in its log of the changes we observed between our collections:
+        that is the publisher's revision, not a correction of ours. An error of ours is undone by
+        returning to an earlier snapshot, and the series affected then say that their updates are
+        paused after a rollback, with the reason.
+      </p>
+      <p>
+        Retrieval and snapshot times are in UTC. Dates worked out from a time, such as the
+        "first seen" dates and the detection dates in the change logs, are Eastern Time dates and
+        are labeled so. Release dates come from each source's own calendar or schedule; where none
+        is recorded, the page says "Release date not recorded".
+      </p>
+    </>
+  )}
 
   <h2>Review and corrections</h2>
   <p>

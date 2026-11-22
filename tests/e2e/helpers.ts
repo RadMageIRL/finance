@@ -2,6 +2,20 @@ import type { BrowserContext, Page } from '@playwright/test';
 
 export const BASE = '/finance/';
 
+/**
+ * The build the browser suite runs against (tools/check.mjs sets ECON_BUILD): `held`, the data
+ * pages held as in production until they are approved to go live (DATA_PAGES not on; owner brief
+ * R, option (b)); `none`, the pages built without a dataset (their unavailable state); `release`,
+ * the pages built from a verified release as production builds them (the appendix J rehearsal of
+ * tools/econ-release.mjs; owner brief V item 2); otherwise the pages built with the appendix B
+ * fixture dataset.
+ */
+export const ECON_BUILD = process.env.ECON_BUILD ?? 'fixture';
+export const HELD = ECON_BUILD === 'held';
+
+/** The economic data overview and the three dashboards (brief Q; design P28 8.10). */
+export const DATA_PAGE_URLS = ['data/', 'data/federal-funds-rate/', 'data/money-stock/', 'data/public-debt/'];
+
 /** Every built page. The 404 page is reached through a missing address. */
 export const PAGES = [
   '',
@@ -16,6 +30,7 @@ export const PAGES = [
   'calculators/savings-growth/',
   'calculators/amortization/',
   'calculators/loan-payoff/',
+  ...(HELD ? [] : DATA_PAGE_URLS),
   'about/',
   'methodology/',
   'sources/',

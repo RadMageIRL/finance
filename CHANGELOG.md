@@ -15,6 +15,7 @@ A patch release for the schedule tables. Calculations are unchanged: the engines
 - Mortgage payoff: each payment row shows Total paid, the regular payment plus any extra payment, so a year's payments add up to the year's Total paid. The HTML report and the printout show the same column, and the CSV gains a `total_paid_usd` column, added at the end of the schedule by payment and of the schedule by year so every earlier column keeps its name and position. The notes under the schedule explain it. Each exported figure is checked against the independent oracle's own payment and extra amounts.
 - HTML reports and printouts: column headings can wrap onto two lines and sit on the heading rule, while figures still never wrap, so a long heading such as "Balance without extra payments" no longer makes its column wider than its figures. Every calculator's report table is narrower than in 0.1.0, the savings and compound interest reports now fit a 768 pixel window, and the mortgage payoff report stays within its page width at 1280 pixels even with the added column.
 
+## 0.1.0 (2026-11-16)
 
 ### Added
 

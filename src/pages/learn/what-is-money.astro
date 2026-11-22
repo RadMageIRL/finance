@@ -4,12 +4,16 @@ import ClaimLabel from '../../components/ClaimLabel.astro';
 import Cite from '../../components/learn/Cite.astro';
 import { INSTRUMENTS, QUESTIONS, REVIEWED, REVIEWED_LABEL, SOURCES, sourceNumber } from '../../lib/learn/money';
 import { href } from '../../lib/url';
+import { dataPagesOn } from '../../lib/data/shell-dist';
 import '../../styles/learn.css';
 
 // The comparison shown before any choice (and without JavaScript).
 const DEFAULT_COMPARE = ['cash', 'deposits', 'stablecoins'];
 const compared = INSTRUMENTS.filter((i) => DEFAULT_COMPARE.includes(i.id));
 const n = sourceNumber;
+
+// The links to the economic data pages, held until DATA_PAGES=on (owner brief R, option (b); rule D5).
+const dataOn = dataPagesOn(process.env);
 ---
 <LessonLayout
   pageTitle="What Is Money? Cash, Deposits, Stablecoins and Gold Compared"
@@ -76,6 +80,7 @@ const n = sourceNumber;
       appear only in a third measure, the monetary base, which adds them to the currency in
       circulation.<Cite ids={['fed-money-supply']} number={n} />
     </p>
+    {dataOn && <p class="small">See the data: <a href={href('data/money-stock/')}>M1 and M2 over time, from the H.6 release</a>.</p>}
   </section>
 
   <section class="prose lesson-section" aria-labelledby="promise">
@@ -241,6 +246,7 @@ const n = sourceNumber;
       <li><a href={href('calculators/apr-apy/')}>APR and APY calculator</a>: what a savings rate really pays.</li>
       <li><a href={href('calculators/savings-growth/')}>High-yield savings calculator</a>: how a bank deposit grows.</li>
       <li><a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>: what happens on balance sheets when a bank lends.</li>
+      {dataOn && <li><a href={href('data/money-stock/')}>Money supply data</a>: M1 and M2 from the Federal Reserve Board's H.6 release.</li>}
     </ul>
   </section>
 

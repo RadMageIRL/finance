@@ -1,0 +1,135 @@
+/* The federal funds rate page (src/data-pages/federal-funds-rate.astro). Only this page's own
+   classes are styled here; the shared dashboard components keep their own styles. */
+
+.rates-section {
+  margin-block: var(--space-7);
+}
+
+.rates-section > h2 {
+  font-size: var(--step-2);
+}
+
+.rates-status {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.rates-status > * {
+  margin: 0;
+}
+
+.rates-headlines,
+.rates-figures {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+/* Observed and derived figures are told apart by their label text and by the border style,
+   never by color alone: a solid edge for the market rate, a dashed one for the derived target. */
+.rates-observed,
+.rates-derived {
+  padding: var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.rates-derived {
+  border-style: dashed;
+}
+
+.rates-figures > * {
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.rates-key {
+  max-width: var(--measure);
+  margin-top: var(--space-4);
+}
+
+.js .rates-nojs {
+  display: none;
+}
+
+.rates-chart {
+  margin-top: var(--space-4);
+}
+
+.rates-panel[hidden] {
+  display: none;
+}
+
+/* Headings wrap between words to keep tables narrow; a table still wider than the screen scrolls
+   inside its own focusable region (as ScheduleView's tables do), never the page. Data tables are
+   two-dimensional content, which reflow at 320 px does not require to be linearized. */
+.rates-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.rates-table table {
+  width: 100%;
+}
+
+.rates-table thead th,
+.rates-table th.num {
+  white-space: normal;
+  min-width: 5.5rem;
+}
+
+.rates-table tbody th {
+  min-width: 7rem;
+}
+
+/* The log's before and after texts are JSON without spaces. */
+.rates-table--log td {
+  overflow-wrap: anywhere;
+  min-width: 6rem;
+}
+
+@media (max-width: 40rem) {
+  .rates-table th,
+  .rates-table td {
+    padding: var(--space-2);
+  }
+
+  .rates-table caption {
+    padding-inline: var(--space-2);
+  }
+}
+
+.rates-table--log td {
+  font-size: var(--step--1);
+}
+
+.rates-files {
+  columns: 12rem auto;
+  padding-left: 1.25rem;
+}
+
+.rates-files li {
+  break-inside: avoid;
+}
+
+.rates-page .claim-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.rates-page .cite-ref {
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rates-page .source-list li {
+  margin-bottom: var(--space-2);
+  overflow-wrap: anywhere;
+}

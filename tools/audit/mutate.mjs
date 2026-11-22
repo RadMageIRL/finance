@@ -16,9 +16,10 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const E = 'src/lib/engines/';
 const RUN_TIMEOUT_MS = 180_000;
@@ -131,7 +132,180 @@ const MUTANTS = [
   ['ledger-capital-half', `${E}ledger/ledger.ts`, 'after.equity < options.minCapitalRatio * after.totalAssets', 'after.equity < 0.5 * options.minCapitalRatio * after.totalAssets'],
   ['ledger-no-balance-check', `${E}ledger/ledger.ts`, 'if (sheet.totalAssets !== sheet.totalLiabilities + sheet.equity) {', 'if (false) {'],
   ['ledger-money-includes-banks', `${E}ledger/model.ts`, '&& isNonbank(c.holder));', ');'],
+  // Phase 2 data pipeline foundations (pipeline/lib, DATA_CONVENTIONS v0.1)
+  ['pipeline-revised-aggregate-window-none', 'pipeline/lib/registry-policy.mjs', "revised_aggregate: { frequency: 'month', window: 'scheduled-release',", "revised_aggregate: { frequency: 'month', window: 'none',"],
+  ['pipeline-inactivity-critical-late', 'pipeline/lib/schedule-health.mjs', 'if (idleDays >= t.inactivityCriticalDays)', 'if (idleDays > t.inactivityCriticalDays)'],
+  ['pipeline-manual-runs-hide-schedule-gap', 'pipeline/lib/schedule-health.mjs', "const scheduled = runs.filter((r) => r.event === 'schedule');", 'const scheduled = runs;'],
+  ['pipeline-cancelled-breaks-failure-streak', 'pipeline/lib/schedule-health.mjs', "else if (r.conclusion === 'success') break;", 'else break;'],
+  ['pipeline-canonical-utf16-key-order', 'pipeline/lib/canonical.mjs', 'const keys = Object.keys(value).sort(byCodePoint);', 'const keys = Object.keys(value).sort();'],
+  ['pipeline-decimal-not-padded', 'pipeline/lib/source-records.mjs', "`${int}.${frac.padEnd(decimals, '0')}`", '`${int}.${frac}`'],
+  ['pipeline-schema-unknown-property-ignored', 'pipeline/lib/json-schema.mjs', 'if (schema.additionalProperties === false) errors.push(`${path}: unknown property ${k}`);', 'if (false) errors.push(`${path}: unknown property ${k}`);'],
+  // P2.2 pipeline mechanics (DATA_CONVENTIONS v0.3 sections 2, 11, 12 and 17)
+  ['pipeline-holidays-ignored', 'pipeline/lib/calendar.mjs', 'return w !== 0 && w !== 6 && !holidays.has(date);', 'return w !== 0 && w !== 6;'],
+  ['pipeline-effr-revision-any-later-day', 'pipeline/lib/classify.mjs', 'if (runEtDate === pub) {', 'if (runEtDate >= pub) {'],
+  ['pipeline-effr-flag-window-3-days', 'pipeline/lib/classify.mjs', 'runEtDate <= calendar.addBusinessDays(pub, 2)', 'runEtDate <= calendar.addBusinessDays(pub, 3)'],
+  ['pipeline-statistics-window-21-days', 'pipeline/lib/classify.mjs', 'calendar.addBusinessDays(quarter.end, series.revision.statistics_window_business_days)', 'calendar.addBusinessDays(quarter.end, series.revision.statistics_window_business_days + 1)'],
+  ['pipeline-debt-change-published', 'pipeline/lib/classify.mjs', "if (diff.changed.length) return hold(diff, 'a published value changed", "if (false) return hold(diff, 'a published value changed"],
+  ['pipeline-h6-same-release-accepted', 'pipeline/lib/classify.mjs', "typeof seen === 'string' && latest > seen", "typeof seen === 'string' && latest >= seen"],
+  ['pipeline-alert-ratio-inclusive', 'pipeline/lib/classify.mjs', '> scale(ratioText, rPlaces) * abs(o)', '>= scale(ratioText, rPlaces) * abs(o)'],
+  ['pipeline-derived-ignores-held-source', 'pipeline/lib/classify.mjs', "if (ctx.source?.outcome === 'revised-unexpected' && !isSame(diff))", 'if (false && !isSame(diff))'],
+  ['pipeline-gate-archive-rewrite-allowed', 'pipeline/lib/gate.mjs', 'if (old !== null && old !== text) add(4,', 'if (false) add(4,'],
+  ['pipeline-gate-restamp-allowed', 'pipeline/lib/gate.mjs', ' || before.retrieved_at !== st.retrieved_at) add(5,', ') add(5,'],
+  ['pipeline-gate-revision-records-unchecked', 'pipeline/lib/gate.mjs', 'if (JSON.stringify(a) !== JSON.stringify(b)) add(6,', 'if (false) add(6,'],
+  ['pipeline-thirteenth-pin-accepted', 'pipeline/lib/retention.mjs', 'if (pins.pins.length >= MAX_PINS)', 'if (pins.pins.length > MAX_PINS)'],
+  ['pipeline-budget-warning-late', 'pipeline/lib/retention.mjs', 'value >= l.warning ?', 'value > l.warning ?'],
+  ['pipeline-window-36-days', 'pipeline/lib/retention.mjs', "> cutoff) mark(id, 'window')", ">= cutoff) mark(id, 'window')"],
+  ['pipeline-revision-snapshot-prunable', 'pipeline/lib/retention.mjs', 'snapshot.revisions.length > 0 || ', ''],
+  ['pipeline-alert-repeated', 'pipeline/lib/alerts.mjs', 'if (old.severity !== a.severity || old.title !== a.title || old.body !== a.body) plan.push', 'if (true) plan.push'],
+  ['pipeline-bearer-text-published', 'pipeline/lib/alerts.mjs', "['a bearer credential', /Bearer /],", "['a bearer credential', /BEARER /],"],
+  ['pipeline-403-not-blocking', 'pipeline/lib/run.mjs', 'if (r.status === 403 || r.status === 429) {', 'if (r.status === 429) {'],
+  ['pipeline-fourth-retry', 'pipeline/lib/run.mjs', 'if (attempt < source.request.max_retries) {', 'if (attempt <= source.request.max_retries) {'],
+  ['pipeline-retry-after-ignored', 'pipeline/lib/run.mjs', 'await ctx.o.wait(Math.max(2 ** (attempt + 1),', 'await ctx.o.wait(Math.min(2 ** (attempt + 1),'],
+  ['pipeline-weekly-fetch-on-monday', 'pipeline/lib/run.mjs', 'const sunday = weekday(ctx.runEt) === 0 && !(typeof last', 'const sunday = weekday(ctx.runEt) === 1 && !(typeof last'],
+  ['pipeline-frozen-series-published', 'pipeline/lib/run.mjs', 'if (standing.length) {', 'if (false) {'],
+  ['pipeline-hold-closes-on-allowed-change', 'pipeline/lib/run.mjs', "if (oldHold && r.outcome !== 'revised-unexpected') {", 'if (false) {'],
+  ['pipeline-rolled-back-not-withdrawn', 'pipeline/lib/run.mjs', "e.events.push(event('withdrawn', c.rollback.reason));", "e.events.push(event('superseded', c.rollback.reason));"],
+  ['pipeline-review-without-reason', 'pipeline/lib/run.mjs', 'if (!text(o.reviewer) || !text(o.reason)) return', 'if (false) return'],
+  // P2.2 corrections and the P2.3 collector adapters (DATA_CONVENTIONS v0.3 sections 11.4, 17.5, 17.6 and 18)
+  ['pipeline-history-start-unchecked', 'pipeline/lib/normalize.mjs', 'if (firstWithValue && firstWithValue[key] !== series.earliest) problems.push(', 'if (false) problems.push('],
+  ['pipeline-missing-day-unchecked', 'pipeline/lib/normalize.mjs', 'if (!have.has(d) && !gaps.has(d) && calendar.isBusinessDay(d)) problems.push(', 'if (false) problems.push('],
+  ['pipeline-holiday-record-accepted', 'pipeline/lib/normalize.mjs', '&& !calendar.isBusinessDay(o.period) && !known.has(o.period)) problems.push(', '&& false) problems.push('],
+  ['pipeline-rollback-unrecorded', 'pipeline/lib/gate.mjs', 'if (JSON.stringify(norm(want)) !== JSON.stringify(norm(got))) add(6,', 'if (false) add(6,'],
+  ['pipeline-retention-decision-silent', 'pipeline/lib/retention.mjs', 'if (measured.publishedBytes >= BUDGET_LEVELS.published.critical) alerts.push', 'if (false) alerts.push'],
+  ['pipeline-zip-crc-unchecked', 'pipeline/lib/zip.mjs', 'if (crc32(out) !== e.crc) throw', 'if (false) throw'],
+  ['pipeline-zip-size-unbounded', 'pipeline/lib/zip.mjs', 'if (e.size > maxBytes) throw', 'if (false) throw'],
+  ['pipeline-doctype-accepted', 'pipeline/lib/sdmx.mjs', 'if (/<!DOCTYPE/i.test(text) || /<!ENTITY/i.test(text)) throw', 'if (false) throw'],
+  ['pipeline-foreign-host-requested', 'pipeline/collectors/adapters.mjs', "if (url.protocol !== 'https:' || url.host !== source.host) return", 'if (false) return'],
+  ['pipeline-request-budget-ignored', 'pipeline/collectors/adapters.mjs', 'if (n >= budgets.requestsPerHost) return', 'if (false) return'],
+  ['pipeline-stale-approval-published', 'pipeline/lib/run.mjs', 'if (hold.candidate.sha256 !== o.candidate_sha256) return', 'if (false) return'],
+  ['pipeline-debt-deadline-a-day-early', 'pipeline/lib/tree.mjs', ': calendar.nextBusinessDay(period);', ': period;'],
+  ['pipeline-total-count-unchecked', 'pipeline/lib/normalize.mjs', 'else if (total !== rows.length) problems.push(', 'else if (false) problems.push('],
+  ['pipeline-weekend-list-ignored', 'pipeline/lib/normalize.mjs', '[0, 6].includes(weekday(p)) && !known.has(p)) {', '[0, 6].includes(weekday(p))) {'],
+  // DATA_CONVENTIONS v0.4: CSV segments, zones, documented gaps, held windows, review authorization, absences, route notices
+  ['pipeline-unchanged-csv-rewritten', 'pipeline/lib/tree.mjs', 'const at = before && csv && before.sha256 === o.sha256 ? csv.retrieved_at : retrievedAt;', 'const at = retrievedAt;'],
+  ['pipeline-deadline-earliest-reading', 'pipeline/lib/tree.mjs', 'return { expected: r.earliest, deadline: addHours(r.latest, cal.grace_hours) };', 'return { expected: r.earliest, deadline: addHours(r.earliest, cal.grace_hours) };'],
+  ['pipeline-documented-gap-awaited', 'pipeline/lib/tree.mjs', 'while (gaps.has(d)) d = calendar.nextBusinessDay(d);', 'while (false) d = calendar.nextBusinessDay(d);'],
+  ['pipeline-held-history-dropped', 'pipeline/lib/run.mjs', 'const baseOf = (id) => ctx.heldObservations[id] ?? ', 'const baseOf = (id) => '],
+  ['pipeline-review-any-permission', 'pipeline/lib/run.mjs', 'if (!ctx.registry.family_policy.review.permissions.includes(o.reviewer_permission)) return', 'if (false) return'],
+  ['pipeline-review-bot-accepted', 'pipeline/lib/run.mjs', 'if (AUTOMATION.test(o.reviewer.trim())) return', 'if (false) return'],
+  ['pipeline-permission-hour-exclusive', 'pipeline/lib/run.mjs', 'now - at <= PERMISSION_MAX_AGE_SECONDS * 1000', 'now - at < PERMISSION_MAX_AGE_SECONDS * 1000'],
+  ['pipeline-review-record-collides', 'pipeline/lib/run.mjs', '-${decision}-${snapshotId(ctx.now)}.json`;', '-${decision}.json`;'],
+  ['pipeline-late-source-as-failure', 'pipeline/lib/run.mjs', ": ['source-overdue', 'after-deadline']);", ": ['collection-failure', 'fetch-failed']);"],
+  ['pipeline-gap-as-invalid-series', 'pipeline/lib/run.mjs', 'const bad = r.seriesInvalid === true && r.otherProblems !== false;', 'const bad = r.seriesInvalid === true;'],
+  ['pipeline-gate-csv-unchecked', 'pipeline/lib/gate.mjs', 'if (!g || canonicalJson(g) !== canonicalJson(e)) add(9,', 'if (false) add(9,'],
+  ['pipeline-route-check-window-long', 'pipeline/lib/alerts.mjs', 'dayDiff(today, n.date) >= -30)', 'dayDiff(today, n.date) >= -31)'],
+  // DATA_CONVENTIONS v0.5: locks (rejected and rolled back), clear, zero amounts, request identification
+  ['pipeline-rollback-lock-lifts-itself', 'pipeline/lib/run.mjs', "(l) => l.origin === 'rolled-back' || beforeWindow(l) || carriesLock(", '(l) => beforeWindow(l) || carriesLock('],
+  ['pipeline-rejected-locks-forgotten', 'pipeline/lib/run.mjs', 'const list = (snap?.frozen ?? []).map(', 'const list = [].map('],
+  ['pipeline-rollback-locks-forgotten', 'pipeline/lib/run.mjs', 'if (man?.rollback) {', 'if (false) {'],
+  ['pipeline-carries-ignores-periods', 'pipeline/lib/run.mjs', "if (field === 'period') return l ? c !== undefined && whole(c) === whole(l) : c === undefined;", "if (field === 'period') return false;"],
+  ['pipeline-locked-approve-allowed', 'pipeline/lib/run.mjs', "if (ctx.locks.some((l) => l.series === o.series)) return { rule: 'locked'", "if (false) return { rule: 'locked'"],
+  ['pipeline-clear-without-lock', 'pipeline/lib/run.mjs', "if (!mine.length) return { rule: 'not-locked'", "if (false) return { rule: 'not-locked'"],
+  ['pipeline-rollback-not-locking', 'pipeline/lib/run.mjs', 'rolledBack.push({ series: s.id,', 'void ({ series: s.id,'],
+  ['pipeline-zero-stored', 'pipeline/lib/normalize.mjs', 'else if (eraOf(p)?.refuse_zero === true && ZERO.test(v)) problems.push(', 'else if (false) problems.push('],
+  ['pipeline-browser-user-agent', 'pipeline/collectors/adapters.mjs', "({ 'User-Agent': source.request.user_agent,", "({ 'User-Agent': 'Mozilla/5.0',"],
+  ['pipeline-lock-change-not-significant', 'pipeline/lib/retention.mjs', '|| locks(snapshot) !== locks(previous);', '|| false;'],
+  // DATA_CONVENTIONS v0.6: several locks, window rule, kept rejections, rollback records, accepted zeros, live transport, state store
+  ['pipeline-new-periods-unlocked', 'pipeline/lib/run.mjs', "for (const p of diff.added) out.push({ period: p, field: 'period' });", 'for (const p of diff.added) void p;'],
+  ['pipeline-window-rule-ignored', 'pipeline/lib/run.mjs', "(l) => l.origin === 'rolled-back' || beforeWindow(l) || carriesLock(", "(l) => l.origin === 'rolled-back' || carriesLock("],
+  ['pipeline-rollback-drops-rejections', 'pipeline/lib/run.mjs', 'for (const l of [...targetLocks, ...ctx.locks, ...rolledBack]) {', 'for (const l of [...targetLocks, ...rolledBack]) {'],
+  ['pipeline-rollback-record-ignored', 'pipeline/lib/run.mjs', 'for (const l of JSON.parse(text).locks) list.push(', 'for (const l of []) list.push('],
+  ['pipeline-clear-lifts-all-locks', 'pipeline/lib/run.mjs', '&& l.series === o.series && l.candidate_sha256 === o.candidate_sha256));', '&& l.series === o.series));'],
+  ['pipeline-zero-accepted-anywhere', 'pipeline/lib/normalize.mjs', '&& accepted.has(`${p}|${field}`)) continue;', ') continue;'],
+  ['pipeline-future-zero-allowed', 'pipeline/lib/registry-policy.mjs', 'if (!(z.period <= z.checked) || !(z.period <= String(z.authorized_at).slice(0, 10))) add(', 'if (false) add('],
+  ['pipeline-transport-any-host', 'pipeline/collectors/live-transport.mjs', "if (u.protocol !== 'https:' || !hosts.has(u.host) ||", "if (u.protocol !== 'https:' ||"],
+  ['pipeline-state-extra-file-accepted', 'pipeline/lib/state-store.mjs', 'for (const p of present) if (!listed.has(p)) problems.push(', 'for (const p of present) if (false) problems.push('],
+  ['pipeline-state-manifest-unchecked', 'pipeline/lib/state-store.mjs', '|| sha(readFileSync(manifest)) !== descriptor.manifest_sha256) problems.push(', ') problems.push('],
+  ['pipeline-state-schema-unchecked', 'pipeline/lib/state-store.mjs', 'const schema = stateSchema(p);', 'const schema = null;'],
+  ['pipeline-state-v2-schema-unchecked', 'pipeline/lib/state-store.mjs', 'const schema = stateSchemaV2(p);', 'const schema = null;'],
+  ['pipeline-state-force-push', 'pipeline/lib/state-store.mjs', "const push = run(['push', '-q', remote,", "const push = run(['push', '-q', '--force', remote,"],
+  // Stage C (conventions v0.7, section 21)
+  ['pipeline-sunday-full-every-run', 'pipeline/lib/run.mjs', "const sunday = weekday(ctx.runEt) === 0 && !(typeof last === 'string' && etDate(last) === ctx.runEt);", 'const sunday = weekday(ctx.runEt) === 0;'],
+  ['pipeline-full-fetch-invalid-counts', 'pipeline/lib/run.mjs', "!g.members.every((s) => ['failed', 'invalid'].includes(results[s.id].outcome))", "!g.members.every((s) => ['failed'].includes(results[s.id].outcome))"],
+  ['pipeline-extra-alerts-dropped', 'pipeline/lib/run.mjs', 'for (const a of ctx.o.extraAlerts ?? []) alerts.push(a);', 'for (const a of []) alerts.push(a);'],
+  ['pipeline-operation-mode-collects', 'pipeline/lib/run.mjs', "if (o.mode === 'operation') return Promise.reject(", "if (false) return Promise.reject("],
+  ['pipeline-schedule-hourly', 'pipeline/lib/tree.mjs', "export const SCHEDULE = ['17 */4 * * *'];", "export const SCHEDULE = ['17 * * * *'];"],
+  ['pipeline-health-gap-old', 'pipeline/lib/schedule-health.mjs', 'runGapWarningHours: 9,', 'runGapWarningHours: 26,'],
+  ['pipeline-state-gitattributes-unchecked', 'pipeline/lib/state-store.mjs', 'else if (!readFileSync(ga).equals(Buffer.from(GITATTRIBUTES))) problems.push(', 'else if (false) problems.push('],
+  ['pipeline-state-crlf-undiagnosed', 'pipeline/lib/state-store.mjs', 'return lf.length !== bytes.length && sha(lf) === sha256 ?', 'return false ?'],
+  ['pipeline-state-named-files-unchecked', 'pipeline/lib/state-store.mjs', 'if (sha(b) !== ref.sha256) problems.push(mismatchText(', 'if (false) problems.push(mismatchText('],
+  ['pipeline-state-unpromoted-accepted', 'pipeline/lib/state-store.mjs', 'if (!listed.has(`${STATE_DIR}/${ACCEPTED}`)) problems.push(', 'if (false) problems.push('],
+  ['pipeline-state-accepted-mismatch', 'pipeline/lib/state-store.mjs', 'if (!a || a.snapshot !== manifest.snapshot.id || a.manifest_sha256 !== descriptor.manifest_sha256) problems.push(', 'if (!a) problems.push('],
+  ['pipeline-state-run-twice', 'pipeline/lib/state-store.mjs', 'if (existsSync(recordFile)) throw new Error(', 'if (false) throw new Error('],
+  ['pipeline-state-budget-level', 'pipeline/lib/state-store.mjs', 'if (bytes <= 50_000_000) return null;', 'if (bytes <= 60_000_000) return null;'],
+  ['pipeline-validation-ignored', 'pipeline/bin/collect.mjs', 'if (checker.fail !== 0) throw new Error(`validation failed: the independent checker found ${checker.fail} failure(s) in the working root', 'if (false) throw new Error(`validation failed: the independent checker found ${checker.fail} failure(s) in the working root'],
+  ['pipeline-record-fields-loose', 'pipeline/bin/collect.mjs', 'const responseRecord = (meta) => Object.fromEntries(RECORD_FIELDS.map((k) => [k, meta[k] ?? null]));', 'const responseRecord = (meta) => ({ ...meta, body: null });'],
+  ['pipeline-freshness-never-stale', 'pipeline/lib/freshness.mjs', "status = t && now >= t.staleAt ? 'stale' : 'fresh';", "status = t && now >= t.staleAt ? 'fresh' : 'fresh';"],
+  ['pipeline-issues-duplicates-kept', 'pipeline/bin/issues.mjs', "for (const x of extra) actions.push({ action: 'close', number: x.number, key: k, why: 'duplicate' });", 'for (const x of []) actions.push(x);'],
+  ['pipeline-issues-never-edited', 'pipeline/bin/issues.mjs', "if (keep.title !== t.title || keep.body !== t.body) actions.push({ action: 'edit'", "if (false) actions.push({ action: 'edit'"],
+  ['pipeline-op-automation-allowed', 'pipeline/bin/state-op.mjs', "if (AUTOMATION.test(actor.trim())) return 'an automation account cannot operate on the state store';", 'if (false) return null;'],
+  ['pipeline-promote-state-before-record', 'pipeline/lib/state-store.mjs', 'const descriptor = describeV2(checkout, { run, writtenAt: writtenAt < record.ended_at ? record.ended_at : writtenAt });', 'const descriptor = describeV2(checkout, { run, writtenAt: now });'],
+  ['pipeline-export-state-before-record', 'pipeline/lib/state-store.mjs', 'const descriptor = describeV2(checkout, { run, writtenAt: writtenAt < full.ended_at ? full.ended_at : writtenAt });', 'const descriptor = describeV2(checkout, { run, writtenAt: record.started_at });'],
+  ['pipeline-schema-not-ignored', 'pipeline/lib/json-schema.mjs', 'if (e.length === 0) errors.push(`${path}: matches a schema it must not match`);', 'if (false) errors.push(`${path}: matches a schema it must not match`);'],
+  // Stage C timer and watcher (21.3, 21.9, amendment 1 to v0.7)
+  ['pipeline-timer-runs-not-scheduled', 'pipeline/lib/run-facts.mjs', 'return run.event === \'workflow_dispatch\' && typeof run.display_title === \'string\' && run.display_title.startsWith(TIMER_TITLE_PREFIX);', 'return false;'],
+  ['pipeline-any-dispatch-scheduled', 'pipeline/lib/run-facts.mjs', 'run.display_title.startsWith(TIMER_TITLE_PREFIX);', 'run.display_title.startsWith(\'collect\');'],
+  ['pipeline-watch-manifest-findings-kept', 'pipeline/bin/watch.mjs', '.filter((f) => RUN_KEYS.includes(f.key));', '.filter(() => true);'],
+  ['pipeline-watch-reconciles-all-keys', 'pipeline/bin/watch.mjs', '{ only: new Set(WATCH_KEYS) }', '{ only: null }'],
+  ['pipeline-watch-fails-on-any-finding', 'pipeline/bin/watch.mjs', 'export const watchFails = (findings) => findings.some(', 'export const watchFails = (findings) => findings.length > 0 || findings.some('],
+  ['pipeline-watch-unread-facts-ignored', 'pipeline/bin/watch.mjs', "if (!r.ok) throw new Error(`GitHub API GET ${path.split('?')[0]", "if (false) throw new Error(`GitHub API GET ${path.split('?')[0]"],
+  ['pipeline-timer-watch-routed-to-collect', 'pipeline/timer/worker.mjs', 'if (minute === \'47:00\') return { workflow: \'watch.yml\', inputs: { slot } };', 'if (minute === \'47:00\') return { workflow: \'collect.yml\', inputs: { mode: \'timer\', slot } };'],
+  ['pipeline-timer-4xx-retried', 'pipeline/timer/worker.mjs', 'return status === 0 || status === 429 || status >= 500;', 'return status === 0 || status === 429 || status >= 400;'],
+  ['pipeline-timer-slot-milliseconds', 'pipeline/timer/worker.mjs', '.replace(/\\.\\d{3}Z$/, \'Z\');', '.replace(/Z$/, \'Z\');'],
+  ['pipeline-timer-slot-seconds-kept', 'pipeline/timer/worker.mjs', 'new Date(Math.floor(scheduledTime / 60_000) * 60_000).toISOString()', 'new Date(scheduledTime).toISOString()'],
+  // Stage D v0.8 (9, 10, 17.6, 21.6, 22.3, 22.9; appendix I rows I7, I44, I45)
+  ['pipeline-v08-i7-terms-kept', 'pipeline/lib/rules.mjs', 'v07.sources[\'nyfed-markets\'].terms_url = V07_NYFED_TERMS;', 'v07.sources[\'nyfed-markets\'].terms_url = v07.sources[\'nyfed-markets\'].terms_url;'],
+  ['pipeline-v08-notice-unsorted', 'pipeline/lib/rules.mjs', 'for (const id of Object.keys(registry.sources).sort()) {', 'for (const id of Object.keys(registry.sources)) {'],
+  ['pipeline-v08-notice-lines-repeated', 'pipeline/lib/rules.mjs', 'if (!seen.has(line)) {', 'if (true) {'],
+  ['pipeline-v08-notice-no-l1', 'pipeline/lib/rules.mjs', 'lines.push(L1_STATEMENT);', 'lines.push(\'\');'],
+  ['pipeline-v08-archived-registry-unhashed', 'pipeline/lib/rules.mjs', 'if (archived !== null && sha256Hex(archived) === h) text = archived;', 'if (archived !== null) text = archived;'],
+  ['pipeline-v08-revision-csv-unquoted', 'pipeline/lib/tree.mjs', 'return /[",\\n]/.test(t) ? `"${t.replace(/"/g, \'""\')}"` : t;', 'return t;'],
+  ['pipeline-v08-stale-not-followed', 'pipeline/lib/tree.mjs', 'const followed = s.staleness.follows !== undefined ? (times[s.staleness.follows] ?? null) : own;', 'const followed = own;'],
+  ['pipeline-v08-manifest-v3', 'pipeline/lib/tree.mjs', 'schema: \'rmf.econ.manifest/4\',', 'schema: \'rmf.econ.manifest/3\','],
+  ['pipeline-v08-gate-notice-copy-unchecked', 'pipeline/lib/gate.mjs', 'if (notice !== null && staged.get(\'NOTICE.txt\') !== notice) add(9,', 'if (false) add(9,'],
+  ['pipeline-v08-gate-registry-versions-unchecked', 'pipeline/lib/gate.mjs', 'if (JSON.stringify([...versions].sort()) !== JSON.stringify(want)) add(9,', 'if (false) add(9,'],
+  ['pipeline-v08-gate-rule-hash-unchecked', 'pipeline/lib/gate.mjs', 'if (hash !== r.sha256) add(3, `rules ${what}: ${r.path} does not match its hash`);', 'void hash;'],
+  ['pipeline-v08-reason-utf16-length', 'pipeline/lib/alerts.mjs', 'if ([...text].length > MAX_TEXT)', 'if (text.length > MAX_TEXT)'],
+  ['pipeline-v08-operate-reason-unchecked', 'pipeline/bin/state-op.mjs', 'if (why) throw new Error(`operation refused: the reason fails', 'if (false) throw new Error(`operation refused: the reason fails'],
+  ['pipeline-v08-notice-txt-archived', 'pipeline/lib/store.mjs', 'const liveOnly = (path) => path === \'NOTICE.txt\' || path.startsWith(\'status/\');', 'const liveOnly = (path) => path.startsWith(\'status/\');'],
+  ['pipeline-v08-window-drops-rules', 'pipeline/lib/retention.mjs', 'if (m.rules) for (const r of', 'if (false) for (const r of'],
+  ['pipeline-v08-restore-notice-missing', 'pipeline/lib/run.mjs', '  if (manifest.rules) {\n    const notice = files.find', '  if (false) {\n    const notice = files.find'],
+  ['pipeline-v08-self-check-all-findings', 'pipeline/lib/run.mjs', '.filter((f) => SELF_CHECK_KEYS.has(f.key))', '.filter(() => true)'],
+  ['pipeline-v08-private-log-post-unfixed', 'pipeline/lib/publication.mjs', 'if (last && last.verification.post === null && newestPost !== null) last.verification.post = newestPost;', 'void newestPost;'],
+  ['pipeline-v08-fix-post-site-ignored', 'pipeline/lib/publication.mjs', 'if (facts.siteConclusion === \'success\') return', 'if (true) return'],
+  ['pipeline-v08-chain-numbering', 'pipeline/lib/publication.mjs', 'const number = list.length ? list[list.length - 1].number + 1 : 1;', 'const number = 1;'],
+  ['pipeline-v08-noop-any-post', 'pipeline/lib/publication.mjs', 'return Boolean(d && d.post === \'passed\' && sameDataset(d.dataset, accepted));', 'return Boolean(d && sameDataset(d.dataset, accepted));'],
+  ['pipeline-v08-cas-skipped', 'pipeline/lib/site-build.mjs', 'if (currentText(deployed.dataset) !== expected_current) return', 'if (false) return'],
+  ['pipeline-v08-monotonic-allows-equal', 'pipeline/lib/site-build.mjs', 'if (input.snapshot > deployed.dataset.snapshot) return null;', 'if (input.snapshot >= deployed.dataset.snapshot) return null;'],
+  ['pipeline-v08-redeploy-any-target', 'pipeline/lib/site-build.mjs', 'const target = list.slice(0, -1).find((d) => d.verification.post === \'passed\' && ', 'const target = list.slice(0, -1).find((d) => '],
+  ['pipeline-v08-release-sums-unchecked', 'pipeline/lib/site-build.mjs', 'if (Buffer.from(sums).toString(\'utf8\') !== sha256Sums(rest)) throw', 'if (false) throw'],
+  ['pipeline-v08-artifact-sha-unchecked', 'pipeline/lib/site-build.mjs', 'if (artifactSha256(files) !== newest.artifact.sha256) throw', 'if (false) throw'],
+  ['pipeline-v08-archive-links-allowed', 'pipeline/lib/publication.mjs', 'if (type !== \'0\' && type !== \'\\0\') throw', 'if (false) throw'],
+  ['pipeline-v08-archive-outside-allowed', 'pipeline/lib/publication.mjs', 'if (!name.startsWith(\'econ/\') ||', 'if (false ||'],
+  ['pipeline-v08-allow-list-open', 'pipeline/lib/publication.mjs', '|| /^(objects|series|snapshots|revisions|registry|notices)\\//.test(path);', '|| true;'],
+  ['pipeline-v08-d55-ignores-public', 'pipeline/lib/publication.mjs', 'return withdrawn.filter((id) => inWindow.has(id) && !publicSnapshots.has(id)).sort();', 'return withdrawn.filter((id) => inWindow.has(id)).sort();'],
+  ['pipeline-v08-behind-any-time', 'pipeline/lib/publication.mjs', 'if (hours <= BEHIND_HOURS) return null;', 'void hours;'],
+  ['pipeline-v08-collector-closes-foreign', 'pipeline/bin/issues.mjs', 'if ((only && !only.has(k)) || (except && except.has(k))) continue;', 'if (only && !only.has(k)) continue;'],
+  ['pipeline-v08-gzip-os-byte', 'pipeline/lib/publication.mjs', 'gz[9] = 255;', 'void gz;'],
+  ['pipeline-v08-watch-no-publication-keys', 'pipeline/bin/watch.mjs', 'const pub = facts.publication ?? null;', 'const pub = null;'],
+  ['pipeline-v08-history-deleted-unchecked', 'pipeline/lib/publication.mjs', 'if (!r) out.push(`release ${d.release} of entry', 'if (false) out.push(`release ${d.release} of entry'],
+  ['pipeline-v08-history-deployed-ignored', 'pipeline/lib/publication.mjs', '  if (deployedLog) {', '  if (false) {'],
+  ['pipeline-v08-watch-history-not-failing', 'pipeline/bin/watch.mjs', ' || f.key === HISTORY_KEY || (f.key === \'manifest-overdue\'', ' || (f.key === \'manifest-overdue\''],
+  ['pipeline-v08-watch-reconciles-run-keys-only', 'pipeline/bin/watch.mjs', '{ only: new Set(WATCH_KEYS) }', '{ only: new Set(RUN_KEYS) }'],
+  ['pipeline-v08-assemble-any-store', 'pipeline/bin/publish.mjs', 'if (layout !== \'v0.7\') return { outcome: \'refused-v2\'', 'if (false) return { outcome: \'refused-v2\''],
+  ['pipeline-v08-assemble-unverified-redeploy', 'pipeline/bin/publish.mjs', 'if (o.mode === \'redeploy\' && !verifiedPairs(prevLog).some(', 'if (false && !verifiedPairs(prevLog).some('],
+  ['pipeline-v08-assemble-v2c-ignored', 'pipeline/bin/publish.mjs', 'if (c.fail !== 0) return { outcome: \'refused-v2\', problems: [`V2c:', 'if (false) return { outcome: \'refused-v2\', problems: [`V2c:'],
+  ['pipeline-v08-report-automatic-closes', 'pipeline/bin/publish.mjs', 'if (result.person) want.delete(\'publication-verify-failed\');', 'want.delete(\'publication-verify-failed\');'],
+  ['pipeline-v08-site-input-any', 'pipeline/bin/site-data.mjs', 'return want === got ? null :', 'return true ? null :'],
+  ['pipeline-v08-window-future-snapshots', 'pipeline/lib/publish-store.mjs', '.filter(([, s]) => s.created_at <= asOf)', '.filter(() => true)'],
 ];
+
+// The dashboard mutants (brief Q): each tools/audit/mutants/*.mjs exports MUTANTS in the same
+// form, so each dashboard keeps its own list in a file it owns.
+const EXTRA = resolve('tools', 'audit', 'mutants');
+if (existsSync(EXTRA)) {
+  for (const f of readdirSync(EXTRA).filter((n) => n.endsWith('.mjs')).sort()) MUTANTS.push(...(await import(pathToFileURL(join(EXTRA, f)).href)).MUTANTS);
+}
 
 // Equivalent mutants, deliberately not listed because no test can tell them apart:
 // - compound.ts using `input.contribution` when the frequency is none: there are no
@@ -140,10 +314,21 @@ const MUTANTS = [
 //   the payment exactly, the regular branch posts principal = balance, extra = min(due, 0)
 //   = 0 and a zero balance, which is the same row the final-payment branch posts.
 
+// The pipeline belongs to finance-data (owner brief V item 3): a tree that carries pipeline/ (the
+// development branch) runs its mutants here; a site-only tree reads the pipeline through
+// ECON_TOOLS (tools/econ-tools.mjs) and leaves the pipeline's mutants to the tree that has it,
+// and says so.
+const HAS_PIPELINE = existsSync('pipeline');
+if (!HAS_PIPELINE) {
+  const skipped = MUTANTS.filter(([, file]) => file.startsWith('pipeline/')).length;
+  for (let i = MUTANTS.length - 1; i >= 0; i -= 1) if (MUTANTS[i][1].startsWith('pipeline/')) MUTANTS.splice(i, 1);
+  console.log(`mutation pass: pipeline/ is not in this tree; its ${skipped} mutants run where the pipeline is`);
+}
+
 const VITEST = resolve('node_modules', 'vitest', 'vitest.mjs');
 const WORK = resolve('local', 'mutation-work');
 // Everything the unit tests read, copied into the work tree.
-const COPY = ['src/lib', 'src/pages/learn', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'vitest.config.ts'];
+const COPY = ['src/lib', 'src/pages/learn', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'tools/econ-tools.mjs', 'vitest.config.ts', ...(HAS_PIPELINE ? ['pipeline'] : [])];
 
 function hashTree(dir) {
   const out = {};
@@ -163,10 +348,19 @@ rmSync(WORK, { recursive: true, force: true });
 mkdirSync(WORK, { recursive: true });
 for (const path of COPY) cpSync(path, join(WORK, path), { recursive: true });
 
-function runTests() {
+// The data pipeline and the site share no code: pipeline tests import only pipeline/, and the
+// dashboard tests use only its fixture scenario, as test data. So a mutant is judged by the tests on its own side, which keeps the
+// slower end-to-end pipeline tests out of every engine mutant's run. The unmodified baseline
+// still runs everything.
+function scopeFor(liveFile) {
+  if (liveFile === null) return ['tests/unit'];
+  return liveFile.startsWith('pipeline/') ? ['tests/unit/pipeline'] : ['tests/unit', '--exclude', 'tests/unit/pipeline/**'];
+}
+
+function runTests(liveFile = null) {
   const dir = mkdtempSync(join(tmpdir(), 'rmf-mutate-'));
   const report = join(dir, 'report.json');
-  const run = spawnSync(process.execPath, [VITEST, 'run', 'tests/unit', '--pool=threads', '--reporter=json', `--outputFile=${report}`], {
+  const run = spawnSync(process.execPath, [VITEST, 'run', ...scopeFor(liveFile), '--pool=threads', '--reporter=json', `--outputFile=${report}`], {
     cwd: WORK,
     encoding: 'utf8',
     timeout: RUN_TIMEOUT_MS,
@@ -219,7 +413,7 @@ for (const [id, liveFile, find, replace] of MUTANTS) {
   restore = () => writeFileSync(file, original);
   try {
     writeFileSync(file, original.replace(find, replace));
-    const { failed, timedOut } = runTests();
+    const { failed, timedOut } = runTests(liveFile);
     results.push({ id, file: liveFile, failed, timedOut });
     const label = timedOut ? 'TIMEOUT ' : failed.length ? 'killed  ' : 'SURVIVED';
     console.log(`${label} ${id.padEnd(30)} ${timedOut ? 'run did not finish' : `${String(failed.length).padStart(3)} failing test(s)`}`);

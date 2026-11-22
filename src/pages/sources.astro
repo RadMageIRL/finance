@@ -1,12 +1,19 @@
 ---
 import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { dataPagesOn } from '../lib/data/shell-dist';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
+
+// The economic data sections appear only when the data pages are built (DATA_PAGES=on; rule D5
+// of src/lib/data/shell-dist.ts; owner brief T): the held build is this page as it was.
+const dataOn = dataPagesOn(process.env);
+const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
 ---
 <ReferenceLayout
   title="Sources"
   description="Which sources RadMage Finance relies on, in what order of preference, and how citations and verification dates are shown."
   lead="Every factual statement in the lessons and calculators links to its source. This page explains which sources are used and how they are cited."
-  updated="2026-11-16"
+  updated={updated}
 >
   <h2>Order of preference</h2>
   <ol>
@@ -31,9 +38,31 @@ import { href } from '../lib/url';
     the attribution they require.
   </p>
 
+  {dataOn && (
+    <>
+      <h2>Economic data</h2>
+      <p>
+        The <a href={href('data/')}>Economic Conditions</a> pages show data from three publishers,
+        each used under its own terms:
+      </p>
+      <ul>
+        <li><strong>Federal Reserve Bank of New York:</strong> the effective federal funds rate (EFFR) and the FOMC target fields of its daily EFFR records (<a href="https://www.newyorkfed.org/privacy/termsofuse">terms of use</a>).</li>
+        <li><strong>Board of Governors of the Federal Reserve System:</strong> M1 and M2 from the H.6 Money Stock Measures release (<a href="https://www.federalreserve.gov/disclaimer.htm">terms</a>).</li>
+        <li><strong>U.S. Department of the Treasury, Bureau of the Fiscal Service:</strong> Debt to the Penny, from Fiscal Data (<a href="https://fiscaldata.treasury.gov/api-documentation/">terms</a>).</li>
+      </ul>
+      <p>
+        Each data page shows the attribution and notice its publisher requires, and the data files
+        carry them too, in <code>NOTICE.txt</code>. RadMage Finance claims no ownership of this data
+        and does not relicense it. The FOMC target is derived by RadMage Finance from the New York
+        Fed's records and labeled so wherever it appears. How each kind of value is labeled is on
+        the <a href={href('methodology/')}>Methodology</a> page.
+      </p>
+    </>
+  )}
+
   <h2>Sources by page</h2>
   <p>
-    Each lesson and calculator lists its own sources at the end of the page.
+    Each lesson and calculator lists its own sources at the end of the page.{dataOn && <> Each economic data dashboard cites the sources of its explanations, with the date they were checked.</>}
   </p>
   <p>
     Spotted a source that is wrong or out of date? See <a href={href('corrections/')}>Corrections</a>.

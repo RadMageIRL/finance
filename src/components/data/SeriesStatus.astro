@@ -1,0 +1,16 @@
+---
+// The status line of one series (design P28 7.1 to 7.3, 6.1): its status as of the snapshot,
+// computed again at view time with JavaScript from `deadline` and `stale_at` (decision D7), in
+// the wording of src/lib/data/status.ts; then the latest period, its release date worded by
+// basis, when it was retrieved and when it was last confirmed unchanged.
+import SeriesStatusLine from './SeriesStatusLine.astro';
+import type { EconDataset } from '../../lib/data/econ';
+
+interface Props {
+  dataset: EconDataset;
+  seriesId: string;
+}
+
+const { dataset, seriesId } = Astro.props;
+---
+<SeriesStatusLine dataset={dataset} seriesId={seriesId} />

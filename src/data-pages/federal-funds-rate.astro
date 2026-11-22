@@ -1,0 +1,498 @@
+---
+// The Interest Rate Tracker (owner brief Q, Agent 1): the effective federal funds rate (EFFR,
+// observed) and the FOMC target (derived by RadMage Finance from the New York Fed's EFFR
+// records), from the dataset the build was given (ECON_DIR; none gives the unavailable state).
+// Every number on the page comes from the dataset; every computed one (src/lib/data/rates.ts)
+// is labeled "Computed by RadMage Finance" with its formula. Decision D14 (owner brief T, ledger
+// P69): educational links between the dashboards and the calculators are permitted; this page
+// has none yet.
+import DataLayout from '../layouts/DataLayout.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import Cite from '../components/learn/Cite.astro';
+import ComputedFigure from '../components/data/ComputedFigure.astro';
+import DataChart from '../components/data/DataChart.astro';
+import DataTable from '../components/data/DataTable.astro';
+import DatasetStamp from '../components/data/DatasetStamp.astro';
+import HeadlineFigure from '../components/data/HeadlineFigure.astro';
+import RangeSwitch from '../components/data/RangeSwitch.astro';
+import SeriesStatus from '../components/data/SeriesStatus.astro';
+import SourceNote from '../components/data/SourceNote.astro';
+import { changePoints, observations, revisionRows, segmentComments, seriesInfo } from '../lib/data/econ';
+import type { ChangePoint, Observation } from '../lib/data/econ';
+import { loadEconDataset } from '../lib/data/econ-load';
+import { DETECTED_LABEL, easternDate, formatDay } from '../lib/data/format';
+import {
+  COMPARE_WINDOW_DAYS,
+  DEFAULT_RANGE,
+  RANGES,
+  RECENT_ROWS,
+  bpWithUnit,
+  changePointRows,
+  comparisonTable,
+  downloads,
+  effrComparisons,
+  formatUtc,
+  latestEffr,
+  missingText,
+  rateChartSpec,
+  recentRows,
+  releaseCell,
+  releaseText,
+  segmentOf,
+  signedBp,
+  signedTargetChange,
+  targetChangeWithUnit,
+  targetText,
+} from '../lib/data/rates';
+import type { ComparisonId } from '../lib/data/rates';
+import type { ComputedFigure as Computed, Headline, TableSpec } from '../lib/data/ui';
+import { BANK_SOURCES, numberer } from '../lib/learn/lesson-sources';
+import type { Source } from '../lib/learn/money';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+import { href } from '../lib/url';
+import '../styles/data-rates.css';
+
+const TITLE = 'Federal Funds Rate Tracker';
+const DESCRIPTION = 'The effective federal funds rate (EFFR) the New York Fed publishes for each business day, beside the FOMC target derived from its records, with changes in basis points over a day, a month, a year and five years.';
+
+// The explanation cites two sources of the lesson How Banks Create Money and the New York Fed's page on
+// the publication and revision of the EFFR; every quotation was checked against the live pages on
+// November 21, 2026 (owner brief R item 5; docs/P41_V020_DASHBOARD_VERIFICATION.md).
+const SOURCES_CHECKED = 'November 21, 2026';
+const NYFED_REF_INFO: Source = {
+  id: 'nyfed-ref-info',
+  publisher: 'Federal Reserve Bank of New York',
+  title: 'Additional Information about Reference Rates Administered by the New York Fed',
+  date: 'last updated October 5, 2026',
+  url: 'https://www.newyorkfed.org/markets/reference-rates/additional-information-about-reference-rates',
+};
+const SOURCES: readonly Source[] = [...BANK_SOURCES.filter((s) => s.id === 'fed-omo' || s.id === 'nyfed-effr'), NYFED_REF_INFO];
+const n = numberer(SOURCES);
+
+const ds = loadEconDataset();
+const effr: Observation[] = ds ? observations(ds, 'effr') : [];
+const target: ChangePoint[] = ds ? changePoints(ds) : [];
+const effrInfo = ds ? seriesInfo(ds, 'effr') : null;
+const targetInfo = ds ? seriesInfo(ds, 'fomc-target') : null;
+const latest = latestEffr(effr);
+const first = effr.find((o) => o.value !== null) ?? null;
+const now = target.at(-1) ?? null;
+const firstCp = target[0] ?? null;
+// The first range in the records (December 16, 2008 in the New York Fed's records, conventions 2.2).
+const firstRange = target.find((c) => c.kind === 'range') ?? null;
+const rangeStart = firstRange ? formatDay(firstRange.effective) : 'December 16, 2008';
+
+const retrieval = (retrieved: string | null | undefined, checked: string | null | undefined) =>
+  `Retrieved ${retrieved ? formatUtc(retrieved) : 'at an unrecorded time'}${checked ? `; last confirmed unchanged ${formatUtc(checked)}` : ''}.`;
+
+const effrHeadline: Headline | null =
+  latest && effrInfo
+    ? {
+        label: 'Effective federal funds rate (EFFR): market rate, observed',
+        value: `${latest.value} percent`,
+        period: `Business day of ${formatDay(latest.period)}`,
+        kind: 'observed',
+        details: [`${releaseText(latest.released, latest.releasedBasis)}.`, retrieval(segmentOf(effrInfo.csvs, latest.period)?.retrieved_at ?? effrInfo.retrieved_at, effrInfo.checked_at), 'Published by the Federal Reserve Bank of New York.'],
+      }
+    : null;
+
+const targetHeadline: Headline | null =
+  now && targetInfo
+    ? {
+        label: now.kind === 'range' ? 'FOMC target range: policy target, derived' : 'FOMC target rate: policy target, derived',
+        value: targetText(now),
+        period: now === firstCp ? `In effect before ${formatDay(now.effective)}, the start of the data` : `In effect since ${formatDay(now.effective)}, the first business day whose EFFR record shows it`,
+        kind: 'derived',
+        details: [`${releaseText(now.released, now.releasedBasis)}.`, retrieval(segmentOf(targetInfo.csvs, now.effective)?.retrieved_at ?? targetInfo.retrieved_at, targetInfo.checked_at), "Read from the target fields of the New York Fed's EFFR records."],
+      }
+    : null;
+
+// Changes in basis points (R7, R9, R10).
+const COMPARE_LABEL: Record<ComparisonId, string> = {
+  previous: 'Since the previous business day',
+  month: 'Over about one month',
+  year: 'Over one year',
+  'five-years': 'Over five years',
+};
+const COMPARE_SPAN: Record<ComparisonId, string> = { previous: '', month: 'one month', year: 'one year', 'five-years': 'five years' };
+const comparisons = effrComparisons(effr);
+const effrFigures: Computed[] = latest
+  ? comparisons.map((c) => {
+      const found = c.found;
+      const how =
+        c.id === 'previous'
+          ? 'the previous business day with a published rate'
+          : `the latest observation on or before ${c.date ? formatDay(c.date) : ''} (${COMPARE_SPAN[c.id]} before ${formatDay(latest.period)}), at most ${COMPARE_WINDOW_DAYS} days earlier`;
+      return {
+        label: `EFFR change ${COMPARE_LABEL[c.id].toLowerCase()}${found ? ` (from ${formatDay(found.period)})` : ''}`,
+        value: c.bp !== null ? bpWithUnit(c.bp) : '',
+        formula: found
+          ? `(EFFR of ${formatDay(latest.period)} minus EFFR of ${formatDay(found.period)}) times 100, comparing with ${how}: (${latest.value} minus ${found.value}) times 100.`
+          : `the EFFR change from ${how}.`,
+        unavailableReason: c.reason ? missingText(c.reason, c.date, first?.period ?? null) : null,
+      };
+    })
+  : [];
+
+const cpRows = changePointRows(target);
+const lastChange = cpRows.at(-1) ?? null;
+const targetFigure: Computed | null = lastChange
+  ? {
+      label: `Latest change of the derived target, effective ${formatDay(lastChange.cp.effective)}`,
+      value: lastChange.change ? targetChangeWithUnit(lastChange.change) : '',
+      formula: lastChange.previous
+        ? `each bound of the new target (${targetText(lastChange.cp)}) minus the same bound of the previous one (${targetText(lastChange.previous)}), times 100; a single rate counts as both bounds.`
+        : 'each bound of the new target minus the same bound of the previous one, times 100.',
+      unavailableReason: lastChange.change ? null : 'the only change point in the data was already in effect when the data begins',
+    }
+  : null;
+
+// Chart (decision D9): one static chart per range; the page script shows the chosen one.
+const charts = RANGES.flatMap((r) => {
+  const spec = rateChartSpec(effr, target, r.id);
+  return spec ? [{ range: r, spec }] : [];
+});
+const RANGE_LABEL: Record<string, string> = { '1y': '1 year', '5y': '5 years', '10y': '10 years', all: 'All years' };
+const rangeOptions = RANGES.map((r) => ({ value: r.id, label: RANGE_LABEL[r.id] ?? r.label }));
+
+// Tables (decision D12: 30 business days and every change point, without JavaScript).
+const COMPUTED = 'computed by RadMage Finance';
+const cmpTable: TableSpec = {
+  id: 'rates-compare',
+  caption: 'The EFFR and the FOMC target on the comparison days, with their changes to the latest',
+  columns: [
+    { key: 'row', label: 'Compared with' },
+    { key: 'effr', label: 'EFFR, market rate (percent)', numeric: true },
+    { key: 'effrChange', label: `EFFR change to the latest (basis points, ${COMPUTED})`, numeric: true },
+    { key: 'target', label: 'FOMC target in effect, derived (percent)', numeric: true },
+    { key: 'targetChange', label: `Target change to the latest (basis points, ${COMPUTED})`, numeric: true },
+  ],
+  rows: comparisonTable(effr, target).map((r) => {
+    const day = r.found ? formatDay(r.found.period) : null;
+    return {
+      row: day ? `${r.label}: ${day}` : `${r.label}: not shown, ${r.reason ? missingText(r.reason, r.date, first?.period ?? null) : ''}`,
+      effr: r.found?.value ?? '',
+      effrChange: r.id === 'latest' ? 'Not applicable' : r.bp !== null ? signedBp(r.bp) : '',
+      target: r.target ? targetText(r.target).replace(/ percent$/, '') : '',
+      targetChange: r.id === 'latest' ? 'Not applicable' : r.targetChange ? signedTargetChange(r.targetChange) : '',
+    };
+  }),
+};
+
+const recent = recentRows(effr);
+const recentTable: TableSpec = {
+  id: 'rates-recent',
+  caption: `EFFR, the last ${recent.length} business days, newest first`,
+  columns: [
+    { key: 'day', label: 'Business day' },
+    { key: 'effr', label: 'EFFR, market rate (percent)', numeric: true },
+    { key: 'change', label: `Change from the previous business day (basis points, ${COMPUTED})`, numeric: true },
+    { key: 'released', label: "Publication day (New York Fed's schedule)" },
+  ],
+  rows: recent.map((r) => ({ day: formatDay(r.obs.period), effr: r.obs.value ?? '', change: r.bp !== null ? signedBp(r.bp) : '', released: releaseCell(r.obs.released, r.obs.releasedBasis) })),
+};
+
+const cpTable: TableSpec = {
+  id: 'rates-target',
+  caption: `FOMC target, derived by RadMage Finance: every change point in the data (${cpRows.length}), newest first`,
+  columns: [
+    { key: 'effective', label: 'Effective (first business day whose EFFR record shows it)' },
+    { key: 'target', label: 'Target, derived (percent)', numeric: true },
+    { key: 'change', label: `Change from the previous target (basis points, ${COMPUTED})`, numeric: true },
+    { key: 'released', label: 'Release date' },
+  ],
+  rows: [...cpRows].reverse().map((r) => ({
+    effective: r.previous ? formatDay(r.cp.effective) : `${formatDay(r.cp.effective)}: in effect before the start of the data; not a decision date`,
+    target: `${targetText(r.cp).replace(/ percent$/, '')}${r.cp.kind === 'rate' ? ' (single rate)' : ' (range)'}`,
+    change: r.change ? signedTargetChange(r.change) : 'Not shown: first change point in the data',
+    released: releaseCell(r.cp.released, r.cp.releasedBasis),
+  })),
+};
+
+// Changes we observed between our collections (conventions 10).
+const KIND: Record<string, string> = { expected: 'Expected', 'approved-hold': 'Approved after review', rollback: 'Rollback' };
+const revisions = ds ? [...revisionRows(ds, 'effr'), ...revisionRows(ds, 'fomc-target')] : [];
+// A removed period's record is canonical JSON (conventions 10); its value and release date are
+// shown, and the full record stays in the CSV. Anything that does not parse is shown as it is.
+const removedText = (json: string): string => {
+  try {
+    const o = JSON.parse(json) as { value?: unknown; released?: { date?: unknown; basis?: unknown } };
+    if (typeof o.value !== 'string') return `Period removed; it was ${json}`;
+    const rel = o.released && typeof o.released.basis === 'string' ? `; ${releaseText(typeof o.released.date === 'string' ? o.released.date : null, o.released.basis).replace(/^P/, 'p').replace(/^R/, 'r')}` : '';
+    return `Period removed; it had the value ${o.value}${rel}. The full record is in the CSV file.`;
+  } catch {
+    return `Period removed; it was ${json}`;
+  }
+};
+const revisionTable: TableSpec = {
+  id: 'rates-revisions',
+  caption: 'Changes we observed between our collections, EFFR and FOMC target. Detection dates, and the dates in the basis, are Eastern Time dates; snapshot ids are UTC times.',
+  columns: [
+    { key: 'detected', label: DETECTED_LABEL },
+    { key: 'period', label: 'Period' },
+    { key: 'change', label: 'What changed' },
+    { key: 'kind', label: 'Kind and basis' },
+  ],
+  rows: revisions.map((r) => ({
+    detected: /T/.test(r.detectedAt) ? formatDay(easternDate(r.detectedAt)) : r.detectedAt,
+    period: /^\d{4}-\d{2}-\d{2}$/.test(r.period) ? formatDay(r.period) : r.period,
+    change: r.field === 'period' && r.after === '' ? removedText(r.before) : r.field === 'period' && r.before === '' ? `Period added: ${r.after}` : `${r.field}: ${r.before || 'none'} to ${r.after || 'none'}`,
+    kind: `${KIND[r.kind] ?? r.kind}: ${r.basis}`,
+  })),
+};
+
+const effrFiles = effrInfo ? downloads('effr', effrInfo.csvs) : [];
+const targetFiles = targetInfo ? downloads('fomc-target', targetInfo.csvs) : [];
+// The change logs in both forms (conventions 10: "with CSV and JSON links"), CSV first, by series.
+const logFiles = (id: 'effr' | 'fomc-target', refs: readonly { path: string }[] | undefined, format: 'CSV' | 'JSON') =>
+  (refs ?? []).map((r) => {
+    const year = r.path.split('/').at(-2) ?? '';
+    return { path: r.path, name: `${id}-changes-${year}.${format.toLowerCase()}`, label: `${id === 'effr' ? 'EFFR' : 'FOMC target'} changes observed, ${year} (${format})` };
+  });
+const revisionFiles = [
+  ...logFiles('effr', effrInfo?.revision_csvs, 'CSV'),
+  ...logFiles('effr', effrInfo?.revisions, 'JSON'),
+  ...logFiles('fomc-target', targetInfo?.revision_csvs, 'CSV'),
+  ...logFiles('fomc-target', targetInfo?.revisions, 'JSON'),
+];
+const terms = ds ? segmentComments(ds, 'effr').find((c) => c.startsWith('Terms: '))?.slice('Terms: '.length) : undefined;
+
+// JSON-LD Dataset (design 11.2): the New York Fed as creator, the target labeled as derived.
+const schema: Record<string, unknown> = {
+  '@type': 'Dataset',
+  name: 'Effective federal funds rate and FOMC target (derived)',
+  creator: { '@type': 'Organization', name: 'Federal Reserve Bank of New York' },
+  isAccessibleForFree: true,
+  ...(terms ? { license: terms } : {}),
+  ...(first && latest ? { temporalCoverage: `${first.period}/${latest.period}` } : {}),
+  variableMeasured: [
+    { '@type': 'PropertyValue', name: 'Effective federal funds rate (EFFR)', unitText: 'percent', description: 'Market rate published by the Federal Reserve Bank of New York for each business day (observed).' },
+    { '@type': 'PropertyValue', name: 'FOMC federal funds target', unitText: 'percent', description: "Derived by RadMage Finance from the New York Fed's EFFR records: a single rate before December 16, 2008, a range from then on." },
+  ],
+};
+---
+<DataLayout
+  title={TITLE}
+  description={DESCRIPTION}
+  current="federal-funds-rate"
+  lastReviewed={DATA_PAGES_REVIEWED}
+  schema={schema}
+  lead="The effective federal funds rate (EFFR) is the overnight market rate the Federal Reserve Bank of New York publishes for each business day. This page sets it beside the Federal Open Market Committee's (FOMC) target for that rate, which RadMage Finance derives from the New York Fed's records, and shows how both have changed."
+>
+  <div class="rates-page">
+    <DatasetStamp dataset={ds} />
+
+    {ds && effrHeadline && (
+      <section class="rates-section" aria-labelledby="rates-now">
+        <h2 id="rates-now">The rate now</h2>
+        <div class="rates-status">
+          <SeriesStatus dataset={ds} seriesId="effr" />
+          <SeriesStatus dataset={ds} seriesId="fomc-target" />
+        </div>
+        <div class="rates-headlines">
+          <div class="rates-observed"><HeadlineFigure figure={effrHeadline} /></div>
+          {targetHeadline && <div class="rates-derived"><HeadlineFigure figure={targetHeadline} /></div>}
+        </div>
+        <p class="small muted rates-key">
+          <strong>Observed</strong> means published by the New York Fed as measured in the market. <strong>Derived</strong> means
+          RadMage Finance read it from the target fields of the New York Fed's EFFR records. <strong>Computed</strong> means
+          RadMage Finance calculated it from those values, with the formula beside it.
+        </p>
+      </section>
+    )}
+
+    {ds && latest && (
+      <section class="rates-section" aria-labelledby="rates-changes">
+        <h2 id="rates-changes">Rate changes in basis points</h2>
+        <p class="prose">
+          A basis point is one hundredth of a percentage point: a move from 2.00 percent to 2.25 percent is 25 basis points.
+          Each change below is the later value minus the earlier one, times 100, exactly and without rounding.
+        </p>
+        <div class="rates-figures">
+          {effrFigures.map((f) => <ComputedFigure figure={f} />)}
+          {targetFigure && <ComputedFigure figure={targetFigure} />}
+        </div>
+      </section>
+    )}
+
+    {ds && charts.length > 0 && (
+      <section class="rates-section" aria-labelledby="rates-history">
+        <h2 id="rates-history">History</h2>
+        <p class="prose">
+          The line is the EFFR, the rate measured in the market. The target is derived: a step line while it was a single rate,
+          and a shaded band between its lower and upper bounds since it became a range on {rangeStart}. Both share one axis, in
+          percent.
+        </p>
+        <p class="small rates-nojs">The chart shows the last five years. With JavaScript on, you can choose 1, 5 or 10 years or all years; every value is in the CSV files below.</p>
+        <div data-js-only>
+          <RangeSwitch name="rates-range" legend="Years shown in the chart" options={rangeOptions} value={DEFAULT_RANGE} controls="rates-chart" />
+        </div>
+        <div id="rates-chart" class="rates-chart" data-rates-chart>
+          {charts.map(({ range, spec }) => (
+            <div class="rates-panel" id={`rates-panel-${range.id}`} data-range-panel={range.id} hidden={range.id !== DEFAULT_RANGE}>
+              <DataChart spec={spec} />
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {ds && latest && (
+      <section class="rates-section" aria-labelledby="rates-compare-heading">
+        <h2 id="rates-compare-heading">Historical comparison</h2>
+        <p class="prose">
+          Each comparison uses the latest EFFR observation on or before the same calendar date one month, one year and five
+          years before {formatDay(latest.period)}, if there is one at most {COMPARE_WINDOW_DAYS} days earlier; otherwise it is
+          not shown. The target is the one in effect on the same day as the EFFR beside it.
+        </p>
+        <div class="rates-table" role="region" tabindex="0" aria-label={cmpTable.caption}><DataTable spec={cmpTable} /></div>
+        <p class="small muted">Changes computed by RadMage Finance: (latest value minus the value on the comparison day) times 100; for the target, each bound separately, a single rate counting as both bounds.</p>
+      </section>
+    )}
+
+    {ds && recent.length > 0 && (
+      <section class="rates-section" aria-labelledby="rates-recent-heading">
+        <h2 id="rates-recent-heading">The last {RECENT_ROWS} business days</h2>
+        <div class="rates-table" role="region" tabindex="0" aria-label={recentTable.caption}><DataTable spec={recentTable} /></div>
+        <p class="small muted">Change computed by RadMage Finance: (the day's EFFR minus the EFFR of the previous business day with a published rate) times 100. Values as currently published, including later revisions.</p>
+      </section>
+    )}
+
+    {ds && cpRows.length > 0 && (
+      <section class="rates-section" aria-labelledby="rates-target-heading">
+        <h2 id="rates-target-heading">Every change of the target</h2>
+        <p class="prose">
+          Derived by RadMage Finance from the New York Fed's EFFR records. Each date is the first business day whose EFFR record
+          shows the new target, which is not always the day the decision took effect, and the first row is only where the data begins.
+        </p>
+        <div class="rates-table" role="region" tabindex="0" aria-label={cpTable.caption}><DataTable spec={cpTable} /></div>
+        <p class="small muted">Change computed by RadMage Finance: each bound of the target minus the same bound of the previous target, times 100; a single rate counts as both bounds, so the move to a range on {rangeStart} shows each bound separately.</p>
+      </section>
+    )}
+
+    {ds && (
+      <section class="rates-section" aria-labelledby="rates-revisions-heading">
+        <h2 id="rates-revisions-heading">Changes we observed between our collections</h2>
+        <p class="prose">
+          When a value we already collected changes at the source, or we withdraw data we published, the change is recorded here.
+          This is our own log of what we saw, not the New York Fed's complete revision history.
+        </p>
+        {revisions.length > 0 ? <div class="rates-table rates-table--log" role="region" tabindex="0" aria-label={revisionTable.caption}><DataTable spec={revisionTable} /></div> : <p>No changes observed.</p>}
+      </section>
+    )}
+
+    {ds && (
+      <section class="rates-section" aria-labelledby="rates-files">
+        <h2 id="rates-files">Download the data</h2>
+        <p class="prose">
+          Each file is one segment exactly as published, newest first: the source's attribution, notice and terms in its first
+          lines, then the values. The whole history is the segments of a series joined oldest first.
+        </p>
+        <h3>Effective federal funds rate (EFFR)</h3>
+        <ul class="rates-files">
+          {effrFiles.map((f) => <li><a href={href(`data/econ/${f.path}`)} download={f.name}>EFFR {f.segment} (CSV)</a></li>)}
+        </ul>
+        <h3>FOMC target, derived</h3>
+        <ul class="rates-files">
+          {targetFiles.map((f) => <li><a href={href(`data/econ/${f.path}`)} download={f.name}>FOMC target, {f.segment === 'all' ? 'all years' : f.segment} (CSV)</a></li>)}
+        </ul>
+        {revisionFiles.length > 0 && (
+          <>
+            <h3>Changes we observed</h3>
+            <ul class="rates-files">
+              {revisionFiles.map((f) => <li><a href={href(`data/econ/${f.path}`)} download={f.name}>{f.label}</a></li>)}
+            </ul>
+          </>
+        )}
+      </section>
+    )}
+
+    {ds && <SourceNote dataset={ds} seriesIds={['effr', 'fomc-target']} />}
+
+    <section class="prose rates-section" aria-labelledby="rates-what-effr">
+      <h2 id="rates-what-effr">What the effective federal funds rate is</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /></p>
+      <p>
+        Banks keep balances at the Federal Reserve, called reserves, and lend them to each other. The federal funds rate is "the
+        interest rate at which depository institutions lend reserve balances to other depository institutions
+        overnight".<Cite ids={['fed-omo']} number={n} /> Banks are not the only lenders: "certain other entities, primarily
+        government-sponsored enterprises", also lend in this market.<Cite ids={['nyfed-effr']} number={n} />
+      </p>
+      <p>
+        The effective federal funds rate is the rate for this market that the Federal Reserve Bank of New York publishes for each
+        business day: it publishes the rate for the prior business day at approximately 9:00 a.m. Eastern
+        Time.<Cite ids={['nyfed-effr', 'nyfed-ref-info']} number={n} /> A published rate is revised, if at all, on the same day:
+        "Any revisions to the rates would be made on a same-day basis, except in extraordinary circumstances."<Cite ids={['nyfed-ref-info']} number={n} />
+      </p>
+      <p>
+        The method has not always been the same: "Note that the data source and calculation methodology of the EFFR changed
+        beginning with the publication of the rate for March 1, 2016."<Cite ids={['nyfed-ref-info']} number={n} /> The All years
+        chart runs across that change, so its rates before March 1, 2016 come from the earlier data source and method. The EFFR
+        changes computed on this page reach back five years at most, so none of them spans it.
+      </p>
+      <p>
+        RadMage Finance treats the EFFR as a market observation: a rate measured from what was borrowed and lent, not a level anyone
+        sets. That is why it can move by a basis point or two from one day to the next while the target stays the same.
+      </p>
+    </section>
+
+    <section class="prose rates-section" aria-labelledby="rates-what-target">
+      <h2 id="rates-what-target">What the FOMC target is</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /></p>
+      <p>
+        The target is set by the Federal Open Market Committee (FOMC): the Board's page on open market operations speaks of keeping
+        the federal funds rate "in the target range set by the FOMC."<Cite ids={['fed-omo']} number={n} /> The target is a decision,
+        not a measurement, and it changes only when the Committee changes it.
+      </p>
+      <p>
+        In the New York Fed's EFFR records the target is a single rate before {rangeStart}, and from that day on a range with a
+        lower and an upper bound. This page keeps that distinction: a single rate is never shown as a range, and no range is made up for
+        the years before {rangeStart}.
+      </p>
+    </section>
+
+    <section class="prose rates-section" aria-labelledby="rates-why-derived">
+      <h2 id="rates-why-derived">Why the target is derived here</h2>
+      <p>
+        RadMage Finance reads the target from the target fields that come with each day's EFFR record. A change point is the first
+        business day whose EFFR record shows a new target. We infer that this is the day the FOMC's decision took effect, except when
+        that day was not a New York Fed business day, so the dates in the table are not decision dates.
+        {firstCp && <> The first change point, {formatDay(firstCp.effective)}, is only where the records begin: that target was already in effect.</>}
+      </p>
+      <p>
+        Because these values are read from the records rather than published as a series of their own, they are labeled as derived by
+        RadMage Finance from New York Fed EFFR data wherever they appear, as the New York Fed's terms require for modified content.
+      </p>
+    </section>
+
+    <section class="prose rates-section" aria-labelledby="rates-reading">
+      <h2 id="rates-reading">Reading this page</h2>
+      <ul>
+        <li><strong>Observed and derived.</strong> The EFFR is observed; the target is derived. The headlines, the chart legend and the table headings say which is which, and the target's CSV file carries the text of its derivation.</li>
+        <li><strong>Computed.</strong> Every change in basis points is computed by RadMage Finance, with its formula shown. Nothing is rounded: the values are kept exactly as published.</li>
+        <li><strong>Comparison days.</strong> One month, one year and five years mean the same calendar date that much earlier (the last day of the month when that date does not exist), and the latest observation on or before it, at most {COMPARE_WINDOW_DAYS} days earlier.</li>
+        <li><strong>Missing values.</strong> A day without a published rate is never shown as zero or filled in.</li>
+        <li><strong>Not a deposit or loan rate.</strong> The EFFR is an overnight rate between institutions. It is not the rate on a savings account, a certificate of deposit or a loan.</li>
+      </ul>
+    </section>
+
+    <section class="prose rates-section" aria-labelledby="rates-related">
+      <h2 id="rates-related">Related</h2>
+      <ul>
+        <li><a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>: where reserves and the federal funds rate fit when banks settle payments and borrow.</li>
+      </ul>
+    </section>
+
+    <section class="prose rates-section" aria-labelledby="rates-sources">
+      <h2 id="rates-sources">Sources for the explanation</h2>
+      <p class="small">Every quotation was checked against these pages on {SOURCES_CHECKED}. The data's own source is above.</p>
+      <ol class="source-list small">
+        {SOURCES.map((s) => <li id={`src-${s.id}`}>{s.publisher}, <a href={s.url}>{s.title}</a>, {s.date}.</li>)}
+      </ol>
+    </section>
+  </div>
+</DataLayout>
+
+<script>
+  import '../scripts/data/rates';
+</script>

@@ -162,7 +162,7 @@ test.describe('mobile menu', () => {
 
 test.describe('privacy and integrity', () => {
   for (const path of PAGES) {
-    test(`/finance/${path} makes no requests to other origins and logs no errors`, async ({ page }) => {
+    test(`/finance/${path} makes no requests to other origins and logs no errors`, async ({ page, baseURL }) => {
       const origins = new Set<string>();
       page.on('request', (request) => {
         const target = new URL(request.url());
@@ -177,7 +177,8 @@ test.describe('privacy and integrity', () => {
         });
       });
       await page.goto(url(path), { waitUntil: 'networkidle' });
-      expect([...origins]).toEqual(['http://127.0.0.1:4329']);
+      // The preview server's own origin only (PW_PORT moves it; playwright.config.ts).
+      expect([...origins]).toEqual([new URL(baseURL ?? 'http://127.0.0.1:4329').origin]);
       expect(errors).toEqual([]);
       expect(violations).toEqual([]);
       const cookies = await page.context().cookies();

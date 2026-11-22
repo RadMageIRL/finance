@@ -1,11 +1,18 @@
 ---
 import ReferenceLayout from '../layouts/ReferenceLayout.astro';
+import { dataPagesOn } from '../lib/data/shell-dist';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+
+// The economic data sections appear only when the data pages are built (DATA_PAGES=on; rule D5
+// of src/lib/data/shell-dist.ts; owner brief T): the held build is this page as it was.
+const dataOn = dataPagesOn(process.env);
+const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
 ---
 <ReferenceLayout
   title="Privacy"
   description="RadMage Finance works without collecting information about you: no accounts, no cookies, no analytics, and calculations that stay on your device."
   lead="RadMage Finance is built to work without collecting information about you."
-  updated="2026-11-16"
+  updated={updated}
 >
   <h2>What is stored on your device</h2>
   <p>
@@ -23,6 +30,19 @@ import ReferenceLayout from '../layouts/ReferenceLayout.astro';
     <li>No third-party fonts, scripts, embeds or other requests to outside services.</li>
     <li>Nothing you type into a calculator or lesson. All calculations run in your browser.</li>
   </ul>
+
+  {dataOn && (
+    <>
+      <h2>Economic data pages</h2>
+      <p>
+        With JavaScript on, the economic data pages ask this site for one file, the data's
+        manifest, to check whether newer data has been published. The request goes to this site,
+        like the page itself, through the hosting described below, and sends nothing about you
+        beyond what every page request sends. The data pages load nothing from other sites and
+        set no cookies.
+      </p>
+    </>
+  )}
 
   <h2>Share links</h2>
   <p>

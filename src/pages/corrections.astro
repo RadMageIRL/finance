@@ -1,12 +1,19 @@
 ---
 import ReferenceLayout from '../layouts/ReferenceLayout.astro';
 import { SITE } from '../lib/site';
+import { dataPagesOn } from '../lib/data/shell-dist';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+
+// The economic data sections appear only when the data pages are built (DATA_PAGES=on; rule D5
+// of src/lib/data/shell-dist.ts; owner brief T): the held build is this page as it was.
+const dataOn = dataPagesOn(process.env);
+const updated = dataOn ? DATA_PAGES_REVIEWED : '2026-11-16';
 ---
 <ReferenceLayout
   title="Corrections"
   description="How to report an error on RadMage Finance, how corrections are handled, and the log of published corrections."
   lead="Accuracy matters more than speed. When something on RadMage Finance is wrong, it is corrected openly and the correction is recorded here."
-  updated="2026-11-16"
+  updated={updated}
 >
   <h2>Report an error</h2>
   <p>
@@ -24,6 +31,16 @@ import { SITE } from '../lib/site';
   <p>
     Small edits that do not change meaning, such as fixing a typo, are made without a note.
   </p>
+  {dataOn && (
+    <p>
+      On the economic data pages, a value that a publisher revises is not a correction of ours:
+      each dashboard lists those changes in its log of the changes we observed between our
+      collections. If
+      RadMage Finance publishes data in error, the affected series return to an earlier snapshot
+      and say that their updates are paused after a rollback, with the reason, and the correction
+      is listed below.
+    </p>
+  )}
 
   <h2>Corrections log</h2>
   <p>No corrections have been published.</p>

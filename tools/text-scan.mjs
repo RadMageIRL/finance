@@ -31,7 +31,7 @@ const SKIP_DIRS = new Set([
 const SKIP_FILES = new Set(['package-lock.json']);
 // Local planning notes quote the attribution rule itself, so only the dash rules apply there.
 const ATTRIBUTION_EXEMPT = [/^docs\//, /^HANDOFF\.md$/];
-const BINARY = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.ico', '.woff', '.woff2', '.pdf', '.zip']);
+const BINARY = new Set(['.gz', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.ico', '.woff', '.woff2', '.pdf', '.zip']);
 
 /** Returns a list of problems found in `text`, each with a 1-based line number. */
 export function scanText(text, { attribution = true } = {}) {

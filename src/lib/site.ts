@@ -32,6 +32,38 @@ export const MORE_NAV: readonly NavItem[] = [
   { label: 'Disclaimer', path: 'disclaimer/' },
 ];
 
+/**
+ * The economic data pages (decision D15 (b)): an entry in the More menu, kept apart from the
+ * reference pages there, plus links from Home and the lessons; the primary bar approved at G1a
+ * is unchanged. No calculator links to or prefills from the data (decision D14).
+ */
+export const DATA_NAV: NavItem = { label: 'Economic conditions', path: 'data/' };
+
+/** The three dashboards, for the Home page (DashboardNav lists them on the data pages). */
+export const DATA_PAGES: readonly CatalogItem[] = [
+  {
+    title: 'Interest rates',
+    path: 'data/federal-funds-rate/',
+    summary: 'The effective federal funds rate from the New York Fed, with the FOMC target range.',
+    detail: 'Daily history, with the observed rate and the derived target range told apart.',
+    status: 'available',
+  },
+  {
+    title: 'Money supply',
+    path: 'data/money-stock/',
+    summary: 'M1 and M2 from the Federal Reserve Board H.6 release.',
+    detail: 'Monthly, seasonally adjusted and not, with revisions shown.',
+    status: 'available',
+  },
+  {
+    title: 'National debt',
+    path: 'data/public-debt/',
+    summary: "Total public debt outstanding and its two parts, from the Treasury's Debt to the Penny.",
+    detail: 'Daily values as published, with missing and unusual days explained.',
+    status: 'available',
+  },
+];
+
 export const FOOTER_GROUPS: readonly { title: string; items: readonly NavItem[] }[] = [
   {
     title: 'Explore',

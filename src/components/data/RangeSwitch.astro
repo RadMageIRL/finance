@@ -1,0 +1,26 @@
+---
+// A native radio group that chooses a chart range or an adjustment (design P28 8.3, 9). Without
+// JavaScript the page shows its default and the group is hidden, since nothing could react to
+// it. With JavaScript the page's script reacts to `change`; in addition, when the controlled
+// element holds children marked data-switch-panel="<value>", the shared script shows the one
+// that matches the choice and hides the others (a page renders one panel per option, the
+// default one visible and the others with the hidden attribute).
+interface Props {
+  name: string;
+  legend: string;
+  options: { value: string; label: string }[];
+  value: string;
+  /** The id of the chart or section it controls. */
+  controls: string;
+}
+
+const { name, legend, options, value, controls } = Astro.props;
+---
+<fieldset class="data-switch" data-controls={controls} data-js-only>
+  <legend>{legend}</legend>
+  <div class="data-switch__options">
+    {options.map((o) => (
+      <label><input type="radio" name={name} value={o.value} checked={o.value === value} aria-controls={controls} /><span>{o.label}</span></label>
+    ))}
+  </div>
+</fieldset>

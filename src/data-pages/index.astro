@@ -1,0 +1,108 @@
+---
+// The Economic Conditions overview (brief Q, agent 4; renamed by owner brief T, ledger P73): a
+// restrained view of economic conditions from verified indicators only, each series' latest value, period and status straight from the
+// manifest (the EFFR, the derived FOMC target range, M1 and M2, the total public debt), with no
+// computed figures. Observed and derived values are labeled in words. The national debt is a
+// fiscal measure shown beside the monetary ones, never presented as a monetary policy indicator. Links go to the three
+// dashboards and back to the lessons and calculators (the layout), then the sources and the
+// as-of stamp. Without a dataset in the build the page shows its unavailable state.
+import DataLayout from '../layouts/DataLayout.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import DatasetStamp from '../components/data/DatasetStamp.astro';
+import IndicatorCard from '../components/data/IndicatorCard.astro';
+import SourceNote from '../components/data/SourceNote.astro';
+import { DASHBOARDS } from '../components/data/dashboards';
+import { loadEconDataset } from '../lib/data/econ-load';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+import { href } from '../lib/url';
+
+const dataset = loadEconDataset();
+const rates = { path: 'data/federal-funds-rate/', label: 'Interest rates dashboard' };
+const money = { path: 'data/money-stock/', label: 'Money supply dashboard' };
+const debt = { path: 'data/public-debt/', label: 'National debt dashboard' };
+const INDICATORS = [
+  { seriesId: 'effr', label: 'Effective federal funds rate', kind: 'observed' as const, note: 'A market rate, published by the New York Fed', dashboard: rates },
+  { seriesId: 'fomc-target', label: 'Federal funds target range', kind: 'derived' as const, note: 'Set by the FOMC; derived by RadMage Finance from New York Fed EFFR data', dashboard: rates },
+  { seriesId: 'm1-sa', label: 'M1 money stock', kind: 'observed' as const, note: 'Seasonally adjusted, monthly average', dashboard: money },
+  { seriesId: 'm2-sa', label: 'M2 money stock', kind: 'observed' as const, note: 'Seasonally adjusted, monthly average', dashboard: money },
+  { seriesId: 'debt-total', label: 'Total public debt outstanding', kind: 'observed' as const, note: 'Daily, from Debt to the Penny', dashboard: debt },
+];
+const topics = DASHBOARDS.filter((d) => d.id !== 'overview');
+---
+<DataLayout
+  title="Economic Conditions"
+  description="The latest federal funds rate and FOMC target range, M1 and M2 money stock and total public debt, from the Federal Reserve and the Treasury, with each value's source and status."
+  current="overview"
+  lastReviewed={DATA_PAGES_REVIEWED}
+  lead="Five economic indicators for the United States: the federal funds rate and the FOMC's target for it, the M1 and M2 money supply, and the Treasury's total public debt, each with the period it covers, when it was released and whether it is up to date."
+>
+  <DatasetStamp dataset={dataset} />
+
+  <section class="prose" aria-labelledby="data-about">
+    <h2 id="data-about">What this page shows</h2>
+    <p>
+      The effective federal funds rate (EFFR) is published each business day by the Federal
+      Reserve Bank of New York, and the Federal Open Market Committee (FOMC) sets a target range
+      for the federal funds rate. M1 and M2 are the Federal Reserve Board's measures of the money
+      supply, published monthly in its H.6 release; the figures here are seasonally adjusted
+      (SA) monthly averages. Total public debt outstanding is the Treasury's daily figure from
+      its Debt to the Penny dataset. The rate, the target and the money supply describe monetary
+      conditions; the debt is a fiscal measure, shown beside them, not a monetary policy
+      indicator. The lessons <a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a> and <a href={href('learn/what-is-money/')}>What Is Money?</a> explain the federal funds rate and what M1 and M2 count, with their sources.
+    </p>
+    <p>
+      Every value below is the latest one in the data this page was built from, exactly as the
+      source published it, except the target range, which RadMage Finance derives from the New
+      York Fed's EFFR records. RadMage Finance computes nothing on this page: no changes, no growth
+      rates and no rounding. Each dashboard explains its series, shows its history in a chart
+      and a table, and labels anything it computes with the formula used.
+    </p>
+  </section>
+
+  <section aria-labelledby="data-latest">
+    <h2 id="data-latest">Latest values</h2>
+    <p class="data-claim"><ClaimLabel kind="fact" /></p>
+    {dataset ? (
+      <>
+        <p class="small muted">
+          "As published" marks a value as its source published it. "Derived by RadMage Finance" marks
+          the target range, which RadMage Finance takes from the New York Fed's EFFR records as the
+          source notes below describe. Each card shows the status of its series.
+        </p>
+        <ul class="data-indicators">
+          {INDICATORS.map((i) => (
+            <li><IndicatorCard dataset={dataset} seriesId={i.seriesId} label={i.label} kind={i.kind} note={i.note} dashboard={i.dashboard} /></li>
+          ))}
+        </ul>
+      </>
+    ) : (
+      <p>No values are shown because this build has no verified data. The dashboards below explain each series.</p>
+    )}
+  </section>
+
+  <section aria-labelledby="data-dashboards">
+    <h2 id="data-dashboards">The dashboards</h2>
+    <ul class="data-dashboards">
+      {topics.map((d) => (
+        <li class="card">
+          <h3><a class="card__link" href={href(d.path)}>{d.label}</a></h3>
+          <p>{d.summary}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {dataset ? (
+    <SourceNote dataset={dataset} seriesIds={INDICATORS.map((i) => i.seriesId)} />
+  ) : (
+    <section class="data-source" aria-labelledby="data-source-none">
+      <h2 id="data-source-none">Sources</h2>
+      <p>
+        The data comes from the Federal Reserve Bank of New York (the effective federal funds
+        rate), the Board of Governors of the Federal Reserve System (the H.6 money stock
+        measures) and the U.S. Department of the Treasury, Bureau of the Fiscal Service (Debt to
+        the Penny). Each provider's attribution and terms appear with the data.
+      </p>
+    </section>
+  )}
+</DataLayout>

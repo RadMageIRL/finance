@@ -8,6 +8,7 @@ import { BANK_SOURCES, LESSONS_REVIEWED, LESSONS_REVIEWED_LABEL, numberer } from
 import { counters } from '../../lib/learn/sim';
 import { formatUSD } from '../../lib/calc/format';
 import { href } from '../../lib/url';
+import { dataPagesOn } from '../../lib/data/shell-dist';
 import '../../styles/learn.css';
 
 const n = numberer(BANK_SOURCES);
@@ -20,6 +21,9 @@ const actions = [
   { id: 'interest', label: 'Pay loan interest' },
   { id: 'write-off', label: 'The bank writes off and forgives a loan' },
 ];
+
+// The links to the economic data pages, held until DATA_PAGES=on (owner brief R, option (b); rule D5).
+const dataOn = dataPagesOn(process.env);
 ---
 <LessonLayout
   pageTitle="How Banks Create Money: Loan and Deposit Simulator"
@@ -103,6 +107,7 @@ const actions = [
       main program, primary credit, is 4.0 percent as of October 29, 2026, the top of the
       Federal Reserve's target range for the federal funds rate (3-3/4 to 4 percent).<Cite ids={['fed-implementation-2026-10']} number={n} />
     </p>
+    {dataOn && <p class="small">See the data: <a href={href('data/federal-funds-rate/')}>the effective federal funds rate and the FOMC target range over time</a>.</p>}
     <h3>Credit risk</h3>
     <p class="claim-line"><ClaimLabel kind="fact" /></p>
     <p>
@@ -190,6 +195,7 @@ const actions = [
       <li><a href={href('learn/what-is-money/')}>What Is Money?</a>: deposits, reserves and other kinds of money compared.</li>
       <li><a href={href('learn/how-money-flows/')}>How Money Flows</a>: payments, taxes and the Federal Reserve across the whole system.</li>
       <li><a href={href('calculators/amortization/')}>Loan amortization calculator</a>: a loan's full repayment schedule.</li>
+      {dataOn && <li><a href={href('data/federal-funds-rate/')}>Interest rates data</a>: the effective federal funds rate and the FOMC target range, from New York Fed data.</li>}
     </ul>
   </section>
 

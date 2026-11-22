@@ -1,0 +1,238 @@
+---
+// The National Debt Tracker (brief Q, Agent 3): Treasury's Debt to the Penny, `debt-total`,
+// `debt-held-public` and `debt-intragov`, from the dataset the build reads (ECON_DIR). Every
+// number comes from the dataset; the page's own calculations are in src/lib/data/debt.ts, each
+// shown as "Computed by RadMage Finance" with its formula. Without a dataset the page shows the
+// unavailable state and its written explanation.
+import DataLayout from '../layouts/DataLayout.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import ComputedFigure from '../components/data/ComputedFigure.astro';
+import DataChart from '../components/data/DataChart.astro';
+import DataTable from '../components/data/DataTable.astro';
+import DatasetStamp from '../components/data/DatasetStamp.astro';
+import HeadlineFigure from '../components/data/HeadlineFigure.astro';
+import SeriesStatus from '../components/data/SeriesStatus.astro';
+import SourceNote from '../components/data/SourceNote.astro';
+import { loadEconDataset } from '../lib/data/econ-load';
+import { DEBT_SERIES, buildDebtPage } from '../lib/data/debt';
+import { formatDay } from '../lib/data/format';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+import { href } from '../lib/url';
+import '../styles/data-debt.css';
+
+const DATASET_PAGE = 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/';
+const PUBLISHER = 'U.S. Department of the Treasury, Bureau of the Fiscal Service';
+
+const dataset = loadEconDataset();
+const page = dataset ? buildDebtPage(dataset, (path) => href(`data/econ/${path}`)) : null;
+
+const title = 'National Debt Tracker';
+const description = 'The total public debt outstanding of the United States from Treasury\'s Debt to the Penny, exact to the cent, with its daily, monthly and yearly changes, debt held by the public, intragovernmental holdings, gaps, inconsistencies, sources and freshness.';
+const schema: Record<string, unknown> = {
+  '@type': 'Dataset',
+  name: 'National Debt Tracker: Treasury Debt to the Penny',
+  description,
+  creator: { '@type': 'GovernmentOrganization', name: page?.publisher ?? PUBLISHER },
+  isBasedOn: DATASET_PAGE,
+  isAccessibleForFree: true,
+  keywords: ['national debt', 'total public debt outstanding', 'debt held by the public', 'intragovernmental holdings', 'Debt to the Penny'],
+  variableMeasured: DEBT_SERIES.map((id) => (dataset ? dataset.manifest.series[id]?.title : null) ?? id),
+  ...(page ? { temporalCoverage: `${page.coverage.first}/${page.coverage.last}` } : {}),
+};
+const toc = page
+  ? [
+      ['debt-latest', 'Latest total'],
+      ['debt-changes', 'Changes'],
+      ['debt-history', 'History'],
+      ['debt-parts', 'The two parts'],
+      ['debt-recent-heading', 'Recent records'],
+      ['debt-missing', 'Missing and anomalous records'],
+      ['debt-revisions', 'Changes we observed'],
+      ['debt-downloads', 'Downloads'],
+      ['debt-about', 'About this data'],
+    ]
+  : [['debt-about', 'About this data']];
+---
+<DataLayout
+  title={title}
+  description={description}
+  current="public-debt"
+  lastReviewed={DATA_PAGES_REVIEWED}
+  schema={schema}
+  lead="The Treasury's Debt to the Penny, as published: the latest total to the cent, how it changed over a day, a month and a year, its two published parts, and every gap and inconsistency in the record, shown rather than corrected."
+>
+  <div class="debt-page">
+    <DatasetStamp dataset={dataset} />
+
+    <nav class="debt-toc" aria-label="On this page">
+      <ul>
+        {toc.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}
+      </ul>
+    </nav>
+
+    {page && dataset && (
+      <>
+        <section class="debt-section" aria-labelledby="debt-latest">
+          <h2 id="debt-latest">Latest total</h2>
+          <p class="debt-claim"><ClaimLabel kind="fact" /> <span>Published by the Bureau of the Fiscal Service; retrieved by RadMage Finance.</span></p>
+          <SeriesStatus dataset={dataset} seriesId="debt-total" />
+          <div class="debt-figures" data-debt="latest">
+            <HeadlineFigure figure={page.headline} />
+          </div>
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-changes">
+          <h2 id="debt-changes">Changes in the total</h2>
+          <div class="debt-figures debt-figures--three" data-debt="changes">
+            {page.totalFigures.map((f) => <ComputedFigure figure={f} />)}
+          </div>
+          <div class="prose">
+            <p>
+              Each change is the latest published total minus an earlier published total, exact to the cent.
+              The daily change compares the latest record with the previous record date. The monthly and
+              yearly changes compare it with the latest record on or before the same day one month or one
+              year earlier; when that day does not exist in the earlier month (the 29th to the 31st), the
+              last day of that month is used.
+            </p>
+            <p>
+              A change is not shown, and the reason is given instead, when there is no earlier record, when
+              the comparison record has no published value, when the comparison record is more
+              than {page.maxGapDays} calendar days before the latest record (daily) or before the same day a
+              month or a year earlier (monthly and yearly), {page.maxGapDays} days being the registry's
+              continuity limit for this series, or when either record falls on a date the registry lists as
+              a known inconsistency in the source. Missing records are never filled in or read as zero.
+            </p>
+          </div>
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-history">
+          <h2 id="debt-history">The total over time</h2>
+          <DataChart spec={page.charts.total} />
+          <DataChart spec={page.charts.totalYear} />
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-parts">
+          <h2 id="debt-parts">Debt held by the public and intragovernmental holdings</h2>
+          <p class="debt-claim"><ClaimLabel kind="fact" /> <span>Each part is shown with its own latest record date and status.</span></p>
+          {page.parts.map((p) => <SeriesStatus dataset={dataset} seriesId={p.id} />)}
+          <div class="debt-figures" data-debt="parts">
+            {page.parts.map((p) => (p.headline ? <HeadlineFigure figure={p.headline} /> : <p class="debt-none">{p.title}: no published value in this dataset.</p>))}
+          </div>
+          {page.partLagNotes.map((n) => <p class="debt-note" role="note">{n}</p>)}
+          {page.latestCheck && <div class="debt-figures"><ComputedFigure figure={page.latestCheck} /></div>}
+          <div class="prose">
+            <p>
+              Fiscal Data's notes for the dataset state "Total Public Debt Outstanding = Debt Held by the
+              Public + Intragovernmental Holdings" (checked November 21, 2026). The published records do not
+              always follow it: the dates on which they differ are listed under Missing and anomalous records.
+              This page always shows the published total and never builds the total from the parts.
+            </p>
+          </div>
+          <div class="debt-scroll" tabindex="0" role="region" aria-label="Changes in the two parts (table)"><DataTable spec={page.partChangesTable} /></div>
+          <DataChart spec={page.charts.parts} />
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-recent-heading">
+          <h2 id="debt-recent-heading">Recent records</h2>
+          <p class="small muted">All three series, exact to the cent, for the last 30 record dates. "Not published" is a record without a value; "No record" means the series has no record for that date in this dataset.</p>
+          <div class="debt-scroll" tabindex="0" role="region" aria-label="Recent records (table)"><DataTable spec={page.recentTable} /></div>
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-missing">
+          <h2 id="debt-missing">Missing and anomalous records</h2>
+          <h3>Parts that were not published</h3>
+          {page.missingText.map((t) => <p>{t}</p>)}
+          <p>Those record dates show "Not published" here: never zero, never filled in. In the chart of the parts, the early published values stand alone.</p>
+          <h3>Documented gaps in the source</h3>
+          <p>Business days with no Debt to the Penny record at all. Nothing is stored for them and nothing is filled in; the charts break their lines there.</p>
+          <div class="debt-scroll" tabindex="0" role="region" aria-label="Documented gaps in the source (table)"><DataTable spec={page.gapsTable} /></div>
+          <h3>Known inconsistencies in the source</h3>
+          <p>Dates the registry lists because the published parts and the published total do not agree. The values stay as published; changes that would use these dates are not shown.</p>
+          <div class="debt-scroll" tabindex="0" role="region" aria-label="Known inconsistencies in the source (table)"><DataTable spec={page.inconsistenciesTable} /></div>
+          <h3>Every date on which the parts and the total differ</h3>
+          <p>
+            Found by RadMage Finance by comparing the three published values on every record date that has
+            all three. A date that is not in the registry is listed as found, with nothing adjusted.
+          </p>
+          {page.disagreements.length ? <div class="debt-scroll" tabindex="0" role="region" aria-label="Dates on which the parts and the total differ (table)"><DataTable spec={page.disagreementsTable} /></div> : <p>None: on every record date with all three values, the published parts add up to the published total.</p>}
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-revisions">
+          <h2 id="debt-revisions">Changes we observed between our collections</h2>
+          <p>
+            When a value already collected changes at the source, the change is kept in a log. This is what
+            RadMage Finance observed between its own collections, not the publisher's complete revision history.
+          </p>
+          {page.revisions.map((r) => (
+            <div class="debt-revision" data-series={r.id}>
+              <h3>{r.title}</h3>
+              {r.table ? <div class="debt-scroll" tabindex="0" role="region" aria-label={`${r.title}: changes we observed (table)`}><DataTable spec={r.table} /></div> : <p>No changes observed between our collections.</p>}
+              {r.links.length > 0 && (
+                <ul class="debt-links">
+                  {r.links.map((l) => <li><a href={l.href} download={l.download}><span class="vh">{l.context}</span>{l.label}</a></li>)}
+                </ul>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <section class="debt-section" aria-labelledby="debt-downloads">
+          <h2 id="debt-downloads">Downloads</h2>
+          <p>
+            One CSV file per year and series, newest first, exactly as published in the dataset: comment lines
+            with the title, source and terms, then one row per record date. The whole history is the files
+            joined oldest first.
+          </p>
+          {page.downloads.map((d) => (
+            <details class="debt-downloads" data-series={d.id}>
+              <summary>{d.title}: {d.links.length} files</summary>
+              <ul class="debt-links">
+                {d.links.map((l) => <li><a href={l.href} download={l.download}><span class="vh">{l.context}</span>{l.label}</a></li>)}
+              </ul>
+            </details>
+          ))}
+        </section>
+      </>
+    )}
+
+    <section class="debt-section prose" aria-labelledby="debt-about">
+      <h2 id="debt-about">About this data</h2>
+      <h3>What Debt to the Penny measures</h3>
+      <p class="debt-claim"><ClaimLabel kind="fact" /> <span>Quoted from Fiscal Data, checked November 21, 2026.</span></p>
+      <p>
+        Debt to the Penny is a dataset of the {PUBLISHER} on its Fiscal Data site. In its own words: "Each row
+        represents a specific day's Total Debt Outstanding as well as its makeup between Intragovernmental
+        Holdings and Debt Held by the Public." There is a record for each business day, none for weekends and
+        holidays, and none on the few business days listed as documented gaps.
+        {page?.calendarText && <> Timing, as the registry records it: {page.calendarText}</>}
+      </p>
+      <p><a href={DATASET_PAGE}>Debt to the Penny on Fiscal Data</a></p>
+      <h3>The two parts</h3>
+      <p class="debt-claim"><ClaimLabel kind="fact" /> <span>Quoted from the dataset's data dictionary on Fiscal Data, checked November 21, 2026.</span></p>
+      <p>
+        Fiscal Data defines intragovernmental holdings as "Government Account Series (GAS) securities held by
+        Government trust funds, revolving funds, and special funds; and Federal Financing Bank (FFB) securities."
+        It defines debt held by the public as "All federal debt held by individuals, corporations, state or local
+        governments, Federal Reserve Banks, foreign governments, and other entities outside the United States
+        Government less Federal Financing Bank (FFB) securities." The dataset has not always published the two
+        parts{page ? <>: the record dates without them are counted under <a href="#debt-missing">Missing and anomalous records</a>.</> : '.'}
+      </p>
+      <h3>What this page does not claim</h3>
+      <ul>
+        <li>It does not show the debt subject to the statutory limit, the debt as a share of the economy, interest costs or who holds the debt beyond the two published parts. Fiscal Data notes that "Total Public Debt Outstanding may be calculated differently within different datasets."</li>
+        <li>A change on this page is the difference between two published totals. It is not presented as the deficit or the borrowing of that period.</li>
+        <li>It makes no forecast and no judgment about the size of the debt.</li>
+        <li>"First seen" is the Eastern Time date on which RadMage Finance first saw a record, not the publisher's release time.</li>
+        <li>It never corrects a published value. Where the published values disagree, the page shows the disagreement.</li>
+      </ul>
+      <h3>Related</h3>
+      <p>
+        How the Treasury's account moves bank reserves when it borrows, taxes and spends is in the
+        lesson <a href={href('learn/how-money-flows/')}>How Money Flows</a>.
+      </p>
+      {page && <p class="small muted">Records from {formatDay(page.coverage.first)} to {formatDay(page.coverage.last)} in this build.</p>}
+    </section>
+
+    {dataset && <SourceNote dataset={dataset} seriesIds={[...DEBT_SERIES]} />}
+  </div>
+</DataLayout>

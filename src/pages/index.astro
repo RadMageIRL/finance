@@ -2,8 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CatalogCard from '../components/CatalogCard.astro';
 import ClaimLabel from '../components/ClaimLabel.astro';
-import { CALCULATORS, MODULES, NEWS_CATEGORIES, SITE } from '../lib/site';
+import { CALCULATORS, DATA_NAV, DATA_PAGES, MODULES, NEWS_CATEGORIES, SITE } from '../lib/site';
+import { dataPagesOn } from '../lib/data/shell-dist';
 import { href } from '../lib/url';
+
+// The economic data section, held until DATA_PAGES=on (owner brief R, option (b); rule D5).
+const dataOn = dataPagesOn(process.env);
 ---
 <BaseLayout
   title="RadMage Finance: How Money Works, Shown Step by Step"
@@ -81,6 +85,22 @@ import { href } from '../lib/url';
       </ul>
     </div>
   </section>
+
+  {dataOn && (
+    <section class="section" aria-labelledby="data-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="data-title">Economic conditions</h2>
+          <p>The federal funds rate, the money supply and the national debt, from the Federal Reserve and the Treasury. <a href={href(DATA_NAV.path)}>See the overview</a></p>
+        </div>
+        <ul class="card-grid">
+          {DATA_PAGES.map((item) => (
+            <li><CatalogCard item={item} /></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
 
   <section class="section" aria-labelledby="how-title">
     <div class="wrap">

@@ -1,0 +1,21 @@
+---
+// Navigation among the overview and the three dashboards (brief Q; decision D10: three topic
+// pages plus the hub). The current page has aria-current="page"; the links wrap on narrow
+// screens and never scroll sideways.
+import { href } from '../../lib/url';
+import type { DashboardId } from '../../lib/data/ui';
+import { DASHBOARDS } from './dashboards';
+
+interface Props {
+  current: DashboardId;
+}
+
+const { current } = Astro.props;
+---
+<nav class="data-nav" aria-label="Economic conditions">
+  <ul>
+    {DASHBOARDS.map((item) => (
+      <li><a href={href(item.path)} aria-current={item.id === current ? 'page' : undefined}>{item.label}</a></li>
+    ))}
+  </ul>
+</nav>

@@ -1,0 +1,8084 @@
+{
+  "generator": "tests/oracle/econ_rates.py",
+  "rules": "src/lib/data/rates.ts R1 to R13",
+  "bp": [
+    {
+      "earlier": "3.64",
+      "later": "3.88",
+      "bp": "24",
+      "signed": "+24",
+      "words": "up 24 basis points"
+    },
+    {
+      "earlier": "3.88",
+      "later": "3.64",
+      "bp": "-24",
+      "signed": "-24",
+      "words": "down 24 basis points"
+    },
+    {
+      "earlier": "3.88",
+      "later": "3.875",
+      "bp": "-0.5",
+      "signed": "-0.5",
+      "words": "down 0.5 basis points"
+    },
+    {
+      "earlier": "3.875",
+      "later": "3.88",
+      "bp": "0.5",
+      "signed": "+0.5",
+      "words": "up 0.5 basis points"
+    },
+    {
+      "earlier": "1.00",
+      "later": "1.000",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": "1.000",
+      "later": "1.00",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": "3.88",
+      "later": "3.88",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": "0.10",
+      "later": "0.20",
+      "bp": "10",
+      "signed": "+10",
+      "words": "up 10 basis points"
+    },
+    {
+      "earlier": "0.20",
+      "later": "0.10",
+      "bp": "-10",
+      "signed": "-10",
+      "words": "down 10 basis points"
+    },
+    {
+      "earlier": "0.00",
+      "later": "5.25",
+      "bp": "525",
+      "signed": "+525",
+      "words": "up 525 basis points"
+    },
+    {
+      "earlier": "5.25",
+      "later": "0.00",
+      "bp": "-525",
+      "signed": "-525",
+      "words": "down 525 basis points"
+    },
+    {
+      "earlier": "6.50",
+      "later": "1.00",
+      "bp": "-550",
+      "signed": "-550",
+      "words": "down 550 basis points"
+    },
+    {
+      "earlier": "20.00",
+      "later": "0.07",
+      "bp": "-1993",
+      "signed": "-1993",
+      "words": "down 1993 basis points"
+    },
+    {
+      "earlier": "100",
+      "later": "0",
+      "bp": "-10000",
+      "signed": "-10000",
+      "words": "down 10000 basis points"
+    },
+    {
+      "earlier": "0",
+      "later": "1000000000000000000000",
+      "bp": "100000000000000000000000",
+      "signed": "+100000000000000000000000",
+      "words": "up 100000000000000000000000 basis points"
+    },
+    {
+      "earlier": "0.08",
+      "later": "0.09",
+      "bp": "1",
+      "signed": "+1",
+      "words": "up 1 basis point"
+    },
+    {
+      "earlier": "0.09",
+      "later": "0.08",
+      "bp": "-1",
+      "signed": "-1",
+      "words": "down 1 basis point"
+    },
+    {
+      "earlier": "1.01",
+      "later": "1.0",
+      "bp": "-1",
+      "signed": "-1",
+      "words": "down 1 basis point"
+    },
+    {
+      "earlier": "0.995",
+      "later": "1.005",
+      "bp": "1",
+      "signed": "+1",
+      "words": "up 1 basis point"
+    },
+    {
+      "earlier": "0.5",
+      "later": "0.51",
+      "bp": "1",
+      "signed": "+1",
+      "words": "up 1 basis point"
+    },
+    {
+      "earlier": "3.875",
+      "later": "3.885",
+      "bp": "1",
+      "signed": "+1",
+      "words": "up 1 basis point"
+    },
+    {
+      "earlier": "4.33",
+      "later": "4.335",
+      "bp": "0.5",
+      "signed": "+0.5",
+      "words": "up 0.5 basis points"
+    },
+    {
+      "earlier": "0",
+      "later": "0.001",
+      "bp": "0.1",
+      "signed": "+0.1",
+      "words": "up 0.1 basis points"
+    },
+    {
+      "earlier": "0.001",
+      "later": "0",
+      "bp": "-0.1",
+      "signed": "-0.1",
+      "words": "down 0.1 basis points"
+    },
+    {
+      "earlier": "0.0001",
+      "later": "0.0002",
+      "bp": "0.01",
+      "signed": "+0.01",
+      "words": "up 0.01 basis points"
+    },
+    {
+      "earlier": "2.000",
+      "later": "2.0001",
+      "bp": "0.01",
+      "signed": "+0.01",
+      "words": "up 0.01 basis points"
+    },
+    {
+      "earlier": "10.12345",
+      "later": "10.12346",
+      "bp": "0.001",
+      "signed": "+0.001",
+      "words": "up 0.001 basis points"
+    },
+    {
+      "earlier": "0.123456789",
+      "later": "0.123456790",
+      "bp": "0.0000001",
+      "signed": "+0.0000001",
+      "words": "up 0.0000001 basis points"
+    },
+    {
+      "earlier": "0.000000000000000001",
+      "later": "0",
+      "bp": "-0.0000000000000001",
+      "signed": "-0.0000000000000001",
+      "words": "down 0.0000000000000001 basis points"
+    },
+    {
+      "earlier": "1",
+      "later": "2",
+      "bp": "100",
+      "signed": "+100",
+      "words": "up 100 basis points"
+    },
+    {
+      "earlier": "2.5",
+      "later": "2",
+      "bp": "-50",
+      "signed": "-50",
+      "words": "down 50 basis points"
+    },
+    {
+      "earlier": "1.5",
+      "later": "1.25",
+      "bp": "-25",
+      "signed": "-25",
+      "words": "down 25 basis points"
+    },
+    {
+      "earlier": "0.07",
+      "later": "0.10",
+      "bp": "3",
+      "signed": "+3",
+      "words": "up 3 basis points"
+    },
+    {
+      "earlier": "0.41",
+      "later": "0.31",
+      "bp": "-10",
+      "signed": "-10",
+      "words": "down 10 basis points"
+    },
+    {
+      "earlier": "7.03",
+      "later": "6.52",
+      "bp": "-51",
+      "signed": "-51",
+      "words": "down 51 basis points"
+    },
+    {
+      "earlier": "3.63",
+      "later": "3.88",
+      "bp": "25",
+      "signed": "+25",
+      "words": "up 25 basis points"
+    },
+    {
+      "earlier": "0.08",
+      "later": "3.88",
+      "bp": "380",
+      "signed": "+380",
+      "words": "up 380 basis points"
+    },
+    {
+      "earlier": "-0.05",
+      "later": "0.10",
+      "bp": "15",
+      "signed": "+15",
+      "words": "up 15 basis points"
+    },
+    {
+      "earlier": "0.10",
+      "later": "-0.05",
+      "bp": "-15",
+      "signed": "-15",
+      "words": "down 15 basis points"
+    },
+    {
+      "earlier": "-0.25",
+      "later": "-0.5",
+      "bp": "-25",
+      "signed": "-25",
+      "words": "down 25 basis points"
+    },
+    {
+      "earlier": "-0.5",
+      "later": "-0.25",
+      "bp": "25",
+      "signed": "+25",
+      "words": "up 25 basis points"
+    },
+    {
+      "earlier": "-2.125",
+      "later": "-2.12",
+      "bp": "0.5",
+      "signed": "+0.5",
+      "words": "up 0.5 basis points"
+    },
+    {
+      "earlier": "-1",
+      "later": "-1.00",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": "0.00",
+      "later": "-0.00",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": "-0.00",
+      "later": "0.00",
+      "bp": "0",
+      "signed": "0",
+      "words": "unchanged"
+    }
+  ],
+  "months_back": [
+    {
+      "date": "2026-03-31",
+      "months": 1,
+      "result": "2026-02-28"
+    },
+    {
+      "date": "2026-03-31",
+      "months": 13,
+      "result": "2025-02-28"
+    },
+    {
+      "date": "2024-03-31",
+      "months": 1,
+      "result": "2024-02-29"
+    },
+    {
+      "date": "2024-03-31",
+      "months": 13,
+      "result": "2023-02-28"
+    },
+    {
+      "date": "2024-02-29",
+      "months": 12,
+      "result": "2023-02-28"
+    },
+    {
+      "date": "2024-02-29",
+      "months": 48,
+      "result": "2020-02-29"
+    },
+    {
+      "date": "2024-02-29",
+      "months": 0,
+      "result": "2024-02-29"
+    },
+    {
+      "date": "2026-11-18",
+      "months": 0,
+      "result": "2026-11-18"
+    },
+    {
+      "date": "2026-11-18",
+      "months": 1,
+      "result": "2026-10-18"
+    },
+    {
+      "date": "2026-11-18",
+      "months": 12,
+      "result": "2025-11-18"
+    },
+    {
+      "date": "2026-11-18",
+      "months": 60,
+      "result": "2021-11-18"
+    },
+    {
+      "date": "2026-11-18",
+      "months": 120,
+      "result": "2016-11-18"
+    },
+    {
+      "date": "2026-05-31",
+      "months": 1,
+      "result": "2026-04-30"
+    },
+    {
+      "date": "2026-07-31",
+      "months": 1,
+      "result": "2026-06-30"
+    },
+    {
+      "date": "2026-10-31",
+      "months": 1,
+      "result": "2026-09-30"
+    },
+    {
+      "date": "2026-12-31",
+      "months": 2,
+      "result": "2026-10-31"
+    },
+    {
+      "date": "2026-12-31",
+      "months": 10,
+      "result": "2026-02-28"
+    },
+    {
+      "date": "2026-01-15",
+      "months": 1,
+      "result": "2025-12-15"
+    },
+    {
+      "date": "2025-01-31",
+      "months": 1,
+      "result": "2024-12-31"
+    },
+    {
+      "date": "2024-12-31",
+      "months": 10,
+      "result": "2024-02-29"
+    },
+    {
+      "date": "2024-08-31",
+      "months": 6,
+      "result": "2024-02-29"
+    },
+    {
+      "date": "2024-03-30",
+      "months": 1,
+      "result": "2024-02-29"
+    },
+    {
+      "date": "2023-03-29",
+      "months": 1,
+      "result": "2023-02-28"
+    },
+    {
+      "date": "2024-03-31",
+      "months": 12,
+      "result": "2023-03-31"
+    },
+    {
+      "date": "2024-03-31",
+      "months": 60,
+      "result": "2019-03-31"
+    },
+    {
+      "date": "2024-03-31",
+      "months": 120,
+      "result": "2014-03-31"
+    },
+    {
+      "date": "2028-02-29",
+      "months": 60,
+      "result": "2023-02-28"
+    },
+    {
+      "date": "2028-02-29",
+      "months": 120,
+      "result": "2018-02-28"
+    },
+    {
+      "date": "2004-02-29",
+      "months": 48,
+      "result": "2000-02-29"
+    },
+    {
+      "date": "2001-02-28",
+      "months": 12,
+      "result": "2000-02-28"
+    },
+    {
+      "date": "2101-03-31",
+      "months": 13,
+      "result": "2100-02-28"
+    },
+    {
+      "date": "2017-03-16",
+      "months": 60,
+      "result": "2012-03-16"
+    },
+    {
+      "date": "2017-03-16",
+      "months": 120,
+      "result": "2007-03-16"
+    },
+    {
+      "date": "2010-08-31",
+      "months": 120,
+      "result": "2000-08-31"
+    }
+  ],
+  "target_change": [
+    {
+      "earlier": {
+        "effective": "2008-10-29",
+        "kind": "rate",
+        "value": "1.00",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2008-12-16",
+        "kind": "range",
+        "value": null,
+        "lower": "0.00",
+        "upper": "0.25"
+      },
+      "lower": "-100",
+      "upper": "-75",
+      "signed": "lower -100, upper -75",
+      "words": "lower bound down 100 basis points, upper bound down 75 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2008-10-08",
+        "kind": "rate",
+        "value": "1.50",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2008-10-29",
+        "kind": "rate",
+        "value": "1.00",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "-50",
+      "upper": "-50",
+      "signed": "-50",
+      "words": "down 50 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2004-06-30",
+        "kind": "rate",
+        "value": "1.25",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2004-08-10",
+        "kind": "rate",
+        "value": "1.50",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "25",
+      "upper": "25",
+      "signed": "+25",
+      "words": "up 25 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2001-01-03",
+        "kind": "rate",
+        "value": "6.00",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2001-01-04",
+        "kind": "rate",
+        "value": "6.01",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "1",
+      "upper": "1",
+      "signed": "+1",
+      "words": "up 1 basis point"
+    },
+    {
+      "earlier": {
+        "effective": "2001-05-15",
+        "kind": "rate",
+        "value": "4.000",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2001-06-27",
+        "kind": "rate",
+        "value": "3.875",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "-12.5",
+      "upper": "-12.5",
+      "signed": "-12.5",
+      "words": "down 12.5 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2006-06-29",
+        "kind": "rate",
+        "value": "5.25",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2007-09-18",
+        "kind": "rate",
+        "value": "5.25",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "0",
+      "upper": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": {
+        "effective": "2015-12-17",
+        "kind": "range",
+        "value": null,
+        "lower": "0.25",
+        "upper": "0.50"
+      },
+      "later": {
+        "effective": "2016-12-15",
+        "kind": "range",
+        "value": null,
+        "lower": "0.50",
+        "upper": "0.75"
+      },
+      "lower": "25",
+      "upper": "25",
+      "signed": "+25",
+      "words": "up 25 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2023-07-27",
+        "kind": "range",
+        "value": null,
+        "lower": "5.25",
+        "upper": "5.50"
+      },
+      "later": {
+        "effective": "2024-09-19",
+        "kind": "range",
+        "value": null,
+        "lower": "4.75",
+        "upper": "5.00"
+      },
+      "lower": "-50",
+      "upper": "-50",
+      "signed": "-50",
+      "words": "down 50 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2026-09-17",
+        "kind": "range",
+        "value": null,
+        "lower": "3.75",
+        "upper": "4.00"
+      },
+      "later": {
+        "effective": "2026-10-29",
+        "kind": "range",
+        "value": null,
+        "lower": "3.75",
+        "upper": "4.00"
+      },
+      "lower": "0",
+      "upper": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": {
+        "effective": "2020-03-16",
+        "kind": "range",
+        "value": null,
+        "lower": "0.00",
+        "upper": "0.25"
+      },
+      "later": {
+        "effective": "2022-03-17",
+        "kind": "range",
+        "value": null,
+        "lower": "0.25",
+        "upper": "0.75"
+      },
+      "lower": "25",
+      "upper": "50",
+      "signed": "lower +25, upper +50",
+      "words": "lower bound up 25 basis points, upper bound up 50 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2025-10-30",
+        "kind": "range",
+        "value": null,
+        "lower": "3.75",
+        "upper": "4.00"
+      },
+      "later": {
+        "effective": "2025-12-11",
+        "kind": "range",
+        "value": null,
+        "lower": "3.75",
+        "upper": "4.25"
+      },
+      "lower": "0",
+      "upper": "25",
+      "signed": "lower 0, upper +25",
+      "words": "lower bound unchanged, upper bound up 25 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2018-12-20",
+        "kind": "range",
+        "value": null,
+        "lower": "2.25",
+        "upper": "2.50"
+      },
+      "later": {
+        "effective": "2019-08-01",
+        "kind": "range",
+        "value": null,
+        "lower": "2.00",
+        "upper": "2.50"
+      },
+      "lower": "-25",
+      "upper": "0",
+      "signed": "lower -25, upper 0",
+      "words": "lower bound down 25 basis points, upper bound unchanged"
+    },
+    {
+      "earlier": {
+        "effective": "2020-03-16",
+        "kind": "range",
+        "value": null,
+        "lower": "0.00",
+        "upper": "0.25"
+      },
+      "later": {
+        "effective": "2020-03-17",
+        "kind": "range",
+        "value": null,
+        "lower": "0.01",
+        "upper": "0.24"
+      },
+      "lower": "1",
+      "upper": "-1",
+      "signed": "lower +1, upper -1",
+      "words": "lower bound up 1 basis point, upper bound down 1 basis point"
+    },
+    {
+      "earlier": {
+        "effective": "2002-11-06",
+        "kind": "rate",
+        "value": "1.25",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2008-12-16",
+        "kind": "range",
+        "value": null,
+        "lower": "1.00",
+        "upper": "1.50"
+      },
+      "lower": "-25",
+      "upper": "25",
+      "signed": "lower -25, upper +25",
+      "words": "lower bound down 25 basis points, upper bound up 25 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2008-01-01",
+        "kind": "rate",
+        "value": "1.00",
+        "lower": null,
+        "upper": null
+      },
+      "later": {
+        "effective": "2008-02-01",
+        "kind": "range",
+        "value": null,
+        "lower": "1.00",
+        "upper": "1.000"
+      },
+      "lower": "0",
+      "upper": "0",
+      "signed": "0",
+      "words": "unchanged"
+    },
+    {
+      "earlier": {
+        "effective": "2008-12-16",
+        "kind": "range",
+        "value": null,
+        "lower": "0.00",
+        "upper": "0.25"
+      },
+      "later": {
+        "effective": "2009-01-28",
+        "kind": "rate",
+        "value": "0.50",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "50",
+      "upper": "25",
+      "signed": "lower +50, upper +25",
+      "words": "lower bound up 50 basis points, upper bound up 25 basis points"
+    },
+    {
+      "earlier": {
+        "effective": "2016-12-15",
+        "kind": "range",
+        "value": null,
+        "lower": "0.25",
+        "upper": "0.50"
+      },
+      "later": {
+        "effective": "2017-03-16",
+        "kind": "rate",
+        "value": "0.25",
+        "lower": null,
+        "upper": null
+      },
+      "lower": "0",
+      "upper": "-25",
+      "signed": "lower 0, upper -25",
+      "words": "lower bound unchanged, upper bound down 25 basis points"
+    }
+  ],
+  "cases": [
+    {
+      "id": "latest-value-null",
+      "about": "R4 and R5 with null values: the last observation is null, so the latest EFFR is the valued one before it and its previous observation skips a null; the recent table has fewer than 30 rows with nulls, and the windows end on the latest EFFR (leaving the trailing null out of the EFFR line) with change points that all begin after S.",
+      "complete": true,
+      "observations": [
+        [
+          "2026-01-05",
+          "3.64"
+        ],
+        [
+          "2026-01-06",
+          "3.65"
+        ],
+        [
+          "2026-01-07",
+          null
+        ],
+        [
+          "2026-01-08",
+          "3.63"
+        ],
+        [
+          "2026-01-09",
+          null
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2025-12-11",
+          "kind": "range",
+          "value": null,
+          "lower": "3.50",
+          "upper": "3.75"
+        }
+      ],
+      "target_dates": [
+        "2025-12-10",
+        "2025-12-11",
+        "2026-01-09"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-01-08",
+          "value": "3.63"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-01-06",
+            "value": "3.65",
+            "bp": "-2",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2025-12-08",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "year",
+            "date": "2025-01-08",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "five-years",
+            "date": "2021-01-08",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2025-12-10",
+            "effective": null
+          },
+          {
+            "date": "2025-12-11",
+            "effective": "2025-12-11"
+          },
+          {
+            "date": "2026-01-09",
+            "effective": "2025-12-11"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2025-12-11",
+            "lower": "3.50",
+            "upper": "3.75",
+            "change": null
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-01-08",
+            "effr": "3.63",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-01-06",
+            "effr": "3.65",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-01-09",
+            "value": null,
+            "previous": "2026-01-08",
+            "bp": null
+          },
+          {
+            "period": "2026-01-08",
+            "value": "3.63",
+            "previous": "2026-01-06",
+            "bp": "-2"
+          },
+          {
+            "period": "2026-01-07",
+            "value": null,
+            "previous": "2026-01-06",
+            "bp": null
+          },
+          {
+            "period": "2026-01-06",
+            "value": "3.65",
+            "previous": "2026-01-05",
+            "bp": "1"
+          },
+          {
+            "period": "2026-01-05",
+            "value": "3.64",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-01-08",
+            "end": "2026-01-08",
+            "x0": "2025-12-11",
+            "effr_first": "2026-01-05",
+            "effr_last": "2026-01-08",
+            "effr": [
+              [
+                "2026-01-05",
+                "3.64"
+              ],
+              [
+                "2026-01-06",
+                "3.65"
+              ],
+              [
+                "2026-01-07",
+                null
+              ],
+              [
+                "2026-01-08",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-01-08",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2021-01-08",
+            "end": "2026-01-08",
+            "x0": "2025-12-11",
+            "effr_first": "2026-01-05",
+            "effr_last": "2026-01-08",
+            "effr": [
+              [
+                "2026-01-05",
+                "3.64"
+              ],
+              [
+                "2026-01-06",
+                "3.65"
+              ],
+              [
+                "2026-01-07",
+                null
+              ],
+              [
+                "2026-01-08",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-01-08",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2016-01-08",
+            "end": "2026-01-08",
+            "x0": "2025-12-11",
+            "effr_first": "2026-01-05",
+            "effr_last": "2026-01-08",
+            "effr": [
+              [
+                "2026-01-05",
+                "3.64"
+              ],
+              [
+                "2026-01-06",
+                "3.65"
+              ],
+              [
+                "2026-01-07",
+                null
+              ],
+              [
+                "2026-01-08",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-01-08",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2025-12-11",
+            "end": "2026-01-08",
+            "x0": "2025-12-11",
+            "effr_first": "2026-01-05",
+            "effr_last": "2026-01-08",
+            "effr": [
+              [
+                "2026-01-05",
+                "3.64"
+              ],
+              [
+                "2026-01-06",
+                "3.65"
+              ],
+              [
+                "2026-01-07",
+                null
+              ],
+              [
+                "2026-01-08",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-01-08",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "comparison-windows",
+      "about": "R6: the month comparison date is a Sunday (the Friday before is used), the year comparison date is exactly 7 days after its observation (used) and the five-year one 8 days after (outside-window); the 1y window starts in the middle of a target segment and the longer windows start before the first change point.",
+      "complete": true,
+      "observations": [
+        [
+          "2021-11-10",
+          "0.08"
+        ],
+        [
+          "2021-11-12",
+          null
+        ],
+        [
+          "2025-11-11",
+          "3.87"
+        ],
+        [
+          "2025-11-14",
+          null
+        ],
+        [
+          "2026-10-15",
+          "3.88"
+        ],
+        [
+          "2026-10-16",
+          "3.875"
+        ],
+        [
+          "2026-10-19",
+          "3.88"
+        ],
+        [
+          "2026-11-17",
+          "3.87"
+        ],
+        [
+          "2026-11-18",
+          "3.88"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2025-10-30",
+          "kind": "range",
+          "value": null,
+          "lower": "4.00",
+          "upper": "4.25"
+        },
+        {
+          "effective": "2025-12-11",
+          "kind": "range",
+          "value": null,
+          "lower": "3.50",
+          "upper": "3.75"
+        },
+        {
+          "effective": "2026-09-17",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        }
+      ],
+      "target_dates": [
+        "2025-10-29",
+        "2025-10-30",
+        "2025-11-18",
+        "2026-11-18"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-11-18",
+          "value": "3.88"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-11-17",
+            "value": "3.87",
+            "bp": "1",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2026-10-18",
+            "period": "2026-10-16",
+            "value": "3.875",
+            "bp": "0.5",
+            "reason": null
+          },
+          {
+            "id": "year",
+            "date": "2025-11-18",
+            "period": "2025-11-11",
+            "value": "3.87",
+            "bp": "1",
+            "reason": null
+          },
+          {
+            "id": "five-years",
+            "date": "2021-11-18",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "outside-window"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2025-10-29",
+            "effective": null
+          },
+          {
+            "date": "2025-10-30",
+            "effective": "2025-10-30"
+          },
+          {
+            "date": "2025-11-18",
+            "effective": "2025-10-30"
+          },
+          {
+            "date": "2026-11-18",
+            "effective": "2026-09-17"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2025-10-30",
+            "lower": "4.00",
+            "upper": "4.25",
+            "change": null
+          },
+          {
+            "effective": "2025-12-11",
+            "lower": "3.50",
+            "upper": "3.75",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2026-09-17",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-11-18",
+            "effr": "3.88",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-11-17",
+            "effr": "3.87",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": "2026-10-16",
+            "effr": "3.875",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "year",
+            "period": "2025-11-11",
+            "effr": "3.87",
+            "target": {
+              "effective": "2025-10-30",
+              "lower": "4.00",
+              "upper": "4.25"
+            },
+            "target_change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-11-18",
+            "value": "3.88",
+            "previous": "2026-11-17",
+            "bp": "1"
+          },
+          {
+            "period": "2026-11-17",
+            "value": "3.87",
+            "previous": "2026-10-19",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-10-19",
+            "value": "3.88",
+            "previous": "2026-10-16",
+            "bp": "0.5"
+          },
+          {
+            "period": "2026-10-16",
+            "value": "3.875",
+            "previous": "2026-10-15",
+            "bp": "-0.5"
+          },
+          {
+            "period": "2026-10-15",
+            "value": "3.88",
+            "previous": "2025-11-11",
+            "bp": "1"
+          },
+          {
+            "period": "2025-11-14",
+            "value": null,
+            "previous": "2025-11-11",
+            "bp": null
+          },
+          {
+            "period": "2025-11-11",
+            "value": "3.87",
+            "previous": "2021-11-10",
+            "bp": "379"
+          },
+          {
+            "period": "2021-11-12",
+            "value": null,
+            "previous": "2021-11-10",
+            "bp": null
+          },
+          {
+            "period": "2021-11-10",
+            "value": "0.08",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-11-18",
+            "end": "2026-11-18",
+            "x0": "2025-11-18",
+            "effr_first": "2026-10-15",
+            "effr_last": "2026-11-18",
+            "effr": [
+              [
+                "2026-10-15",
+                "3.88"
+              ],
+              [
+                "2026-10-16",
+                "3.875"
+              ],
+              [
+                "2026-10-19",
+                "3.88"
+              ],
+              [
+                "2026-11-17",
+                "3.87"
+              ],
+              [
+                "2026-11-18",
+                "3.88"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-11-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2021-11-18",
+            "end": "2026-11-18",
+            "x0": "2025-10-30",
+            "effr_first": "2025-11-11",
+            "effr_last": "2026-11-18",
+            "effr": [
+              [
+                "2025-11-11",
+                "3.87"
+              ],
+              [
+                "2025-11-14",
+                null
+              ],
+              [
+                "2026-10-15",
+                "3.88"
+              ],
+              [
+                "2026-10-16",
+                "3.875"
+              ],
+              [
+                "2026-10-19",
+                "3.88"
+              ],
+              [
+                "2026-11-17",
+                "3.87"
+              ],
+              [
+                "2026-11-18",
+                "3.88"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-10-30",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2016-11-18",
+            "end": "2026-11-18",
+            "x0": "2025-10-30",
+            "effr_first": "2021-11-10",
+            "effr_last": "2026-11-18",
+            "effr": [
+              [
+                "2021-11-10",
+                "0.08"
+              ],
+              [
+                "2021-11-12",
+                null
+              ],
+              [
+                "2025-11-11",
+                "3.87"
+              ],
+              [
+                "2025-11-14",
+                null
+              ],
+              [
+                "2026-10-15",
+                "3.88"
+              ],
+              [
+                "2026-10-16",
+                "3.875"
+              ],
+              [
+                "2026-10-19",
+                "3.88"
+              ],
+              [
+                "2026-11-17",
+                "3.87"
+              ],
+              [
+                "2026-11-18",
+                "3.88"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-10-30",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2021-11-10",
+            "end": "2026-11-18",
+            "x0": "2025-10-30",
+            "effr_first": "2021-11-10",
+            "effr_last": "2026-11-18",
+            "effr": [
+              [
+                "2021-11-10",
+                "0.08"
+              ],
+              [
+                "2021-11-12",
+                null
+              ],
+              [
+                "2025-11-11",
+                "3.87"
+              ],
+              [
+                "2025-11-14",
+                null
+              ],
+              [
+                "2026-10-15",
+                "3.88"
+              ],
+              [
+                "2026-10-16",
+                "3.875"
+              ],
+              [
+                "2026-10-19",
+                "3.88"
+              ],
+              [
+                "2026-11-17",
+                "3.87"
+              ],
+              [
+                "2026-11-18",
+                "3.88"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-10-30",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "one-valued-observation",
+      "about": "R7 with a single valued observation after a null one: 'previous' has the reason 'no-earlier' and the other comparisons 'before-data', and without change points every window has no X0, no segments and no target.",
+      "complete": true,
+      "observations": [
+        [
+          "2026-05-01",
+          null
+        ],
+        [
+          "2026-05-04",
+          "4.33"
+        ]
+      ],
+      "change_points": [],
+      "target_dates": [
+        "2026-05-04"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-05-04",
+          "value": "4.33"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "no-earlier"
+          },
+          {
+            "id": "month",
+            "date": "2026-04-04",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "year",
+            "date": "2025-05-04",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "five-years",
+            "date": "2021-05-04",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2026-05-04",
+            "effective": null
+          }
+        ],
+        "change_points": [],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-05-04",
+            "effr": "4.33",
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "month",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-05-04",
+            "value": "4.33",
+            "previous": null,
+            "bp": null
+          },
+          {
+            "period": "2026-05-01",
+            "value": null,
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-05-04",
+            "end": "2026-05-04",
+            "x0": null,
+            "effr_first": "2026-05-01",
+            "effr_last": "2026-05-04",
+            "effr": [
+              [
+                "2026-05-01",
+                null
+              ],
+              [
+                "2026-05-04",
+                "4.33"
+              ]
+            ],
+            "segments": []
+          },
+          "5y": {
+            "start": "2021-05-04",
+            "end": "2026-05-04",
+            "x0": null,
+            "effr_first": "2026-05-01",
+            "effr_last": "2026-05-04",
+            "effr": [
+              [
+                "2026-05-01",
+                null
+              ],
+              [
+                "2026-05-04",
+                "4.33"
+              ]
+            ],
+            "segments": []
+          },
+          "10y": {
+            "start": "2016-05-04",
+            "end": "2026-05-04",
+            "x0": null,
+            "effr_first": "2026-05-01",
+            "effr_last": "2026-05-04",
+            "effr": [
+              [
+                "2026-05-01",
+                null
+              ],
+              [
+                "2026-05-04",
+                "4.33"
+              ]
+            ],
+            "segments": []
+          },
+          "all": {
+            "start": "2026-05-01",
+            "end": "2026-05-04",
+            "x0": null,
+            "effr_first": "2026-05-01",
+            "effr_last": "2026-05-04",
+            "effr": [
+              [
+                "2026-05-01",
+                null
+              ],
+              [
+                "2026-05-04",
+                "4.33"
+              ]
+            ],
+            "segments": []
+          }
+        }
+      }
+    },
+    {
+      "id": "month-end-reference",
+      "about": "R3 inside R7 with D = 2024-03-31: the month comparison date is clamped to 2024-02-29, the five-year date 2019-03-31 is a Sunday (the Friday before is used), and the previous observation skips a null record.",
+      "complete": true,
+      "observations": [
+        [
+          "2019-03-29",
+          "2.43"
+        ],
+        [
+          "2023-03-31",
+          "4.83"
+        ],
+        [
+          "2024-02-28",
+          "5.32"
+        ],
+        [
+          "2024-02-29",
+          "5.31"
+        ],
+        [
+          "2024-03-28",
+          "5.33"
+        ],
+        [
+          "2024-03-29",
+          null
+        ],
+        [
+          "2024-03-31",
+          "5.33"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2018-12-20",
+          "kind": "range",
+          "value": null,
+          "lower": "2.25",
+          "upper": "2.50"
+        },
+        {
+          "effective": "2022-11-03",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        },
+        {
+          "effective": "2023-07-27",
+          "kind": "range",
+          "value": null,
+          "lower": "5.25",
+          "upper": "5.50"
+        }
+      ],
+      "target_dates": [
+        "2018-12-19",
+        "2024-02-29",
+        "2024-03-31"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2024-03-31",
+          "value": "5.33"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2024-03-28",
+            "value": "5.33",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2024-02-29",
+            "period": "2024-02-29",
+            "value": "5.31",
+            "bp": "2",
+            "reason": null
+          },
+          {
+            "id": "year",
+            "date": "2023-03-31",
+            "period": "2023-03-31",
+            "value": "4.83",
+            "bp": "50",
+            "reason": null
+          },
+          {
+            "id": "five-years",
+            "date": "2019-03-31",
+            "period": "2019-03-29",
+            "value": "2.43",
+            "bp": "290",
+            "reason": null
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2018-12-19",
+            "effective": null
+          },
+          {
+            "date": "2024-02-29",
+            "effective": "2023-07-27"
+          },
+          {
+            "date": "2024-03-31",
+            "effective": "2023-07-27"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2018-12-20",
+            "lower": "2.25",
+            "upper": "2.50",
+            "change": null
+          },
+          {
+            "effective": "2022-11-03",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "150",
+              "upper": "150"
+            }
+          },
+          {
+            "effective": "2023-07-27",
+            "lower": "5.25",
+            "upper": "5.50",
+            "change": {
+              "lower": "150",
+              "upper": "150"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2024-03-31",
+            "effr": "5.33",
+            "target": {
+              "effective": "2023-07-27",
+              "lower": "5.25",
+              "upper": "5.50"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2024-03-28",
+            "effr": "5.33",
+            "target": {
+              "effective": "2023-07-27",
+              "lower": "5.25",
+              "upper": "5.50"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": "2024-02-29",
+            "effr": "5.31",
+            "target": {
+              "effective": "2023-07-27",
+              "lower": "5.25",
+              "upper": "5.50"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "year",
+            "period": "2023-03-31",
+            "effr": "4.83",
+            "target": {
+              "effective": "2022-11-03",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "150",
+              "upper": "150"
+            }
+          },
+          {
+            "id": "five-years",
+            "period": "2019-03-29",
+            "effr": "2.43",
+            "target": {
+              "effective": "2018-12-20",
+              "lower": "2.25",
+              "upper": "2.50"
+            },
+            "target_change": {
+              "lower": "300",
+              "upper": "300"
+            }
+          }
+        ],
+        "recent": [
+          {
+            "period": "2024-03-31",
+            "value": "5.33",
+            "previous": "2024-03-28",
+            "bp": "0"
+          },
+          {
+            "period": "2024-03-29",
+            "value": null,
+            "previous": "2024-03-28",
+            "bp": null
+          },
+          {
+            "period": "2024-03-28",
+            "value": "5.33",
+            "previous": "2024-02-29",
+            "bp": "2"
+          },
+          {
+            "period": "2024-02-29",
+            "value": "5.31",
+            "previous": "2024-02-28",
+            "bp": "-1"
+          },
+          {
+            "period": "2024-02-28",
+            "value": "5.32",
+            "previous": "2023-03-31",
+            "bp": "49"
+          },
+          {
+            "period": "2023-03-31",
+            "value": "4.83",
+            "previous": "2019-03-29",
+            "bp": "240"
+          },
+          {
+            "period": "2019-03-29",
+            "value": "2.43",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2023-03-31",
+            "end": "2024-03-31",
+            "x0": "2023-03-31",
+            "effr_first": "2023-03-31",
+            "effr_last": "2024-03-31",
+            "effr": [
+              [
+                "2023-03-31",
+                "4.83"
+              ],
+              [
+                "2024-02-28",
+                "5.32"
+              ],
+              [
+                "2024-02-29",
+                "5.31"
+              ],
+              [
+                "2024-03-28",
+                "5.33"
+              ],
+              [
+                "2024-03-29",
+                null
+              ],
+              [
+                "2024-03-31",
+                "5.33"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2023-03-31",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-03-31",
+                    "5.25",
+                    "5.50"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2019-03-31",
+            "end": "2024-03-31",
+            "x0": "2019-03-31",
+            "effr_first": "2023-03-31",
+            "effr_last": "2024-03-31",
+            "effr": [
+              [
+                "2023-03-31",
+                "4.83"
+              ],
+              [
+                "2024-02-28",
+                "5.32"
+              ],
+              [
+                "2024-02-29",
+                "5.31"
+              ],
+              [
+                "2024-03-28",
+                "5.33"
+              ],
+              [
+                "2024-03-29",
+                null
+              ],
+              [
+                "2024-03-31",
+                "5.33"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2019-03-31",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-03-31",
+                    "5.25",
+                    "5.50"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2014-03-31",
+            "end": "2024-03-31",
+            "x0": "2018-12-20",
+            "effr_first": "2019-03-29",
+            "effr_last": "2024-03-31",
+            "effr": [
+              [
+                "2019-03-29",
+                "2.43"
+              ],
+              [
+                "2023-03-31",
+                "4.83"
+              ],
+              [
+                "2024-02-28",
+                "5.32"
+              ],
+              [
+                "2024-02-29",
+                "5.31"
+              ],
+              [
+                "2024-03-28",
+                "5.33"
+              ],
+              [
+                "2024-03-29",
+                null
+              ],
+              [
+                "2024-03-31",
+                "5.33"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2018-12-20",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-03-31",
+                    "5.25",
+                    "5.50"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2018-12-20",
+            "end": "2024-03-31",
+            "x0": "2018-12-20",
+            "effr_first": "2019-03-29",
+            "effr_last": "2024-03-31",
+            "effr": [
+              [
+                "2019-03-29",
+                "2.43"
+              ],
+              [
+                "2023-03-31",
+                "4.83"
+              ],
+              [
+                "2024-02-28",
+                "5.32"
+              ],
+              [
+                "2024-02-29",
+                "5.31"
+              ],
+              [
+                "2024-03-28",
+                "5.33"
+              ],
+              [
+                "2024-03-29",
+                null
+              ],
+              [
+                "2024-03-31",
+                "5.33"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2018-12-20",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-03-31",
+                    "5.25",
+                    "5.50"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "target-only",
+      "about": "No observations: no latest EFFR, no comparisons and empty tables, R8 queries before the first change point, on effective dates and on the day before them, and windows built from the change points alone, with the rate to range switch inside them and the last change point at E.",
+      "complete": true,
+      "observations": [],
+      "change_points": [
+        {
+          "effective": "2008-10-08",
+          "kind": "rate",
+          "value": "1.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-10-29",
+          "kind": "rate",
+          "value": "1.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-12-16",
+          "kind": "range",
+          "value": null,
+          "lower": "0.00",
+          "upper": "0.25"
+        }
+      ],
+      "target_dates": [
+        "2008-10-07",
+        "2008-10-08",
+        "2008-10-28",
+        "2008-10-29",
+        "2008-12-15",
+        "2008-12-16",
+        "2026-11-18"
+      ],
+      "expected": {
+        "latest": null,
+        "comparisons": [],
+        "target_at": [
+          {
+            "date": "2008-10-07",
+            "effective": null
+          },
+          {
+            "date": "2008-10-08",
+            "effective": "2008-10-08"
+          },
+          {
+            "date": "2008-10-28",
+            "effective": "2008-10-08"
+          },
+          {
+            "date": "2008-10-29",
+            "effective": "2008-10-29"
+          },
+          {
+            "date": "2008-12-15",
+            "effective": "2008-10-29"
+          },
+          {
+            "date": "2008-12-16",
+            "effective": "2008-12-16"
+          },
+          {
+            "date": "2026-11-18",
+            "effective": "2008-12-16"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2008-10-08",
+            "lower": "1.50",
+            "upper": "1.50",
+            "change": null
+          },
+          {
+            "effective": "2008-10-29",
+            "lower": "1.00",
+            "upper": "1.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2008-12-16",
+            "lower": "0.00",
+            "upper": "0.25",
+            "change": {
+              "lower": "-100",
+              "upper": "-75"
+            }
+          }
+        ],
+        "comparison_table": [],
+        "recent": [],
+        "windows": {
+          "1y": {
+            "start": "2007-12-16",
+            "end": "2008-12-16",
+            "x0": "2008-10-08",
+            "effr_first": null,
+            "effr_last": null,
+            "effr": [],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-10-08",
+                    "1.50"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2003-12-16",
+            "end": "2008-12-16",
+            "x0": "2008-10-08",
+            "effr_first": null,
+            "effr_last": null,
+            "effr": [],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-10-08",
+                    "1.50"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "1998-12-16",
+            "end": "2008-12-16",
+            "x0": "2008-10-08",
+            "effr_first": null,
+            "effr_last": null,
+            "effr": [],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-10-08",
+                    "1.50"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2008-10-08",
+            "end": "2008-12-16",
+            "x0": "2008-10-08",
+            "effr_first": null,
+            "effr_last": null,
+            "effr": [],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-10-08",
+                    "1.50"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "empty",
+      "about": "Neither observations nor change points: no latest EFFR, no target in effect and no window at all.",
+      "complete": true,
+      "observations": [],
+      "change_points": [],
+      "target_dates": [
+        "2026-11-18"
+      ],
+      "expected": {
+        "latest": null,
+        "comparisons": [],
+        "target_at": [
+          {
+            "date": "2026-11-18",
+            "effective": null
+          }
+        ],
+        "change_points": [],
+        "comparison_table": [],
+        "recent": [],
+        "windows": {
+          "1y": null,
+          "5y": null,
+          "10y": null,
+          "all": null
+        }
+      }
+    },
+    {
+      "id": "change-point-rows",
+      "about": "R10 and R11 across kinds: rate to rate, the rate to range transition, a range change with unequal bound changes and a range to rate change, with comparison rows whose targets are of the other kind; the long windows hold three segments of alternating kinds and the last change point is at E.",
+      "complete": true,
+      "observations": [
+        [
+          "2012-03-16",
+          "0.13"
+        ],
+        [
+          "2016-03-16",
+          "0.37"
+        ],
+        [
+          "2017-02-16",
+          "0.66"
+        ],
+        [
+          "2017-03-15",
+          "0.66"
+        ],
+        [
+          "2017-03-16",
+          "0.91"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2008-01-30",
+          "kind": "rate",
+          "value": "3.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-10-29",
+          "kind": "rate",
+          "value": "1.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-12-16",
+          "kind": "range",
+          "value": null,
+          "lower": "0.00",
+          "upper": "0.25"
+        },
+        {
+          "effective": "2015-12-17",
+          "kind": "range",
+          "value": null,
+          "lower": "0.25",
+          "upper": "0.50"
+        },
+        {
+          "effective": "2016-12-15",
+          "kind": "range",
+          "value": null,
+          "lower": "0.50",
+          "upper": "1.00"
+        },
+        {
+          "effective": "2017-03-16",
+          "kind": "rate",
+          "value": "0.75",
+          "lower": null,
+          "upper": null
+        }
+      ],
+      "target_dates": [
+        "2008-01-29",
+        "2008-01-30",
+        "2008-12-15",
+        "2008-12-16",
+        "2016-12-14",
+        "2016-12-15",
+        "2017-03-16",
+        "2030-01-01"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2017-03-16",
+          "value": "0.91"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2017-03-15",
+            "value": "0.66",
+            "bp": "25",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2017-02-16",
+            "period": "2017-02-16",
+            "value": "0.66",
+            "bp": "25",
+            "reason": null
+          },
+          {
+            "id": "year",
+            "date": "2016-03-16",
+            "period": "2016-03-16",
+            "value": "0.37",
+            "bp": "54",
+            "reason": null
+          },
+          {
+            "id": "five-years",
+            "date": "2012-03-16",
+            "period": "2012-03-16",
+            "value": "0.13",
+            "bp": "78",
+            "reason": null
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2008-01-29",
+            "effective": null
+          },
+          {
+            "date": "2008-01-30",
+            "effective": "2008-01-30"
+          },
+          {
+            "date": "2008-12-15",
+            "effective": "2008-10-29"
+          },
+          {
+            "date": "2008-12-16",
+            "effective": "2008-12-16"
+          },
+          {
+            "date": "2016-12-14",
+            "effective": "2015-12-17"
+          },
+          {
+            "date": "2016-12-15",
+            "effective": "2016-12-15"
+          },
+          {
+            "date": "2017-03-16",
+            "effective": "2017-03-16"
+          },
+          {
+            "date": "2030-01-01",
+            "effective": "2017-03-16"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2008-01-30",
+            "lower": "3.00",
+            "upper": "3.00",
+            "change": null
+          },
+          {
+            "effective": "2008-10-29",
+            "lower": "1.00",
+            "upper": "1.00",
+            "change": {
+              "lower": "-200",
+              "upper": "-200"
+            }
+          },
+          {
+            "effective": "2008-12-16",
+            "lower": "0.00",
+            "upper": "0.25",
+            "change": {
+              "lower": "-100",
+              "upper": "-75"
+            }
+          },
+          {
+            "effective": "2015-12-17",
+            "lower": "0.25",
+            "upper": "0.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2016-12-15",
+            "lower": "0.50",
+            "upper": "1.00",
+            "change": {
+              "lower": "25",
+              "upper": "50"
+            }
+          },
+          {
+            "effective": "2017-03-16",
+            "lower": "0.75",
+            "upper": "0.75",
+            "change": {
+              "lower": "25",
+              "upper": "-25"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2017-03-16",
+            "effr": "0.91",
+            "target": {
+              "effective": "2017-03-16",
+              "lower": "0.75",
+              "upper": "0.75"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2017-03-15",
+            "effr": "0.66",
+            "target": {
+              "effective": "2016-12-15",
+              "lower": "0.50",
+              "upper": "1.00"
+            },
+            "target_change": {
+              "lower": "25",
+              "upper": "-25"
+            }
+          },
+          {
+            "id": "month",
+            "period": "2017-02-16",
+            "effr": "0.66",
+            "target": {
+              "effective": "2016-12-15",
+              "lower": "0.50",
+              "upper": "1.00"
+            },
+            "target_change": {
+              "lower": "25",
+              "upper": "-25"
+            }
+          },
+          {
+            "id": "year",
+            "period": "2016-03-16",
+            "effr": "0.37",
+            "target": {
+              "effective": "2015-12-17",
+              "lower": "0.25",
+              "upper": "0.50"
+            },
+            "target_change": {
+              "lower": "50",
+              "upper": "25"
+            }
+          },
+          {
+            "id": "five-years",
+            "period": "2012-03-16",
+            "effr": "0.13",
+            "target": {
+              "effective": "2008-12-16",
+              "lower": "0.00",
+              "upper": "0.25"
+            },
+            "target_change": {
+              "lower": "75",
+              "upper": "50"
+            }
+          }
+        ],
+        "recent": [
+          {
+            "period": "2017-03-16",
+            "value": "0.91",
+            "previous": "2017-03-15",
+            "bp": "25"
+          },
+          {
+            "period": "2017-03-15",
+            "value": "0.66",
+            "previous": "2017-02-16",
+            "bp": "0"
+          },
+          {
+            "period": "2017-02-16",
+            "value": "0.66",
+            "previous": "2016-03-16",
+            "bp": "29"
+          },
+          {
+            "period": "2016-03-16",
+            "value": "0.37",
+            "previous": "2012-03-16",
+            "bp": "24"
+          },
+          {
+            "period": "2012-03-16",
+            "value": "0.13",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2016-03-16",
+            "end": "2017-03-16",
+            "x0": "2016-03-16",
+            "effr_first": "2016-03-16",
+            "effr_last": "2017-03-16",
+            "effr": [
+              [
+                "2016-03-16",
+                "0.37"
+              ],
+              [
+                "2017-02-16",
+                "0.66"
+              ],
+              [
+                "2017-03-15",
+                "0.66"
+              ],
+              [
+                "2017-03-16",
+                "0.91"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2016-03-16",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "1.00"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.50",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2017-03-16",
+                    "0.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2012-03-16",
+            "end": "2017-03-16",
+            "x0": "2012-03-16",
+            "effr_first": "2012-03-16",
+            "effr_last": "2017-03-16",
+            "effr": [
+              [
+                "2012-03-16",
+                "0.13"
+              ],
+              [
+                "2016-03-16",
+                "0.37"
+              ],
+              [
+                "2017-02-16",
+                "0.66"
+              ],
+              [
+                "2017-03-15",
+                "0.66"
+              ],
+              [
+                "2017-03-16",
+                "0.91"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2012-03-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2015-12-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "1.00"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.50",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2017-03-16",
+                    "0.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2007-03-16",
+            "end": "2017-03-16",
+            "x0": "2008-01-30",
+            "effr_first": "2012-03-16",
+            "effr_last": "2017-03-16",
+            "effr": [
+              [
+                "2012-03-16",
+                "0.13"
+              ],
+              [
+                "2016-03-16",
+                "0.37"
+              ],
+              [
+                "2017-02-16",
+                "0.66"
+              ],
+              [
+                "2017-03-15",
+                "0.66"
+              ],
+              [
+                "2017-03-16",
+                "0.91"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-01-30",
+                    "3.00"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2015-12-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "1.00"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.50",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2017-03-16",
+                    "0.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2008-01-30",
+            "end": "2017-03-16",
+            "x0": "2008-01-30",
+            "effr_first": "2012-03-16",
+            "effr_last": "2017-03-16",
+            "effr": [
+              [
+                "2012-03-16",
+                "0.13"
+              ],
+              [
+                "2016-03-16",
+                "0.37"
+              ],
+              [
+                "2017-02-16",
+                "0.66"
+              ],
+              [
+                "2017-03-15",
+                "0.66"
+              ],
+              [
+                "2017-03-16",
+                "0.91"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2008-01-30",
+                    "3.00"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2015-12-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "1.00"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.50",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2017-03-16",
+                    "0.75"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "comparison-without-target",
+      "about": "R11: the month comparison is not shown (outside-window, from a Saturday back to a Friday 8 days before) and the year comparison's period is before the first change point, so its target and target change are null; the 1y window starts on an observation, which it includes.",
+      "complete": true,
+      "observations": [
+        [
+          "2025-06-02",
+          "4.33"
+        ],
+        [
+          "2026-04-24",
+          "3.63"
+        ],
+        [
+          "2026-06-01",
+          "3.63"
+        ],
+        [
+          "2026-06-02",
+          "3.62"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2025-09-18",
+          "kind": "range",
+          "value": null,
+          "lower": "4.00",
+          "upper": "4.25"
+        },
+        {
+          "effective": "2025-12-11",
+          "kind": "range",
+          "value": null,
+          "lower": "3.50",
+          "upper": "3.75"
+        }
+      ],
+      "target_dates": [
+        "2025-06-02",
+        "2025-09-17",
+        "2025-09-18",
+        "2026-06-02"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-06-02",
+          "value": "3.62"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-06-01",
+            "value": "3.63",
+            "bp": "-1",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2026-05-02",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "outside-window"
+          },
+          {
+            "id": "year",
+            "date": "2025-06-02",
+            "period": "2025-06-02",
+            "value": "4.33",
+            "bp": "-71",
+            "reason": null
+          },
+          {
+            "id": "five-years",
+            "date": "2021-06-02",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2025-06-02",
+            "effective": null
+          },
+          {
+            "date": "2025-09-17",
+            "effective": null
+          },
+          {
+            "date": "2025-09-18",
+            "effective": "2025-09-18"
+          },
+          {
+            "date": "2026-06-02",
+            "effective": "2025-12-11"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2025-09-18",
+            "lower": "4.00",
+            "upper": "4.25",
+            "change": null
+          },
+          {
+            "effective": "2025-12-11",
+            "lower": "3.50",
+            "upper": "3.75",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-06-02",
+            "effr": "3.62",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-06-01",
+            "effr": "3.63",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": "2025-06-02",
+            "effr": "4.33",
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-06-02",
+            "value": "3.62",
+            "previous": "2026-06-01",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-06-01",
+            "value": "3.63",
+            "previous": "2026-04-24",
+            "bp": "0"
+          },
+          {
+            "period": "2026-04-24",
+            "value": "3.63",
+            "previous": "2025-06-02",
+            "bp": "-70"
+          },
+          {
+            "period": "2025-06-02",
+            "value": "4.33",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-06-02",
+            "end": "2026-06-02",
+            "x0": "2025-09-18",
+            "effr_first": "2025-06-02",
+            "effr_last": "2026-06-02",
+            "effr": [
+              [
+                "2025-06-02",
+                "4.33"
+              ],
+              [
+                "2026-04-24",
+                "3.63"
+              ],
+              [
+                "2026-06-01",
+                "3.63"
+              ],
+              [
+                "2026-06-02",
+                "3.62"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-06-02",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2021-06-02",
+            "end": "2026-06-02",
+            "x0": "2025-09-18",
+            "effr_first": "2025-06-02",
+            "effr_last": "2026-06-02",
+            "effr": [
+              [
+                "2025-06-02",
+                "4.33"
+              ],
+              [
+                "2026-04-24",
+                "3.63"
+              ],
+              [
+                "2026-06-01",
+                "3.63"
+              ],
+              [
+                "2026-06-02",
+                "3.62"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-06-02",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2016-06-02",
+            "end": "2026-06-02",
+            "x0": "2025-09-18",
+            "effr_first": "2025-06-02",
+            "effr_last": "2026-06-02",
+            "effr": [
+              [
+                "2025-06-02",
+                "4.33"
+              ],
+              [
+                "2026-04-24",
+                "3.63"
+              ],
+              [
+                "2026-06-01",
+                "3.63"
+              ],
+              [
+                "2026-06-02",
+                "3.62"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-06-02",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2025-06-02",
+            "end": "2026-06-02",
+            "x0": "2025-09-18",
+            "effr_first": "2025-06-02",
+            "effr_last": "2026-06-02",
+            "effr": [
+              [
+                "2025-06-02",
+                "4.33"
+              ],
+              [
+                "2026-04-24",
+                "3.63"
+              ],
+              [
+                "2026-06-01",
+                "3.63"
+              ],
+              [
+                "2026-06-02",
+                "3.62"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-06-02",
+                    "3.50",
+                    "3.75"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "target-after-latest",
+      "about": "R13: the last change point is effective after the latest EFFR period, so E is that change point's date and the last segment ends on it with no closing point, while the latest EFFR row still has the target in effect before it.",
+      "complete": true,
+      "observations": [
+        [
+          "2026-09-14",
+          "3.63"
+        ],
+        [
+          "2026-09-15",
+          "3.64"
+        ],
+        [
+          "2026-09-16",
+          "3.63"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2025-12-11",
+          "kind": "range",
+          "value": null,
+          "lower": "3.50",
+          "upper": "3.75"
+        },
+        {
+          "effective": "2026-09-17",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        }
+      ],
+      "target_dates": [
+        "2026-09-16",
+        "2026-09-17",
+        "2026-09-18"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-09-16",
+          "value": "3.63"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-09-15",
+            "value": "3.64",
+            "bp": "-1",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2026-08-16",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "year",
+            "date": "2025-09-16",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "five-years",
+            "date": "2021-09-16",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2026-09-16",
+            "effective": "2025-12-11"
+          },
+          {
+            "date": "2026-09-17",
+            "effective": "2026-09-17"
+          },
+          {
+            "date": "2026-09-18",
+            "effective": "2026-09-17"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2025-12-11",
+            "lower": "3.50",
+            "upper": "3.75",
+            "change": null
+          },
+          {
+            "effective": "2026-09-17",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-09-16",
+            "effr": "3.63",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-09-15",
+            "effr": "3.64",
+            "target": {
+              "effective": "2025-12-11",
+              "lower": "3.50",
+              "upper": "3.75"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-09-16",
+            "value": "3.63",
+            "previous": "2026-09-15",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-09-15",
+            "value": "3.64",
+            "previous": "2026-09-14",
+            "bp": "1"
+          },
+          {
+            "period": "2026-09-14",
+            "value": "3.63",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-09-17",
+            "end": "2026-09-17",
+            "x0": "2025-12-11",
+            "effr_first": "2026-09-14",
+            "effr_last": "2026-09-16",
+            "effr": [
+              [
+                "2026-09-14",
+                "3.63"
+              ],
+              [
+                "2026-09-15",
+                "3.64"
+              ],
+              [
+                "2026-09-16",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2021-09-17",
+            "end": "2026-09-17",
+            "x0": "2025-12-11",
+            "effr_first": "2026-09-14",
+            "effr_last": "2026-09-16",
+            "effr": [
+              [
+                "2026-09-14",
+                "3.63"
+              ],
+              [
+                "2026-09-15",
+                "3.64"
+              ],
+              [
+                "2026-09-16",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2016-09-17",
+            "end": "2026-09-17",
+            "x0": "2025-12-11",
+            "effr_first": "2026-09-14",
+            "effr_last": "2026-09-16",
+            "effr": [
+              [
+                "2026-09-14",
+                "3.63"
+              ],
+              [
+                "2026-09-15",
+                "3.64"
+              ],
+              [
+                "2026-09-16",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2025-12-11",
+            "end": "2026-09-17",
+            "x0": "2025-12-11",
+            "effr_first": "2026-09-14",
+            "effr_last": "2026-09-16",
+            "effr": [
+              [
+                "2026-09-14",
+                "3.63"
+              ],
+              [
+                "2026-09-15",
+                "3.64"
+              ],
+              [
+                "2026-09-16",
+                "3.63"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "window-without-change-point",
+      "about": "R13: the 1y window contains no change point, so its target is the X0 point and the closing point at E; the month and year comparisons are outside the 7-day window and the previous change is 1 basis point.",
+      "complete": true,
+      "observations": [
+        [
+          "2006-06-28",
+          "5.00"
+        ],
+        [
+          "2006-06-29",
+          "5.25"
+        ],
+        [
+          "2007-07-31",
+          "5.26"
+        ],
+        [
+          "2007-08-01",
+          "5.27"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2006-05-10",
+          "kind": "rate",
+          "value": "5.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2006-06-29",
+          "kind": "rate",
+          "value": "5.25",
+          "lower": null,
+          "upper": null
+        }
+      ],
+      "target_dates": [
+        "2006-05-09",
+        "2006-05-10",
+        "2006-06-28",
+        "2006-06-29",
+        "2007-08-01"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2007-08-01",
+          "value": "5.27"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2007-07-31",
+            "value": "5.26",
+            "bp": "1",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2007-07-01",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "outside-window"
+          },
+          {
+            "id": "year",
+            "date": "2006-08-01",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "outside-window"
+          },
+          {
+            "id": "five-years",
+            "date": "2002-08-01",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2006-05-09",
+            "effective": null
+          },
+          {
+            "date": "2006-05-10",
+            "effective": "2006-05-10"
+          },
+          {
+            "date": "2006-06-28",
+            "effective": "2006-05-10"
+          },
+          {
+            "date": "2006-06-29",
+            "effective": "2006-06-29"
+          },
+          {
+            "date": "2007-08-01",
+            "effective": "2006-06-29"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2006-05-10",
+            "lower": "5.00",
+            "upper": "5.00",
+            "change": null
+          },
+          {
+            "effective": "2006-06-29",
+            "lower": "5.25",
+            "upper": "5.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2007-08-01",
+            "effr": "5.27",
+            "target": {
+              "effective": "2006-06-29",
+              "lower": "5.25",
+              "upper": "5.25"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2007-07-31",
+            "effr": "5.26",
+            "target": {
+              "effective": "2006-06-29",
+              "lower": "5.25",
+              "upper": "5.25"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2007-08-01",
+            "value": "5.27",
+            "previous": "2007-07-31",
+            "bp": "1"
+          },
+          {
+            "period": "2007-07-31",
+            "value": "5.26",
+            "previous": "2006-06-29",
+            "bp": "1"
+          },
+          {
+            "period": "2006-06-29",
+            "value": "5.25",
+            "previous": "2006-06-28",
+            "bp": "25"
+          },
+          {
+            "period": "2006-06-28",
+            "value": "5.00",
+            "previous": null,
+            "bp": null
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2006-08-01",
+            "end": "2007-08-01",
+            "x0": "2006-08-01",
+            "effr_first": "2007-07-31",
+            "effr_last": "2007-08-01",
+            "effr": [
+              [
+                "2007-07-31",
+                "5.26"
+              ],
+              [
+                "2007-08-01",
+                "5.27"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2006-08-01",
+                    "5.25"
+                  ],
+                  [
+                    "2007-08-01",
+                    "5.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2002-08-01",
+            "end": "2007-08-01",
+            "x0": "2006-05-10",
+            "effr_first": "2006-06-28",
+            "effr_last": "2007-08-01",
+            "effr": [
+              [
+                "2006-06-28",
+                "5.00"
+              ],
+              [
+                "2006-06-29",
+                "5.25"
+              ],
+              [
+                "2007-07-31",
+                "5.26"
+              ],
+              [
+                "2007-08-01",
+                "5.27"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2006-05-10",
+                    "5.00"
+                  ],
+                  [
+                    "2006-06-29",
+                    "5.25"
+                  ],
+                  [
+                    "2007-08-01",
+                    "5.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "1997-08-01",
+            "end": "2007-08-01",
+            "x0": "2006-05-10",
+            "effr_first": "2006-06-28",
+            "effr_last": "2007-08-01",
+            "effr": [
+              [
+                "2006-06-28",
+                "5.00"
+              ],
+              [
+                "2006-06-29",
+                "5.25"
+              ],
+              [
+                "2007-07-31",
+                "5.26"
+              ],
+              [
+                "2007-08-01",
+                "5.27"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2006-05-10",
+                    "5.00"
+                  ],
+                  [
+                    "2006-06-29",
+                    "5.25"
+                  ],
+                  [
+                    "2007-08-01",
+                    "5.25"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2006-05-10",
+            "end": "2007-08-01",
+            "x0": "2006-05-10",
+            "effr_first": "2006-06-28",
+            "effr_last": "2007-08-01",
+            "effr": [
+              [
+                "2006-06-28",
+                "5.00"
+              ],
+              [
+                "2006-06-29",
+                "5.25"
+              ],
+              [
+                "2007-07-31",
+                "5.26"
+              ],
+              [
+                "2007-08-01",
+                "5.27"
+              ]
+            ],
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2006-05-10",
+                    "5.00"
+                  ],
+                  [
+                    "2006-06-29",
+                    "5.25"
+                  ],
+                  [
+                    "2007-08-01",
+                    "5.25"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "recent-thirty-of-thirty-three",
+      "about": "R12 with 33 observations: the recent table keeps the last 30, newest first, and the oldest row shown takes its previous observation from outside the table, skipping a null.",
+      "complete": true,
+      "observations": [
+        [
+          "2026-02-02",
+          "3.64"
+        ],
+        [
+          "2026-02-03",
+          "3.64"
+        ],
+        [
+          "2026-02-04",
+          null
+        ],
+        [
+          "2026-02-05",
+          "3.63"
+        ],
+        [
+          "2026-02-06",
+          "3.64"
+        ],
+        [
+          "2026-02-09",
+          "3.64"
+        ],
+        [
+          "2026-02-10",
+          "3.65"
+        ],
+        [
+          "2026-02-11",
+          "3.64"
+        ],
+        [
+          "2026-02-12",
+          "3.64"
+        ],
+        [
+          "2026-02-13",
+          "3.63"
+        ],
+        [
+          "2026-02-16",
+          null
+        ],
+        [
+          "2026-02-17",
+          "3.64"
+        ],
+        [
+          "2026-02-18",
+          "3.64"
+        ],
+        [
+          "2026-02-19",
+          "3.645"
+        ],
+        [
+          "2026-02-20",
+          "3.64"
+        ],
+        [
+          "2026-02-23",
+          "3.64"
+        ],
+        [
+          "2026-02-24",
+          "3.64"
+        ],
+        [
+          "2026-02-25",
+          "3.63"
+        ],
+        [
+          "2026-02-26",
+          "3.63"
+        ],
+        [
+          "2026-02-27",
+          "3.64"
+        ],
+        [
+          "2026-03-02",
+          "3.64"
+        ],
+        [
+          "2026-03-03",
+          "3.64"
+        ],
+        [
+          "2026-03-04",
+          "3.64"
+        ],
+        [
+          "2026-03-05",
+          null
+        ],
+        [
+          "2026-03-06",
+          null
+        ],
+        [
+          "2026-03-09",
+          "3.62"
+        ],
+        [
+          "2026-03-10",
+          "3.63"
+        ],
+        [
+          "2026-03-11",
+          "3.63"
+        ],
+        [
+          "2026-03-12",
+          "3.63"
+        ],
+        [
+          "2026-03-13",
+          "3.63"
+        ],
+        [
+          "2026-03-16",
+          "3.63"
+        ],
+        [
+          "2026-03-17",
+          "3.64"
+        ],
+        [
+          "2026-03-18",
+          "3.64"
+        ]
+      ],
+      "change_points": [],
+      "target_dates": [
+        "2026-03-18"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-03-18",
+          "value": "3.64"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-03-17",
+            "value": "3.64",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2026-02-18",
+            "period": "2026-02-18",
+            "value": "3.64",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "year",
+            "date": "2025-03-18",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          },
+          {
+            "id": "five-years",
+            "date": "2021-03-18",
+            "period": null,
+            "value": null,
+            "bp": null,
+            "reason": "before-data"
+          }
+        ],
+        "target_at": [
+          {
+            "date": "2026-03-18",
+            "effective": null
+          }
+        ],
+        "change_points": [],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-03-18",
+            "effr": "3.64",
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-03-17",
+            "effr": "3.64",
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "month",
+            "period": "2026-02-18",
+            "effr": "3.64",
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "year",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          },
+          {
+            "id": "five-years",
+            "period": null,
+            "effr": null,
+            "target": null,
+            "target_change": null
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-03-18",
+            "value": "3.64",
+            "previous": "2026-03-17",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-17",
+            "value": "3.64",
+            "previous": "2026-03-16",
+            "bp": "1"
+          },
+          {
+            "period": "2026-03-16",
+            "value": "3.63",
+            "previous": "2026-03-13",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-13",
+            "value": "3.63",
+            "previous": "2026-03-12",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-12",
+            "value": "3.63",
+            "previous": "2026-03-11",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-11",
+            "value": "3.63",
+            "previous": "2026-03-10",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-10",
+            "value": "3.63",
+            "previous": "2026-03-09",
+            "bp": "1"
+          },
+          {
+            "period": "2026-03-09",
+            "value": "3.62",
+            "previous": "2026-03-04",
+            "bp": "-2"
+          },
+          {
+            "period": "2026-03-06",
+            "value": null,
+            "previous": "2026-03-04",
+            "bp": null
+          },
+          {
+            "period": "2026-03-05",
+            "value": null,
+            "previous": "2026-03-04",
+            "bp": null
+          },
+          {
+            "period": "2026-03-04",
+            "value": "3.64",
+            "previous": "2026-03-03",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-03",
+            "value": "3.64",
+            "previous": "2026-03-02",
+            "bp": "0"
+          },
+          {
+            "period": "2026-03-02",
+            "value": "3.64",
+            "previous": "2026-02-27",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-27",
+            "value": "3.64",
+            "previous": "2026-02-26",
+            "bp": "1"
+          },
+          {
+            "period": "2026-02-26",
+            "value": "3.63",
+            "previous": "2026-02-25",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-25",
+            "value": "3.63",
+            "previous": "2026-02-24",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-02-24",
+            "value": "3.64",
+            "previous": "2026-02-23",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-23",
+            "value": "3.64",
+            "previous": "2026-02-20",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-20",
+            "value": "3.64",
+            "previous": "2026-02-19",
+            "bp": "-0.5"
+          },
+          {
+            "period": "2026-02-19",
+            "value": "3.645",
+            "previous": "2026-02-18",
+            "bp": "0.5"
+          },
+          {
+            "period": "2026-02-18",
+            "value": "3.64",
+            "previous": "2026-02-17",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-17",
+            "value": "3.64",
+            "previous": "2026-02-13",
+            "bp": "1"
+          },
+          {
+            "period": "2026-02-16",
+            "value": null,
+            "previous": "2026-02-13",
+            "bp": null
+          },
+          {
+            "period": "2026-02-13",
+            "value": "3.63",
+            "previous": "2026-02-12",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-02-12",
+            "value": "3.64",
+            "previous": "2026-02-11",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-11",
+            "value": "3.64",
+            "previous": "2026-02-10",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-02-10",
+            "value": "3.65",
+            "previous": "2026-02-09",
+            "bp": "1"
+          },
+          {
+            "period": "2026-02-09",
+            "value": "3.64",
+            "previous": "2026-02-06",
+            "bp": "0"
+          },
+          {
+            "period": "2026-02-06",
+            "value": "3.64",
+            "previous": "2026-02-05",
+            "bp": "1"
+          },
+          {
+            "period": "2026-02-05",
+            "value": "3.63",
+            "previous": "2026-02-03",
+            "bp": "-1"
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-03-18",
+            "end": "2026-03-18",
+            "x0": null,
+            "effr_first": "2026-02-02",
+            "effr_last": "2026-03-18",
+            "effr": [
+              [
+                "2026-02-02",
+                "3.64"
+              ],
+              [
+                "2026-02-03",
+                "3.64"
+              ],
+              [
+                "2026-02-04",
+                null
+              ],
+              [
+                "2026-02-05",
+                "3.63"
+              ],
+              [
+                "2026-02-06",
+                "3.64"
+              ],
+              [
+                "2026-02-09",
+                "3.64"
+              ],
+              [
+                "2026-02-10",
+                "3.65"
+              ],
+              [
+                "2026-02-11",
+                "3.64"
+              ],
+              [
+                "2026-02-12",
+                "3.64"
+              ],
+              [
+                "2026-02-13",
+                "3.63"
+              ],
+              [
+                "2026-02-16",
+                null
+              ],
+              [
+                "2026-02-17",
+                "3.64"
+              ],
+              [
+                "2026-02-18",
+                "3.64"
+              ],
+              [
+                "2026-02-19",
+                "3.645"
+              ],
+              [
+                "2026-02-20",
+                "3.64"
+              ],
+              [
+                "2026-02-23",
+                "3.64"
+              ],
+              [
+                "2026-02-24",
+                "3.64"
+              ],
+              [
+                "2026-02-25",
+                "3.63"
+              ],
+              [
+                "2026-02-26",
+                "3.63"
+              ],
+              [
+                "2026-02-27",
+                "3.64"
+              ],
+              [
+                "2026-03-02",
+                "3.64"
+              ],
+              [
+                "2026-03-03",
+                "3.64"
+              ],
+              [
+                "2026-03-04",
+                "3.64"
+              ],
+              [
+                "2026-03-05",
+                null
+              ],
+              [
+                "2026-03-06",
+                null
+              ],
+              [
+                "2026-03-09",
+                "3.62"
+              ],
+              [
+                "2026-03-10",
+                "3.63"
+              ],
+              [
+                "2026-03-11",
+                "3.63"
+              ],
+              [
+                "2026-03-12",
+                "3.63"
+              ],
+              [
+                "2026-03-13",
+                "3.63"
+              ],
+              [
+                "2026-03-16",
+                "3.63"
+              ],
+              [
+                "2026-03-17",
+                "3.64"
+              ],
+              [
+                "2026-03-18",
+                "3.64"
+              ]
+            ],
+            "segments": []
+          },
+          "5y": {
+            "start": "2021-03-18",
+            "end": "2026-03-18",
+            "x0": null,
+            "effr_first": "2026-02-02",
+            "effr_last": "2026-03-18",
+            "effr": [
+              [
+                "2026-02-02",
+                "3.64"
+              ],
+              [
+                "2026-02-03",
+                "3.64"
+              ],
+              [
+                "2026-02-04",
+                null
+              ],
+              [
+                "2026-02-05",
+                "3.63"
+              ],
+              [
+                "2026-02-06",
+                "3.64"
+              ],
+              [
+                "2026-02-09",
+                "3.64"
+              ],
+              [
+                "2026-02-10",
+                "3.65"
+              ],
+              [
+                "2026-02-11",
+                "3.64"
+              ],
+              [
+                "2026-02-12",
+                "3.64"
+              ],
+              [
+                "2026-02-13",
+                "3.63"
+              ],
+              [
+                "2026-02-16",
+                null
+              ],
+              [
+                "2026-02-17",
+                "3.64"
+              ],
+              [
+                "2026-02-18",
+                "3.64"
+              ],
+              [
+                "2026-02-19",
+                "3.645"
+              ],
+              [
+                "2026-02-20",
+                "3.64"
+              ],
+              [
+                "2026-02-23",
+                "3.64"
+              ],
+              [
+                "2026-02-24",
+                "3.64"
+              ],
+              [
+                "2026-02-25",
+                "3.63"
+              ],
+              [
+                "2026-02-26",
+                "3.63"
+              ],
+              [
+                "2026-02-27",
+                "3.64"
+              ],
+              [
+                "2026-03-02",
+                "3.64"
+              ],
+              [
+                "2026-03-03",
+                "3.64"
+              ],
+              [
+                "2026-03-04",
+                "3.64"
+              ],
+              [
+                "2026-03-05",
+                null
+              ],
+              [
+                "2026-03-06",
+                null
+              ],
+              [
+                "2026-03-09",
+                "3.62"
+              ],
+              [
+                "2026-03-10",
+                "3.63"
+              ],
+              [
+                "2026-03-11",
+                "3.63"
+              ],
+              [
+                "2026-03-12",
+                "3.63"
+              ],
+              [
+                "2026-03-13",
+                "3.63"
+              ],
+              [
+                "2026-03-16",
+                "3.63"
+              ],
+              [
+                "2026-03-17",
+                "3.64"
+              ],
+              [
+                "2026-03-18",
+                "3.64"
+              ]
+            ],
+            "segments": []
+          },
+          "10y": {
+            "start": "2016-03-18",
+            "end": "2026-03-18",
+            "x0": null,
+            "effr_first": "2026-02-02",
+            "effr_last": "2026-03-18",
+            "effr": [
+              [
+                "2026-02-02",
+                "3.64"
+              ],
+              [
+                "2026-02-03",
+                "3.64"
+              ],
+              [
+                "2026-02-04",
+                null
+              ],
+              [
+                "2026-02-05",
+                "3.63"
+              ],
+              [
+                "2026-02-06",
+                "3.64"
+              ],
+              [
+                "2026-02-09",
+                "3.64"
+              ],
+              [
+                "2026-02-10",
+                "3.65"
+              ],
+              [
+                "2026-02-11",
+                "3.64"
+              ],
+              [
+                "2026-02-12",
+                "3.64"
+              ],
+              [
+                "2026-02-13",
+                "3.63"
+              ],
+              [
+                "2026-02-16",
+                null
+              ],
+              [
+                "2026-02-17",
+                "3.64"
+              ],
+              [
+                "2026-02-18",
+                "3.64"
+              ],
+              [
+                "2026-02-19",
+                "3.645"
+              ],
+              [
+                "2026-02-20",
+                "3.64"
+              ],
+              [
+                "2026-02-23",
+                "3.64"
+              ],
+              [
+                "2026-02-24",
+                "3.64"
+              ],
+              [
+                "2026-02-25",
+                "3.63"
+              ],
+              [
+                "2026-02-26",
+                "3.63"
+              ],
+              [
+                "2026-02-27",
+                "3.64"
+              ],
+              [
+                "2026-03-02",
+                "3.64"
+              ],
+              [
+                "2026-03-03",
+                "3.64"
+              ],
+              [
+                "2026-03-04",
+                "3.64"
+              ],
+              [
+                "2026-03-05",
+                null
+              ],
+              [
+                "2026-03-06",
+                null
+              ],
+              [
+                "2026-03-09",
+                "3.62"
+              ],
+              [
+                "2026-03-10",
+                "3.63"
+              ],
+              [
+                "2026-03-11",
+                "3.63"
+              ],
+              [
+                "2026-03-12",
+                "3.63"
+              ],
+              [
+                "2026-03-13",
+                "3.63"
+              ],
+              [
+                "2026-03-16",
+                "3.63"
+              ],
+              [
+                "2026-03-17",
+                "3.64"
+              ],
+              [
+                "2026-03-18",
+                "3.64"
+              ]
+            ],
+            "segments": []
+          },
+          "all": {
+            "start": "2026-02-02",
+            "end": "2026-03-18",
+            "x0": null,
+            "effr_first": "2026-02-02",
+            "effr_last": "2026-03-18",
+            "effr": [
+              [
+                "2026-02-02",
+                "3.64"
+              ],
+              [
+                "2026-02-03",
+                "3.64"
+              ],
+              [
+                "2026-02-04",
+                null
+              ],
+              [
+                "2026-02-05",
+                "3.63"
+              ],
+              [
+                "2026-02-06",
+                "3.64"
+              ],
+              [
+                "2026-02-09",
+                "3.64"
+              ],
+              [
+                "2026-02-10",
+                "3.65"
+              ],
+              [
+                "2026-02-11",
+                "3.64"
+              ],
+              [
+                "2026-02-12",
+                "3.64"
+              ],
+              [
+                "2026-02-13",
+                "3.63"
+              ],
+              [
+                "2026-02-16",
+                null
+              ],
+              [
+                "2026-02-17",
+                "3.64"
+              ],
+              [
+                "2026-02-18",
+                "3.64"
+              ],
+              [
+                "2026-02-19",
+                "3.645"
+              ],
+              [
+                "2026-02-20",
+                "3.64"
+              ],
+              [
+                "2026-02-23",
+                "3.64"
+              ],
+              [
+                "2026-02-24",
+                "3.64"
+              ],
+              [
+                "2026-02-25",
+                "3.63"
+              ],
+              [
+                "2026-02-26",
+                "3.63"
+              ],
+              [
+                "2026-02-27",
+                "3.64"
+              ],
+              [
+                "2026-03-02",
+                "3.64"
+              ],
+              [
+                "2026-03-03",
+                "3.64"
+              ],
+              [
+                "2026-03-04",
+                "3.64"
+              ],
+              [
+                "2026-03-05",
+                null
+              ],
+              [
+                "2026-03-06",
+                null
+              ],
+              [
+                "2026-03-09",
+                "3.62"
+              ],
+              [
+                "2026-03-10",
+                "3.63"
+              ],
+              [
+                "2026-03-11",
+                "3.63"
+              ],
+              [
+                "2026-03-12",
+                "3.63"
+              ],
+              [
+                "2026-03-13",
+                "3.63"
+              ],
+              [
+                "2026-03-16",
+                "3.63"
+              ],
+              [
+                "2026-03-17",
+                "3.64"
+              ],
+              [
+                "2026-03-18",
+                "3.64"
+              ]
+            ],
+            "segments": []
+          }
+        }
+      }
+    },
+    {
+      "id": "nyfed-fixture",
+      "about": "Rows copied from the verified appendix B fixture CSVs (test data, never a publication): the EFFR for July 2000, November 2016, November 2021, November 2025 and 2026-09-01 to 2026-11-18, with all 73 target change points; the observations are a subset, so the windows omit the EFFR line.",
+      "complete": false,
+      "observations": [
+        [
+          "2000-07-03",
+          "7.03"
+        ],
+        [
+          "2000-07-05",
+          "6.52"
+        ],
+        [
+          "2000-07-06",
+          "6.51"
+        ],
+        [
+          "2000-07-07",
+          "6.42"
+        ],
+        [
+          "2000-07-10",
+          "6.51"
+        ],
+        [
+          "2000-07-11",
+          "6.39"
+        ],
+        [
+          "2000-07-12",
+          "6.38"
+        ],
+        [
+          "2000-07-13",
+          "6.50"
+        ],
+        [
+          "2000-07-14",
+          "6.51"
+        ],
+        [
+          "2000-07-17",
+          "6.58"
+        ],
+        [
+          "2000-07-18",
+          "6.47"
+        ],
+        [
+          "2000-07-19",
+          "6.45"
+        ],
+        [
+          "2000-07-20",
+          "6.52"
+        ],
+        [
+          "2000-07-21",
+          "6.51"
+        ],
+        [
+          "2000-07-24",
+          "6.52"
+        ],
+        [
+          "2000-07-25",
+          "6.46"
+        ],
+        [
+          "2000-07-26",
+          "6.49"
+        ],
+        [
+          "2000-07-27",
+          "6.52"
+        ],
+        [
+          "2000-07-28",
+          "6.44"
+        ],
+        [
+          "2000-07-31",
+          "6.64"
+        ],
+        [
+          "2016-11-01",
+          "0.41"
+        ],
+        [
+          "2016-11-02",
+          "0.41"
+        ],
+        [
+          "2016-11-03",
+          "0.41"
+        ],
+        [
+          "2016-11-04",
+          "0.41"
+        ],
+        [
+          "2016-11-07",
+          "0.41"
+        ],
+        [
+          "2016-11-08",
+          "0.41"
+        ],
+        [
+          "2016-11-09",
+          "0.41"
+        ],
+        [
+          "2016-11-10",
+          "0.41"
+        ],
+        [
+          "2016-11-14",
+          "0.41"
+        ],
+        [
+          "2016-11-15",
+          "0.41"
+        ],
+        [
+          "2016-11-16",
+          "0.41"
+        ],
+        [
+          "2016-11-17",
+          "0.41"
+        ],
+        [
+          "2016-11-18",
+          "0.41"
+        ],
+        [
+          "2016-11-21",
+          "0.41"
+        ],
+        [
+          "2016-11-22",
+          "0.41"
+        ],
+        [
+          "2016-11-23",
+          "0.41"
+        ],
+        [
+          "2016-11-25",
+          "0.41"
+        ],
+        [
+          "2016-11-28",
+          "0.41"
+        ],
+        [
+          "2016-11-29",
+          "0.41"
+        ],
+        [
+          "2016-11-30",
+          "0.31"
+        ],
+        [
+          "2021-11-01",
+          "0.08"
+        ],
+        [
+          "2021-11-02",
+          "0.08"
+        ],
+        [
+          "2021-11-03",
+          "0.08"
+        ],
+        [
+          "2021-11-04",
+          "0.08"
+        ],
+        [
+          "2021-11-05",
+          "0.08"
+        ],
+        [
+          "2021-11-08",
+          "0.08"
+        ],
+        [
+          "2021-11-09",
+          "0.08"
+        ],
+        [
+          "2021-11-10",
+          "0.08"
+        ],
+        [
+          "2021-11-12",
+          "0.08"
+        ],
+        [
+          "2021-11-15",
+          "0.08"
+        ],
+        [
+          "2021-11-16",
+          "0.08"
+        ],
+        [
+          "2021-11-17",
+          "0.08"
+        ],
+        [
+          "2021-11-18",
+          "0.08"
+        ],
+        [
+          "2021-11-19",
+          "0.08"
+        ],
+        [
+          "2021-11-22",
+          "0.08"
+        ],
+        [
+          "2021-11-23",
+          "0.08"
+        ],
+        [
+          "2021-11-24",
+          "0.08"
+        ],
+        [
+          "2021-11-26",
+          "0.08"
+        ],
+        [
+          "2021-11-29",
+          "0.08"
+        ],
+        [
+          "2021-11-30",
+          "0.07"
+        ],
+        [
+          "2025-11-03",
+          "3.87"
+        ],
+        [
+          "2025-11-04",
+          "3.87"
+        ],
+        [
+          "2025-11-05",
+          "3.87"
+        ],
+        [
+          "2025-11-06",
+          "3.87"
+        ],
+        [
+          "2025-11-07",
+          "3.87"
+        ],
+        [
+          "2025-11-10",
+          "3.87"
+        ],
+        [
+          "2025-11-12",
+          "3.87"
+        ],
+        [
+          "2025-11-13",
+          "3.88"
+        ],
+        [
+          "2025-11-14",
+          "3.88"
+        ],
+        [
+          "2025-11-17",
+          "3.88"
+        ],
+        [
+          "2025-11-18",
+          "3.88"
+        ],
+        [
+          "2025-11-19",
+          "3.88"
+        ],
+        [
+          "2025-11-20",
+          "3.88"
+        ],
+        [
+          "2025-11-21",
+          "3.88"
+        ],
+        [
+          "2025-11-24",
+          "3.88"
+        ],
+        [
+          "2025-11-25",
+          "3.88"
+        ],
+        [
+          "2025-11-26",
+          "3.88"
+        ],
+        [
+          "2025-11-28",
+          "3.89"
+        ],
+        [
+          "2026-09-01",
+          "3.63"
+        ],
+        [
+          "2026-09-02",
+          "3.63"
+        ],
+        [
+          "2026-09-03",
+          "3.63"
+        ],
+        [
+          "2026-09-04",
+          "3.63"
+        ],
+        [
+          "2026-09-08",
+          "3.63"
+        ],
+        [
+          "2026-09-09",
+          "3.63"
+        ],
+        [
+          "2026-09-10",
+          "3.63"
+        ],
+        [
+          "2026-09-11",
+          "3.63"
+        ],
+        [
+          "2026-09-14",
+          "3.63"
+        ],
+        [
+          "2026-09-15",
+          "3.63"
+        ],
+        [
+          "2026-09-16",
+          "3.63"
+        ],
+        [
+          "2026-09-17",
+          "3.88"
+        ],
+        [
+          "2026-09-18",
+          "3.88"
+        ],
+        [
+          "2026-09-21",
+          "3.88"
+        ],
+        [
+          "2026-09-22",
+          "3.88"
+        ],
+        [
+          "2026-09-23",
+          "3.88"
+        ],
+        [
+          "2026-09-24",
+          "3.88"
+        ],
+        [
+          "2026-09-25",
+          "3.88"
+        ],
+        [
+          "2026-09-28",
+          "3.88"
+        ],
+        [
+          "2026-09-29",
+          "3.88"
+        ],
+        [
+          "2026-09-30",
+          "3.88"
+        ],
+        [
+          "2026-10-01",
+          "3.88"
+        ],
+        [
+          "2026-10-02",
+          "3.88"
+        ],
+        [
+          "2026-10-05",
+          "3.88"
+        ],
+        [
+          "2026-10-06",
+          "3.88"
+        ],
+        [
+          "2026-10-07",
+          "3.88"
+        ],
+        [
+          "2026-10-08",
+          "3.88"
+        ],
+        [
+          "2026-10-09",
+          "3.88"
+        ],
+        [
+          "2026-10-13",
+          "3.88"
+        ],
+        [
+          "2026-10-14",
+          "3.88"
+        ],
+        [
+          "2026-10-15",
+          "3.88"
+        ],
+        [
+          "2026-10-16",
+          "3.88"
+        ],
+        [
+          "2026-10-19",
+          "3.88"
+        ],
+        [
+          "2026-10-20",
+          "3.88"
+        ],
+        [
+          "2026-10-21",
+          "3.88"
+        ],
+        [
+          "2026-10-22",
+          "3.88"
+        ],
+        [
+          "2026-10-23",
+          "3.88"
+        ],
+        [
+          "2026-10-26",
+          "3.88"
+        ],
+        [
+          "2026-10-27",
+          "3.88"
+        ],
+        [
+          "2026-10-28",
+          "3.88"
+        ],
+        [
+          "2026-10-29",
+          "3.88"
+        ],
+        [
+          "2026-10-30",
+          "3.88"
+        ],
+        [
+          "2026-11-02",
+          "3.88"
+        ],
+        [
+          "2026-11-03",
+          "3.88"
+        ],
+        [
+          "2026-11-04",
+          "3.88"
+        ],
+        [
+          "2026-11-05",
+          "3.88"
+        ],
+        [
+          "2026-11-06",
+          "3.88"
+        ],
+        [
+          "2026-11-09",
+          "3.88"
+        ],
+        [
+          "2026-11-10",
+          "3.88"
+        ],
+        [
+          "2026-11-12",
+          "3.87"
+        ],
+        [
+          "2026-11-13",
+          "3.88"
+        ],
+        [
+          "2026-11-16",
+          "3.87"
+        ],
+        [
+          "2026-11-17",
+          "3.88"
+        ],
+        [
+          "2026-11-18",
+          "3.88"
+        ]
+      ],
+      "change_points": [
+        {
+          "effective": "2000-07-03",
+          "kind": "rate",
+          "value": "6.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-01-03",
+          "kind": "rate",
+          "value": "6.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-01-31",
+          "kind": "rate",
+          "value": "5.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-03-20",
+          "kind": "rate",
+          "value": "5.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-04-18",
+          "kind": "rate",
+          "value": "4.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-05-15",
+          "kind": "rate",
+          "value": "4.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-06-27",
+          "kind": "rate",
+          "value": "3.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-08-21",
+          "kind": "rate",
+          "value": "3.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-09-17",
+          "kind": "rate",
+          "value": "3.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-10-02",
+          "kind": "rate",
+          "value": "2.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-11-06",
+          "kind": "rate",
+          "value": "2.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2001-12-11",
+          "kind": "rate",
+          "value": "1.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2002-11-06",
+          "kind": "rate",
+          "value": "1.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2003-06-25",
+          "kind": "rate",
+          "value": "1.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2004-06-30",
+          "kind": "rate",
+          "value": "1.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2004-08-10",
+          "kind": "rate",
+          "value": "1.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2004-09-21",
+          "kind": "rate",
+          "value": "1.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2004-11-10",
+          "kind": "rate",
+          "value": "2.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2004-12-14",
+          "kind": "rate",
+          "value": "2.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-02-02",
+          "kind": "rate",
+          "value": "2.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-03-22",
+          "kind": "rate",
+          "value": "2.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-05-03",
+          "kind": "rate",
+          "value": "3.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-06-30",
+          "kind": "rate",
+          "value": "3.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-08-09",
+          "kind": "rate",
+          "value": "3.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-09-20",
+          "kind": "rate",
+          "value": "3.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-11-01",
+          "kind": "rate",
+          "value": "4.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2005-12-13",
+          "kind": "rate",
+          "value": "4.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2006-01-31",
+          "kind": "rate",
+          "value": "4.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2006-03-28",
+          "kind": "rate",
+          "value": "4.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2006-05-10",
+          "kind": "rate",
+          "value": "5.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2006-06-29",
+          "kind": "rate",
+          "value": "5.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2007-09-18",
+          "kind": "rate",
+          "value": "4.75",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2007-10-31",
+          "kind": "rate",
+          "value": "4.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2007-12-11",
+          "kind": "rate",
+          "value": "4.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-01-22",
+          "kind": "rate",
+          "value": "3.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-01-30",
+          "kind": "rate",
+          "value": "3.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-03-18",
+          "kind": "rate",
+          "value": "2.25",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-04-30",
+          "kind": "rate",
+          "value": "2.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-10-08",
+          "kind": "rate",
+          "value": "1.50",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-10-29",
+          "kind": "rate",
+          "value": "1.00",
+          "lower": null,
+          "upper": null
+        },
+        {
+          "effective": "2008-12-16",
+          "kind": "range",
+          "value": null,
+          "lower": "0.00",
+          "upper": "0.25"
+        },
+        {
+          "effective": "2015-12-17",
+          "kind": "range",
+          "value": null,
+          "lower": "0.25",
+          "upper": "0.50"
+        },
+        {
+          "effective": "2016-12-15",
+          "kind": "range",
+          "value": null,
+          "lower": "0.50",
+          "upper": "0.75"
+        },
+        {
+          "effective": "2017-03-16",
+          "kind": "range",
+          "value": null,
+          "lower": "0.75",
+          "upper": "1.00"
+        },
+        {
+          "effective": "2017-06-15",
+          "kind": "range",
+          "value": null,
+          "lower": "1.00",
+          "upper": "1.25"
+        },
+        {
+          "effective": "2017-12-14",
+          "kind": "range",
+          "value": null,
+          "lower": "1.25",
+          "upper": "1.50"
+        },
+        {
+          "effective": "2018-03-22",
+          "kind": "range",
+          "value": null,
+          "lower": "1.50",
+          "upper": "1.75"
+        },
+        {
+          "effective": "2018-06-14",
+          "kind": "range",
+          "value": null,
+          "lower": "1.75",
+          "upper": "2.00"
+        },
+        {
+          "effective": "2018-09-27",
+          "kind": "range",
+          "value": null,
+          "lower": "2.00",
+          "upper": "2.25"
+        },
+        {
+          "effective": "2018-12-20",
+          "kind": "range",
+          "value": null,
+          "lower": "2.25",
+          "upper": "2.50"
+        },
+        {
+          "effective": "2019-08-01",
+          "kind": "range",
+          "value": null,
+          "lower": "2.00",
+          "upper": "2.25"
+        },
+        {
+          "effective": "2019-09-19",
+          "kind": "range",
+          "value": null,
+          "lower": "1.75",
+          "upper": "2.00"
+        },
+        {
+          "effective": "2019-10-31",
+          "kind": "range",
+          "value": null,
+          "lower": "1.50",
+          "upper": "1.75"
+        },
+        {
+          "effective": "2020-03-04",
+          "kind": "range",
+          "value": null,
+          "lower": "1.00",
+          "upper": "1.25"
+        },
+        {
+          "effective": "2020-03-16",
+          "kind": "range",
+          "value": null,
+          "lower": "0.00",
+          "upper": "0.25"
+        },
+        {
+          "effective": "2022-03-17",
+          "kind": "range",
+          "value": null,
+          "lower": "0.25",
+          "upper": "0.50"
+        },
+        {
+          "effective": "2022-05-05",
+          "kind": "range",
+          "value": null,
+          "lower": "0.75",
+          "upper": "1.00"
+        },
+        {
+          "effective": "2022-06-16",
+          "kind": "range",
+          "value": null,
+          "lower": "1.50",
+          "upper": "1.75"
+        },
+        {
+          "effective": "2022-07-28",
+          "kind": "range",
+          "value": null,
+          "lower": "2.25",
+          "upper": "2.50"
+        },
+        {
+          "effective": "2022-09-22",
+          "kind": "range",
+          "value": null,
+          "lower": "3.00",
+          "upper": "3.25"
+        },
+        {
+          "effective": "2022-11-03",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        },
+        {
+          "effective": "2022-12-15",
+          "kind": "range",
+          "value": null,
+          "lower": "4.25",
+          "upper": "4.50"
+        },
+        {
+          "effective": "2023-02-02",
+          "kind": "range",
+          "value": null,
+          "lower": "4.50",
+          "upper": "4.75"
+        },
+        {
+          "effective": "2023-03-23",
+          "kind": "range",
+          "value": null,
+          "lower": "4.75",
+          "upper": "5.00"
+        },
+        {
+          "effective": "2023-05-04",
+          "kind": "range",
+          "value": null,
+          "lower": "5.00",
+          "upper": "5.25"
+        },
+        {
+          "effective": "2023-07-27",
+          "kind": "range",
+          "value": null,
+          "lower": "5.25",
+          "upper": "5.50"
+        },
+        {
+          "effective": "2024-09-19",
+          "kind": "range",
+          "value": null,
+          "lower": "4.75",
+          "upper": "5.00"
+        },
+        {
+          "effective": "2024-11-08",
+          "kind": "range",
+          "value": null,
+          "lower": "4.50",
+          "upper": "4.75"
+        },
+        {
+          "effective": "2024-12-19",
+          "kind": "range",
+          "value": null,
+          "lower": "4.25",
+          "upper": "4.50"
+        },
+        {
+          "effective": "2025-09-18",
+          "kind": "range",
+          "value": null,
+          "lower": "4.00",
+          "upper": "4.25"
+        },
+        {
+          "effective": "2025-10-30",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        },
+        {
+          "effective": "2025-12-11",
+          "kind": "range",
+          "value": null,
+          "lower": "3.50",
+          "upper": "3.75"
+        },
+        {
+          "effective": "2026-09-17",
+          "kind": "range",
+          "value": null,
+          "lower": "3.75",
+          "upper": "4.00"
+        }
+      ],
+      "target_dates": [
+        "1999-12-31",
+        "2000-07-03",
+        "2008-12-15",
+        "2008-12-16",
+        "2015-12-16",
+        "2015-12-17",
+        "2026-09-16",
+        "2026-09-17",
+        "2026-11-18"
+      ],
+      "expected": {
+        "latest": {
+          "period": "2026-11-18",
+          "value": "3.88"
+        },
+        "comparisons": [
+          {
+            "id": "previous",
+            "date": null,
+            "period": "2026-11-17",
+            "value": "3.88",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "month",
+            "date": "2026-10-18",
+            "period": "2026-10-16",
+            "value": "3.88",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "year",
+            "date": "2025-11-18",
+            "period": "2025-11-18",
+            "value": "3.88",
+            "bp": "0",
+            "reason": null
+          },
+          {
+            "id": "five-years",
+            "date": "2021-11-18",
+            "period": "2021-11-18",
+            "value": "0.08",
+            "bp": "380",
+            "reason": null
+          }
+        ],
+        "target_at": [
+          {
+            "date": "1999-12-31",
+            "effective": null
+          },
+          {
+            "date": "2000-07-03",
+            "effective": "2000-07-03"
+          },
+          {
+            "date": "2008-12-15",
+            "effective": "2008-10-29"
+          },
+          {
+            "date": "2008-12-16",
+            "effective": "2008-12-16"
+          },
+          {
+            "date": "2015-12-16",
+            "effective": "2008-12-16"
+          },
+          {
+            "date": "2015-12-17",
+            "effective": "2015-12-17"
+          },
+          {
+            "date": "2026-09-16",
+            "effective": "2025-12-11"
+          },
+          {
+            "date": "2026-09-17",
+            "effective": "2026-09-17"
+          },
+          {
+            "date": "2026-11-18",
+            "effective": "2026-09-17"
+          }
+        ],
+        "change_points": [
+          {
+            "effective": "2000-07-03",
+            "lower": "6.50",
+            "upper": "6.50",
+            "change": null
+          },
+          {
+            "effective": "2001-01-03",
+            "lower": "6.00",
+            "upper": "6.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-01-31",
+            "lower": "5.50",
+            "upper": "5.50",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-03-20",
+            "lower": "5.00",
+            "upper": "5.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-04-18",
+            "lower": "4.50",
+            "upper": "4.50",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-05-15",
+            "lower": "4.00",
+            "upper": "4.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-06-27",
+            "lower": "3.75",
+            "upper": "3.75",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2001-08-21",
+            "lower": "3.50",
+            "upper": "3.50",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2001-09-17",
+            "lower": "3.00",
+            "upper": "3.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-10-02",
+            "lower": "2.50",
+            "upper": "2.50",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-11-06",
+            "lower": "2.00",
+            "upper": "2.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2001-12-11",
+            "lower": "1.75",
+            "upper": "1.75",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2002-11-06",
+            "lower": "1.25",
+            "upper": "1.25",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2003-06-25",
+            "lower": "1.00",
+            "upper": "1.00",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2004-06-30",
+            "lower": "1.25",
+            "upper": "1.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2004-08-10",
+            "lower": "1.50",
+            "upper": "1.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2004-09-21",
+            "lower": "1.75",
+            "upper": "1.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2004-11-10",
+            "lower": "2.00",
+            "upper": "2.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2004-12-14",
+            "lower": "2.25",
+            "upper": "2.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-02-02",
+            "lower": "2.50",
+            "upper": "2.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-03-22",
+            "lower": "2.75",
+            "upper": "2.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-05-03",
+            "lower": "3.00",
+            "upper": "3.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-06-30",
+            "lower": "3.25",
+            "upper": "3.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-08-09",
+            "lower": "3.50",
+            "upper": "3.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-09-20",
+            "lower": "3.75",
+            "upper": "3.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-11-01",
+            "lower": "4.00",
+            "upper": "4.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2005-12-13",
+            "lower": "4.25",
+            "upper": "4.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2006-01-31",
+            "lower": "4.50",
+            "upper": "4.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2006-03-28",
+            "lower": "4.75",
+            "upper": "4.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2006-05-10",
+            "lower": "5.00",
+            "upper": "5.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2006-06-29",
+            "lower": "5.25",
+            "upper": "5.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2007-09-18",
+            "lower": "4.75",
+            "upper": "4.75",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2007-10-31",
+            "lower": "4.50",
+            "upper": "4.50",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2007-12-11",
+            "lower": "4.25",
+            "upper": "4.25",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2008-01-22",
+            "lower": "3.50",
+            "upper": "3.50",
+            "change": {
+              "lower": "-75",
+              "upper": "-75"
+            }
+          },
+          {
+            "effective": "2008-01-30",
+            "lower": "3.00",
+            "upper": "3.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2008-03-18",
+            "lower": "2.25",
+            "upper": "2.25",
+            "change": {
+              "lower": "-75",
+              "upper": "-75"
+            }
+          },
+          {
+            "effective": "2008-04-30",
+            "lower": "2.00",
+            "upper": "2.00",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2008-10-08",
+            "lower": "1.50",
+            "upper": "1.50",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2008-10-29",
+            "lower": "1.00",
+            "upper": "1.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2008-12-16",
+            "lower": "0.00",
+            "upper": "0.25",
+            "change": {
+              "lower": "-100",
+              "upper": "-75"
+            }
+          },
+          {
+            "effective": "2015-12-17",
+            "lower": "0.25",
+            "upper": "0.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2016-12-15",
+            "lower": "0.50",
+            "upper": "0.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2017-03-16",
+            "lower": "0.75",
+            "upper": "1.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2017-06-15",
+            "lower": "1.00",
+            "upper": "1.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2017-12-14",
+            "lower": "1.25",
+            "upper": "1.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2018-03-22",
+            "lower": "1.50",
+            "upper": "1.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2018-06-14",
+            "lower": "1.75",
+            "upper": "2.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2018-09-27",
+            "lower": "2.00",
+            "upper": "2.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2018-12-20",
+            "lower": "2.25",
+            "upper": "2.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2019-08-01",
+            "lower": "2.00",
+            "upper": "2.25",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2019-09-19",
+            "lower": "1.75",
+            "upper": "2.00",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2019-10-31",
+            "lower": "1.50",
+            "upper": "1.75",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2020-03-04",
+            "lower": "1.00",
+            "upper": "1.25",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2020-03-16",
+            "lower": "0.00",
+            "upper": "0.25",
+            "change": {
+              "lower": "-100",
+              "upper": "-100"
+            }
+          },
+          {
+            "effective": "2022-03-17",
+            "lower": "0.25",
+            "upper": "0.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2022-05-05",
+            "lower": "0.75",
+            "upper": "1.00",
+            "change": {
+              "lower": "50",
+              "upper": "50"
+            }
+          },
+          {
+            "effective": "2022-06-16",
+            "lower": "1.50",
+            "upper": "1.75",
+            "change": {
+              "lower": "75",
+              "upper": "75"
+            }
+          },
+          {
+            "effective": "2022-07-28",
+            "lower": "2.25",
+            "upper": "2.50",
+            "change": {
+              "lower": "75",
+              "upper": "75"
+            }
+          },
+          {
+            "effective": "2022-09-22",
+            "lower": "3.00",
+            "upper": "3.25",
+            "change": {
+              "lower": "75",
+              "upper": "75"
+            }
+          },
+          {
+            "effective": "2022-11-03",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "75",
+              "upper": "75"
+            }
+          },
+          {
+            "effective": "2022-12-15",
+            "lower": "4.25",
+            "upper": "4.50",
+            "change": {
+              "lower": "50",
+              "upper": "50"
+            }
+          },
+          {
+            "effective": "2023-02-02",
+            "lower": "4.50",
+            "upper": "4.75",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2023-03-23",
+            "lower": "4.75",
+            "upper": "5.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2023-05-04",
+            "lower": "5.00",
+            "upper": "5.25",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2023-07-27",
+            "lower": "5.25",
+            "upper": "5.50",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          },
+          {
+            "effective": "2024-09-19",
+            "lower": "4.75",
+            "upper": "5.00",
+            "change": {
+              "lower": "-50",
+              "upper": "-50"
+            }
+          },
+          {
+            "effective": "2024-11-08",
+            "lower": "4.50",
+            "upper": "4.75",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2024-12-19",
+            "lower": "4.25",
+            "upper": "4.50",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2025-09-18",
+            "lower": "4.00",
+            "upper": "4.25",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2025-10-30",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2025-12-11",
+            "lower": "3.50",
+            "upper": "3.75",
+            "change": {
+              "lower": "-25",
+              "upper": "-25"
+            }
+          },
+          {
+            "effective": "2026-09-17",
+            "lower": "3.75",
+            "upper": "4.00",
+            "change": {
+              "lower": "25",
+              "upper": "25"
+            }
+          }
+        ],
+        "comparison_table": [
+          {
+            "id": "latest",
+            "period": "2026-11-18",
+            "effr": "3.88",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": null
+          },
+          {
+            "id": "previous",
+            "period": "2026-11-17",
+            "effr": "3.88",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "month",
+            "period": "2026-10-16",
+            "effr": "3.88",
+            "target": {
+              "effective": "2026-09-17",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "year",
+            "period": "2025-11-18",
+            "effr": "3.88",
+            "target": {
+              "effective": "2025-10-30",
+              "lower": "3.75",
+              "upper": "4.00"
+            },
+            "target_change": {
+              "lower": "0",
+              "upper": "0"
+            }
+          },
+          {
+            "id": "five-years",
+            "period": "2021-11-18",
+            "effr": "0.08",
+            "target": {
+              "effective": "2020-03-16",
+              "lower": "0.00",
+              "upper": "0.25"
+            },
+            "target_change": {
+              "lower": "375",
+              "upper": "375"
+            }
+          }
+        ],
+        "recent": [
+          {
+            "period": "2026-11-18",
+            "value": "3.88",
+            "previous": "2026-11-17",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-17",
+            "value": "3.88",
+            "previous": "2026-11-16",
+            "bp": "1"
+          },
+          {
+            "period": "2026-11-16",
+            "value": "3.87",
+            "previous": "2026-11-13",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-11-13",
+            "value": "3.88",
+            "previous": "2026-11-12",
+            "bp": "1"
+          },
+          {
+            "period": "2026-11-12",
+            "value": "3.87",
+            "previous": "2026-11-10",
+            "bp": "-1"
+          },
+          {
+            "period": "2026-11-10",
+            "value": "3.88",
+            "previous": "2026-11-09",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-09",
+            "value": "3.88",
+            "previous": "2026-11-06",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-06",
+            "value": "3.88",
+            "previous": "2026-11-05",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-05",
+            "value": "3.88",
+            "previous": "2026-11-04",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-04",
+            "value": "3.88",
+            "previous": "2026-11-03",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-03",
+            "value": "3.88",
+            "previous": "2026-11-02",
+            "bp": "0"
+          },
+          {
+            "period": "2026-11-02",
+            "value": "3.88",
+            "previous": "2026-10-30",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-30",
+            "value": "3.88",
+            "previous": "2026-10-29",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-29",
+            "value": "3.88",
+            "previous": "2026-10-28",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-28",
+            "value": "3.88",
+            "previous": "2026-10-27",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-27",
+            "value": "3.88",
+            "previous": "2026-10-26",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-26",
+            "value": "3.88",
+            "previous": "2026-10-23",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-23",
+            "value": "3.88",
+            "previous": "2026-10-22",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-22",
+            "value": "3.88",
+            "previous": "2026-10-21",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-21",
+            "value": "3.88",
+            "previous": "2026-10-20",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-20",
+            "value": "3.88",
+            "previous": "2026-10-19",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-19",
+            "value": "3.88",
+            "previous": "2026-10-16",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-16",
+            "value": "3.88",
+            "previous": "2026-10-15",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-15",
+            "value": "3.88",
+            "previous": "2026-10-14",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-14",
+            "value": "3.88",
+            "previous": "2026-10-13",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-13",
+            "value": "3.88",
+            "previous": "2026-10-09",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-09",
+            "value": "3.88",
+            "previous": "2026-10-08",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-08",
+            "value": "3.88",
+            "previous": "2026-10-07",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-07",
+            "value": "3.88",
+            "previous": "2026-10-06",
+            "bp": "0"
+          },
+          {
+            "period": "2026-10-06",
+            "value": "3.88",
+            "previous": "2026-10-05",
+            "bp": "0"
+          }
+        ],
+        "windows": {
+          "1y": {
+            "start": "2025-11-18",
+            "end": "2026-11-18",
+            "x0": "2025-11-18",
+            "effr_first": "2025-11-18",
+            "effr_last": "2026-11-18",
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2025-11-18",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "5y": {
+            "start": "2021-11-18",
+            "end": "2026-11-18",
+            "x0": "2021-11-18",
+            "effr_first": "2021-11-18",
+            "effr_last": "2026-11-18",
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2021-11-18",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2022-03-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2022-05-05",
+                    "0.75",
+                    "1.00"
+                  ],
+                  [
+                    "2022-06-16",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2022-07-28",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-09-22",
+                    "3.00",
+                    "3.25"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2022-12-15",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2023-02-02",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2023-03-23",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2023-05-04",
+                    "5.00",
+                    "5.25"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-09-19",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2024-11-08",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2024-12-19",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-10-30",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "10y": {
+            "start": "2016-11-18",
+            "end": "2026-11-18",
+            "x0": "2016-11-18",
+            "effr_first": "2016-11-18",
+            "effr_last": "2026-11-18",
+            "segments": [
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2016-11-18",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "0.75"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.75",
+                    "1.00"
+                  ],
+                  [
+                    "2017-06-15",
+                    "1.00",
+                    "1.25"
+                  ],
+                  [
+                    "2017-12-14",
+                    "1.25",
+                    "1.50"
+                  ],
+                  [
+                    "2018-03-22",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2018-06-14",
+                    "1.75",
+                    "2.00"
+                  ],
+                  [
+                    "2018-09-27",
+                    "2.00",
+                    "2.25"
+                  ],
+                  [
+                    "2018-12-20",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2019-08-01",
+                    "2.00",
+                    "2.25"
+                  ],
+                  [
+                    "2019-09-19",
+                    "1.75",
+                    "2.00"
+                  ],
+                  [
+                    "2019-10-31",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2020-03-04",
+                    "1.00",
+                    "1.25"
+                  ],
+                  [
+                    "2020-03-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2022-03-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2022-05-05",
+                    "0.75",
+                    "1.00"
+                  ],
+                  [
+                    "2022-06-16",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2022-07-28",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-09-22",
+                    "3.00",
+                    "3.25"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2022-12-15",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2023-02-02",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2023-03-23",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2023-05-04",
+                    "5.00",
+                    "5.25"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-09-19",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2024-11-08",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2024-12-19",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-10-30",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          },
+          "all": {
+            "start": "2000-07-03",
+            "end": "2026-11-18",
+            "x0": "2000-07-03",
+            "effr_first": "2000-07-03",
+            "effr_last": "2026-11-18",
+            "segments": [
+              {
+                "kind": "rate",
+                "points": [
+                  [
+                    "2000-07-03",
+                    "6.50"
+                  ],
+                  [
+                    "2001-01-03",
+                    "6.00"
+                  ],
+                  [
+                    "2001-01-31",
+                    "5.50"
+                  ],
+                  [
+                    "2001-03-20",
+                    "5.00"
+                  ],
+                  [
+                    "2001-04-18",
+                    "4.50"
+                  ],
+                  [
+                    "2001-05-15",
+                    "4.00"
+                  ],
+                  [
+                    "2001-06-27",
+                    "3.75"
+                  ],
+                  [
+                    "2001-08-21",
+                    "3.50"
+                  ],
+                  [
+                    "2001-09-17",
+                    "3.00"
+                  ],
+                  [
+                    "2001-10-02",
+                    "2.50"
+                  ],
+                  [
+                    "2001-11-06",
+                    "2.00"
+                  ],
+                  [
+                    "2001-12-11",
+                    "1.75"
+                  ],
+                  [
+                    "2002-11-06",
+                    "1.25"
+                  ],
+                  [
+                    "2003-06-25",
+                    "1.00"
+                  ],
+                  [
+                    "2004-06-30",
+                    "1.25"
+                  ],
+                  [
+                    "2004-08-10",
+                    "1.50"
+                  ],
+                  [
+                    "2004-09-21",
+                    "1.75"
+                  ],
+                  [
+                    "2004-11-10",
+                    "2.00"
+                  ],
+                  [
+                    "2004-12-14",
+                    "2.25"
+                  ],
+                  [
+                    "2005-02-02",
+                    "2.50"
+                  ],
+                  [
+                    "2005-03-22",
+                    "2.75"
+                  ],
+                  [
+                    "2005-05-03",
+                    "3.00"
+                  ],
+                  [
+                    "2005-06-30",
+                    "3.25"
+                  ],
+                  [
+                    "2005-08-09",
+                    "3.50"
+                  ],
+                  [
+                    "2005-09-20",
+                    "3.75"
+                  ],
+                  [
+                    "2005-11-01",
+                    "4.00"
+                  ],
+                  [
+                    "2005-12-13",
+                    "4.25"
+                  ],
+                  [
+                    "2006-01-31",
+                    "4.50"
+                  ],
+                  [
+                    "2006-03-28",
+                    "4.75"
+                  ],
+                  [
+                    "2006-05-10",
+                    "5.00"
+                  ],
+                  [
+                    "2006-06-29",
+                    "5.25"
+                  ],
+                  [
+                    "2007-09-18",
+                    "4.75"
+                  ],
+                  [
+                    "2007-10-31",
+                    "4.50"
+                  ],
+                  [
+                    "2007-12-11",
+                    "4.25"
+                  ],
+                  [
+                    "2008-01-22",
+                    "3.50"
+                  ],
+                  [
+                    "2008-01-30",
+                    "3.00"
+                  ],
+                  [
+                    "2008-03-18",
+                    "2.25"
+                  ],
+                  [
+                    "2008-04-30",
+                    "2.00"
+                  ],
+                  [
+                    "2008-10-08",
+                    "1.50"
+                  ],
+                  [
+                    "2008-10-29",
+                    "1.00"
+                  ],
+                  [
+                    "2008-12-16",
+                    "1.00"
+                  ]
+                ]
+              },
+              {
+                "kind": "range",
+                "points": [
+                  [
+                    "2008-12-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2015-12-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2016-12-15",
+                    "0.50",
+                    "0.75"
+                  ],
+                  [
+                    "2017-03-16",
+                    "0.75",
+                    "1.00"
+                  ],
+                  [
+                    "2017-06-15",
+                    "1.00",
+                    "1.25"
+                  ],
+                  [
+                    "2017-12-14",
+                    "1.25",
+                    "1.50"
+                  ],
+                  [
+                    "2018-03-22",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2018-06-14",
+                    "1.75",
+                    "2.00"
+                  ],
+                  [
+                    "2018-09-27",
+                    "2.00",
+                    "2.25"
+                  ],
+                  [
+                    "2018-12-20",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2019-08-01",
+                    "2.00",
+                    "2.25"
+                  ],
+                  [
+                    "2019-09-19",
+                    "1.75",
+                    "2.00"
+                  ],
+                  [
+                    "2019-10-31",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2020-03-04",
+                    "1.00",
+                    "1.25"
+                  ],
+                  [
+                    "2020-03-16",
+                    "0.00",
+                    "0.25"
+                  ],
+                  [
+                    "2022-03-17",
+                    "0.25",
+                    "0.50"
+                  ],
+                  [
+                    "2022-05-05",
+                    "0.75",
+                    "1.00"
+                  ],
+                  [
+                    "2022-06-16",
+                    "1.50",
+                    "1.75"
+                  ],
+                  [
+                    "2022-07-28",
+                    "2.25",
+                    "2.50"
+                  ],
+                  [
+                    "2022-09-22",
+                    "3.00",
+                    "3.25"
+                  ],
+                  [
+                    "2022-11-03",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2022-12-15",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2023-02-02",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2023-03-23",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2023-05-04",
+                    "5.00",
+                    "5.25"
+                  ],
+                  [
+                    "2023-07-27",
+                    "5.25",
+                    "5.50"
+                  ],
+                  [
+                    "2024-09-19",
+                    "4.75",
+                    "5.00"
+                  ],
+                  [
+                    "2024-11-08",
+                    "4.50",
+                    "4.75"
+                  ],
+                  [
+                    "2024-12-19",
+                    "4.25",
+                    "4.50"
+                  ],
+                  [
+                    "2025-09-18",
+                    "4.00",
+                    "4.25"
+                  ],
+                  [
+                    "2025-10-30",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2025-12-11",
+                    "3.50",
+                    "3.75"
+                  ],
+                  [
+                    "2026-09-17",
+                    "3.75",
+                    "4.00"
+                  ],
+                  [
+                    "2026-11-18",
+                    "3.75",
+                    "4.00"
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

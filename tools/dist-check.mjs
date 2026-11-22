@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 // Checks on the built site in dist/: internal links resolve, nothing loads from another
 // origin, every page carries its metadata and CSP, the sitemap lists exactly the indexable
-// pages, and page weights stay within budget.
+// pages, page weights stay within budget, and economic data appears only as verified.
 
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
+// The economic data rules D1 to D6 (brief Q, owner briefs R and V): pure, shared with the unit tests and the mutation
+// pass. Node strips the types of this TypeScript module when it loads it.
+import { dataPagesOn, econLinkProblem, econTreeProblems, isEconPath, isInteractive, pagesGuardProblems, productionProblems } from '../src/lib/data/shell-dist.ts';
 
 const DIST = 'dist';
 const BASE = '/finance/';
@@ -18,11 +22,28 @@ const BUDGET = {
   chromeJsGzip: 4 * 1024,
   interactiveJsGzip: 60 * 1024,
 };
-// Calculator and lesson pages load their own island on top of the site chrome.
-const isInteractive = (page) => /^\/finance\/(calculators|learn)\/[^/]+\/$/.test(page);
+// Calculator and lesson pages, and the economic data pages, load their own island on top of
+// the site chrome (isInteractive, rule D1 of src/lib/data/shell-dist.ts).
+
+// Economic data (rules D2 and D3). ECON_VERIFIED names the verified file list of a release build
+// (written outside dist/ by the data step); ECON_DIR is the dataset the build read, if any.
+const listFiles = (dir, rel = '', out = []) => {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const r = rel ? `${rel}/${e.name}` : e.name;
+    if (e.isDirectory()) listFiles(join(dir, e.name), r, out);
+    else out.push(r);
+  }
+  return out;
+};
+const ECON_DIST = join(DIST, 'data', 'econ');
+const verifiedList = process.env.ECON_VERIFIED ? JSON.parse(readFileSync(process.env.ECON_VERIFIED, 'utf8')) : null;
+const verifiedPaths = verifiedList ? new Set(verifiedList.map((x) => x.path)) : null;
+const datasetFiles = process.env.ECON_DIR && existsSync(process.env.ECON_DIR) ? new Set(listFiles(process.env.ECON_DIR)) : null;
 
 const problems = [];
 const fail = (page, message) => problems.push(`${page}: ${message}`);
+// Every internal link target (URL path), for the pages guard (rule D5).
+const linkTargets = [];
 
 function htmlFiles(dir, out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -147,6 +168,14 @@ for (const file of pages) {
         continue;
       }
       const resolved = new URL(url, `http://x${page}`);
+      linkTargets.push(resolved.pathname);
+      // A link to a data file follows rule D3, never the page rule: the file exists only where a
+      // verified release is placed. Every other internal link must resolve in dist/.
+      if (isEconPath(resolved.pathname)) {
+        const problem = econLinkProblem(decodeURIComponent(resolved.pathname), resolved.search, verifiedPaths, datasetFiles);
+        if (problem) fail(page, problem);
+        continue;
+      }
       const target = fileForPath(resolved.pathname);
       if (!resolved.pathname.startsWith(BASE)) {
         fail(page, `internal link outside ${BASE}: ${url}`);
@@ -197,6 +226,22 @@ for (const f of sitemapFiles) {
   const dated = (xml.match(/<lastmod>\d{4}-\d{2}-\d{2}/g) ?? []).length;
   if (dated !== urls) fail('sitemap', `${urls - dated} URL(s) in ${f} have no lastmod`);
 }
+
+// Economic data (DATA_CONVENTIONS v0.8 22.8; rule D2): dist/data/econ/ is exactly the verified
+// release tree, file for file and hash for hash, and nothing else; without ECON_VERIFIED there is
+// no data/econ/ at all.
+for (const problem of econTreeProblems(existsSync(ECON_DIST) ? listFiles(ECON_DIST).sort() : null, verifiedList, (p) => createHash('sha256').update(readFileSync(join(ECON_DIST, p))).digest('hex'))) {
+  fail('data/econ', problem);
+}
+if (verifiedList) console.log(`data/econ: ${verifiedList.length} verified file(s)`);
+
+// The pages guard (owner brief R, option (b); rule D5): without DATA_PAGES=on no data page is built
+// and nothing links to one, so the build is the live site as it was; with it all four are built.
+const pagesOn = dataPagesOn(process.env);
+for (const problem of pagesGuardProblems(pagesOn, pages.map(urlForFile), linkTargets)) fail('data pages', problem);
+// Rule D6: production shows the data pages only from a verified release (owner brief V item 1).
+for (const problem of productionProblems(process.env, Boolean(process.env.ECON_DIR) && existsSync(process.env.ECON_DIR))) fail('production', problem);
+console.log(`data pages: ${pagesOn ? 'built (DATA_PAGES=on)' : 'held (DATA_PAGES not on)'}`);
 
 const kb = (n) => (n / 1024).toFixed(1).padStart(5);
 console.log('page                                   HTML gz  CSS gz   JS gz (KB)');

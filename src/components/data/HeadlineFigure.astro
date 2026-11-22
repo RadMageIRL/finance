@@ -1,0 +1,21 @@
+---
+// A headline figure (design P28 8.6, 9): the current value with its period. Its kind is written
+// out, never shown by color alone: "As published" for a provider's value, "Derived by RadMage
+// Finance" for a derived one (the FOMC target range, decision D9).
+import type { Headline } from '../../lib/data/ui';
+
+interface Props {
+  figure: Headline;
+}
+
+const { figure } = Astro.props;
+---
+<div class="data-headline" data-kind={figure.kind}>
+  <p class="data-headline__label">
+    <span>{figure.label}</span>
+    <span class:list={['data-kind', `data-kind--${figure.kind}`]}>{figure.kind === 'derived' ? 'Derived by RadMage Finance' : 'As published'}</span>
+  </p>
+  <p class="data-headline__value">{figure.value}</p>
+  <p class="data-headline__period small">{figure.period}</p>
+  {(figure.details ?? []).map((d) => <p class="data-headline__detail small muted">{d}</p>)}
+</div>

@@ -42,8 +42,11 @@ export function extractTests(source) {
 // environment ("falls back when storage access throws").
 const REFUSAL_NAME = /\b(rejects?|refuses?)\b|^throws\b/i;
 // Refusal forms used in this suite: thrown errors, results with ok: false, issue lists,
-// hidden or absent elements, and decoders that return an empty object.
-const REFUSAL_ASSERTION = /toThrow|\.ok\)\.toBe\(false|ok\s*===\s*false|ok:\s*false|issues|toBeHidden|toHaveCount\(0\)|code:\s*'|toEqual\(\{\}\)/;
+// hidden or absent elements, decoders that return an empty object, and the data pipeline's
+// non-empty problem or error lists. From the v0.8 publication (DATA_CONVENTIONS 22): an outcome
+// `refused-*`, a deploy refusal matched by its reason, a rule name from the reason check, and a
+// non-empty list of never-public withdrawn snapshots.
+const REFUSAL_ASSERTION = /toThrow|\.ok\)\.toBe\(false|ok\s*===\s*false|ok:\s*false|issues|toBeHidden|toHaveCount\(0\)|code:\s*'|toEqual\(\{\}\)|\.problems\)\.toEqual\(\['|errors\)\.toMatch\(|outcome: 'refused-|toBe\('refused-|toMatch\(\/[^/]*(compare-and-swap|not newer|must name)|textRefusal\([^)]*\)\)\.toBe\('|neverPublicWithdrawn\(.*\)\.toEqual\(\[[A-Z]/;
 
 /** Money and percent figures stated in a test name. */
 function statedFigures(name) {

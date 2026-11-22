@@ -1,0 +1,40 @@
+---
+// The one shared notice for the states of a dashboard's data (brief Q; design P28 7.1, 7.5 and
+// 8.7): loading, unavailable, stale, test data, newer data and a failed check. A notice is text
+// with a written title, never color alone (role="note", like the News preview banner). The
+// slot replaces the default sentence when a page needs its own words.
+//
+// The stale notice is in every stamp but shows only while the page holds a series whose status
+// is stale (CSS :has() on data-view-status, set at build time and again at view time), so the
+// build cannot show it for series a page does not show (decision D7).
+interface Props {
+  state: 'loading' | 'unavailable' | 'stale' | 'fixture' | 'newer' | 'failed';
+  /** Shown only when the page holds a stale series (the stamp's stale notice). */
+  whenStale?: boolean;
+  /** Starts hidden (a script shows it). */
+  hidden?: boolean;
+}
+
+const { state, whenStale = false, hidden = false } = Astro.props;
+const TITLES: Record<Props['state'], string> = {
+  loading: 'Checking',
+  unavailable: 'Data not available',
+  stale: 'Some data may be out of date',
+  fixture: 'Test data',
+  newer: 'Newer data',
+  failed: 'Not checked',
+};
+const TEXT: Record<Props['state'], string> = {
+  loading: 'Checking for newer data.',
+  unavailable: 'The data for this page is not available in this build. The figures, charts and tables appear when the site is built with a verified release of the data.',
+  stale: 'At least one series on this page was not updated by the time its next value was expected. Each series below shows its own status.',
+  fixture: 'This page shows the appendix B fixture dataset used for testing, which is synthetic after its saved dates. It is not a publication, and no value on this page is an official figure.',
+  newer: 'Newer data is available. Reload the page to see it.',
+  failed: 'Could not check for newer data. This page shows the data it was built with.',
+};
+const hasSlot = Astro.slots.has('default');
+---
+<div class:list={['data-notice', `data-notice--${state}`]} role="note" data-notice={state} data-notice-stale={whenStale ? '' : undefined} hidden={hidden}>
+  <p class="data-notice__title">{TITLES[state]}</p>
+  {hasSlot ? <div class="data-notice__text"><slot /></div> : <p class="data-notice__text">{TEXT[state]}</p>}
+</div>

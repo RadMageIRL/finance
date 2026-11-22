@@ -3674,5 +3674,16 @@ def main():
     return 0
 
 
+def run_econ_oracles():
+    """The dashboard oracles (brief Q): each tests/oracle/econ_*.py writes its own fixture file
+    under tests/oracle/fixtures/ when run as a script, from the decimal rules written for it."""
+    import runpy
+    for script in sorted(Path(__file__).resolve().parent.glob("econ_*.py")):
+        runpy.run_path(str(script), run_name="__main__")
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    status = main()
+    if status == 0:
+        run_econ_oracles()
+    sys.exit(status)

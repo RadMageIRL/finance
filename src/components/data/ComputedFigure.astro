@@ -1,0 +1,21 @@
+---
+// A figure RadMage Finance computes from published values (design P28 8.1, DATA_CONVENTIONS 16):
+// always labeled "Computed by RadMage Finance" with its formula, or, when it is not valid, the
+// reason it is not shown instead of a value.
+import type { ComputedFigure } from '../../lib/data/ui';
+
+interface Props {
+  figure: ComputedFigure;
+}
+
+const { figure } = Astro.props;
+const shown = !figure.unavailableReason;
+---
+<div class="data-computed" data-computed={shown ? 'shown' : 'not-shown'}>
+  <p class="data-computed__label">
+    <span>{figure.label}</span>
+    <span class="data-kind data-kind--computed">Computed by RadMage Finance</span>
+  </p>
+  {shown ? <p class="data-computed__value">{figure.value}</p> : <p class="data-computed__value data-computed__value--none">Not shown: {figure.unavailableReason}</p>}
+  <p class="data-computed__formula small muted">Formula: {figure.formula}</p>
+</div>

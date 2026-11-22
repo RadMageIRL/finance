@@ -1,0 +1,87 @@
+---
+// The static SVG line chart of design P28 8.2 (src/lib/data/line-chart.ts): rendered at build
+// time, it fits any width without a script (the marks stretch, the text does not). An HTML
+// legend says which line is which and whether it is observed or derived (also by dash, never
+// color alone). With JavaScript the chart takes focus: Left and Right move one point, Page Up
+// and Page Down about a month (a year on a monthly chart), Home and End to the ends, and a
+// polite live region reads every series at that point; the pointer does the same. Every value
+// is also in the page's table and CSV (`tableId`).
+//
+// `annotations` (optional, added at agent 3's request; the spec is unchanged) marks periods on
+// the chart with a numbered line, listed under it with their labels (rule C10 of line-chart.ts),
+// for example a published value that differs from another source.
+import type { ChartSpec } from '../../lib/data/ui';
+import { renderChart } from '../../lib/data/line-chart';
+import type { ChartAnnotation } from '../../lib/data/line-chart';
+
+interface Props {
+  spec: ChartSpec;
+  /** Periods to mark on the chart, each with a label (optional). */
+  annotations?: ChartAnnotation[];
+}
+
+const { spec, annotations = [] } = Astro.props;
+const r = renderChart(spec, { annotations });
+const bands = spec.bands ?? [];
+let observed = 0;
+const keys = [
+  ...spec.lines.map((l, i) => {
+    const dash = l.kind === 'derived' ? 'is-derived' : `is-observed is-observed-${Math.min(++observed, 3)}`;
+    return { label: l.label, kind: l.kind, type: 'line' as const, cls: `dchart__line dchart__line--${Math.min(i + 1, 3)} ${dash}` };
+  }),
+  ...bands.map((b, i) => ({ label: b.label, kind: b.kind, type: 'band' as const, color: Math.min(spec.lines.length + i + 1, 3), dash: b.kind === 'derived' ? 'is-derived' : 'is-observed' })),
+];
+const yLabels = [...r.axis.labels].reverse();
+const help = spec.periodKind === 'day' ? 'about a month' : 'a year';
+---
+<figure class="dchart" id={spec.id} data-dchart data-chart={r.data} data-unit={spec.unitLabel} data-low={String(r.axis.low)} data-high={String(r.axis.high)} data-given={r.given} data-drawn={r.drawn}>
+  <figcaption class="dchart__head">
+    <span class="dchart__title" id={`${spec.id}-title`}>{spec.title}</span>
+    <span class="dchart__unit small muted">{spec.unitLabel}</span>
+  </figcaption>
+  <ul class="dchart-legend" aria-label={`Legend: ${spec.title}`}>
+    {keys.map((k) => (
+      <li data-key-label={k.label}>
+        <svg class="dchart-key" viewBox="0 0 28 12" width="28" height="12" aria-hidden="true" focusable="false">
+          {k.type === 'line' ? <line class={k.cls} x1="1" y1="6" x2="27" y2="6" /> : <rect class={`dchart__band dchart__band--${k.color} dchart-key__band ${k.dash}`} x="1" y="1" width="26" height="10" />}
+        </svg>
+        <span>{k.label}</span>
+        <span class:list={['data-kind', `data-kind--${k.kind}`]}>{k.kind === 'derived' ? 'Derived by RadMage Finance' : 'As published'}</span>
+      </li>
+    ))}
+  </ul>
+  {r.hasData ? (
+    <div class="dchart__box" role="group" aria-labelledby={`${spec.id}-title`} aria-describedby={`${spec.id}-help`} data-chart-box>
+      <p class="dchart__axis-title" aria-hidden="true">{r.axis.title}</p>
+      <div class="dchart__frame">
+        <div class="dchart__yaxis" aria-hidden="true">{yLabels.map((l) => <span>{l}</span>)}</div>
+        <div class="dchart__plot">
+          <Fragment set:html={r.plotSvg} />
+          <Fragment set:html={r.wideAxisSvg} />
+          <Fragment set:html={r.narrowAxisSvg} />
+          {r.annotationSvg && <Fragment set:html={r.annotationSvg} />}
+        </div>
+      </div>
+      <p class="dchart__x-title" aria-hidden="true">Reference period ({spec.periodKind === 'day' ? 'day' : 'month'})</p>
+      <div class="dchart__readout" role="status" aria-live="polite" data-readout data-js-only></div>
+    </div>
+  ) : (
+    <p class="dchart__empty">No values to draw in this range.</p>
+  )}
+  <div class="dchart__notes small">
+    {r.hasData && (
+      <p class="muted" id={`${spec.id}-help`} data-js-only>
+        Focus the chart, then use the Left and Right arrow keys to read one point at a time, Page Up and Page Down to move {help}, and Home and End for the first and last points. Pointing at the chart reads the nearest point.
+      </p>
+    )}
+    <p>Values as currently published, including later revisions.</p>
+    <p>Drawn at screen resolution; every value is in the table and CSV.</p>
+    {r.annotations.length > 0 && (
+      <ol class="dchart__notes-list" aria-label={`Notes on the chart: ${spec.title}`}>
+        {r.annotations.map((a) => <li value={a.n}><span class="dchart__note-period">{a.period}</span>{a.inRange ? '' : ' (outside the range shown)'}: {a.label}</li>)}
+      </ol>
+    )}
+    {(spec.notes ?? []).map((n) => <p>{n}</p>)}
+    {spec.tableId && <p><a href={`#${spec.tableId}`}>The values in a table</a></p>}
+  </div>
+</figure>

@@ -10,11 +10,15 @@ import { FLOW_SOURCES, LESSONS_REVIEWED, LESSONS_REVIEWED_LABEL, numberer } from
 import { LESSON_CAPITAL_RATIO } from '../../lib/learn/banks';
 import { counters } from '../../lib/learn/sim';
 import { href } from '../../lib/url';
+import { dataPagesOn } from '../../lib/data/shell-dist';
 import '../../styles/learn.css';
 
 const n = numberer(FLOW_SOURCES);
 const opening = flowsOpening();
 const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) as Record<EntityId, string>;
+
+// The links to the economic data pages, held until DATA_PAGES=on (owner brief R, option (b); rule D5).
+const dataOn = dataPagesOn(process.env);
 ---
 <LessonLayout
   pageTitle="How Money Flows: Payments, Taxes and the Fed on Balance Sheets"
@@ -124,6 +128,7 @@ const names = Object.fromEntries(ENTITIES.map((e) => [e, ENTITY_INFO[e].name])) 
     <ul>
       <li><a href={href('learn/what-is-money/')}>What Is Money?</a>: deposits, reserves and Treasury bills compared.</li>
       <li><a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>: a loan from start to finish.</li>
+      {dataOn && <li><a href={href('data/public-debt/')}>National debt data</a>: total public debt outstanding and its two published parts, from the Treasury's Debt to the Penny.</li>}
     </ul>
   </section>
 

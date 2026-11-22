@@ -1,0 +1,143 @@
+/* Money Supply Tracker (/finance/data/money-stock/). Only this page imports this file. The
+   shared dashboard components keep their own styles; these rules lay out the page around them. */
+
+.money-page {
+  min-width: 0;
+}
+
+.money-section {
+  margin-block: var(--space-7);
+}
+
+.money-section > h2 {
+  font-size: var(--step-2);
+}
+
+/* With JavaScript, the adjustment switch shows one panel at a time; without it, both show. */
+.js .money-panel[data-inactive],
+.js .money-nojs {
+  display: none;
+}
+
+.money-switch {
+  margin: 0 0 var(--space-5);
+}
+
+.money-panel + .money-panel {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+
+.money-panel__title {
+  margin-top: 0;
+  font-size: var(--step-1);
+}
+
+.money-subhead {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: var(--step-0);
+}
+
+.money-status {
+  margin: 0 0 var(--space-4);
+}
+
+.money-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-5);
+}
+
+.money-grid > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.money-change + .money-change {
+  margin-top: var(--space-5);
+}
+
+.money-directions {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.money-direction {
+  margin: 0;
+}
+
+/* The tag is words; the border only repeats what the words say. */
+.money-direction__tag {
+  display: inline-block;
+  min-width: 6.5em;
+  margin-right: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 650;
+  text-align: center;
+}
+
+.money-direction[data-direction="grew"] .money-direction__tag {
+  border-left-color: var(--positive);
+}
+
+.money-direction[data-direction="shrank"] .money-direction__tag {
+  border-left-color: var(--negative);
+}
+
+.money-table thead th {
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.money-table:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.money-break + .money-break {
+  margin-top: var(--space-6);
+}
+
+.money-downloads,
+.money-downloads ul {
+  padding-left: var(--space-5);
+}
+
+.money-downloads > li + li {
+  margin-top: var(--space-4);
+}
+
+.money-downloads li,
+.money-sources li {
+  overflow-wrap: anywhere;
+}
+
+.money-sources li {
+  margin-bottom: var(--space-2);
+}
+
+.money-sources li:target {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.money-page .cite-ref {
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .money-direction__tag {
+    border-color: CanvasText;
+  }
+}

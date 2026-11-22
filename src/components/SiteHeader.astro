@@ -1,7 +1,9 @@
 ---
 import Icon from './Icon.astro';
 import ThemeControl from './ThemeControl.astro';
-import { MORE_NAV, PRIMARY_NAV, SITE } from '../lib/site';
+import { DATA_NAV, MORE_NAV, PRIMARY_NAV, SITE } from '../lib/site';
+import DataMenuEntry from './data/DataMenuEntry.astro';
+import { dataPagesOn } from '../lib/data/shell-dist';
 import { href, isWithin } from '../lib/url';
 
 const pathname = Astro.url.pathname;
@@ -15,7 +17,11 @@ const withState = (items: typeof PRIMARY_NAV) =>
   }));
 const nav = withState(PRIMARY_NAV);
 const more = withState(MORE_NAV);
-const moreCurrent = more.some((item) => item.current);
+// The economic data entry (decision D15): in the More menu, apart from the reference pages; held
+// with the data pages until DATA_PAGES=on (owner brief R, option (b); rule D5). In a held build
+// astro.config.mjs also resolves DataMenuEntry to an empty component, so its styles stay out.
+const [data] = dataPagesOn(process.env) ? withState([DATA_NAV]) : [];
+const moreCurrent = more.some((item) => item.current) || Boolean(data?.current);
 const ariaCurrent = (item: { exact: boolean; current: boolean }) =>
   item.exact ? 'page' : item.current ? 'true' : undefined;
 ---
@@ -42,6 +48,7 @@ const ariaCurrent = (item: { exact: boolean; current: boolean }) =>
                   <li><a href={item.url} aria-current={ariaCurrent(item)}>{item.label}</a></li>
                 ))}
               </ul>
+              {data && <DataMenuEntry where="more" url={data.url} label={data.label} ariaCurrent={ariaCurrent(data)} />}
               <p class="more-menu__foot">
                 <a href={SITE.publisherUrl}>RadMage Labs home</a>
               </p>
@@ -84,6 +91,8 @@ const ariaCurrent = (item: { exact: boolean; current: boolean }) =>
         ))}
       </ul>
     </nav>
+
+    {data && <DataMenuEntry where="menu" url={data.url} label={data.label} ariaCurrent={ariaCurrent(data)} />}
 
     <nav class="menu-nav menu-nav--secondary" aria-labelledby="menu-more-title">
       <p class="menu-section-title" id="menu-more-title">More</p>

@@ -1,53 +1,208 @@
 # Builds RadMage Finance and deploys it to GitHub Pages, where radmagelabs.com/finance/ serves it
-# through the RadMage Labs site. It runs only by hand (Actions tab, "Run workflow", or
-# `gh workflow run pages.yml`), so a push never publishes by accident. Needs the repository's
-# Pages source set to "GitHub Actions". The full local check (`npm run check`) is the release gate;
-# this workflow repeats the unit tests and the built-output checks before deploying.
+# through the RadMage Labs site. It runs only by hand or when the data publication dispatches it
+# (DATA_CONVENTIONS v0.8 22.8, prepared and not yet released). Modes:
+#   site       a site release; it keeps the deployed dataset, and its inputs must name it (I48);
+#   data       a publication or redeploy, dispatched by finance-data publish.yml;
+#   unpublish  builds without data/econ/ (the owner approves it in the environment `unpublish`).
+# The data steps and the independent checker come from finance-data at a pinned commit; nothing of
+# them is copied into this repository. Every action is pinned by full commit SHA (safeguard 5).
 name: Deploy to GitHub Pages
+run-name: ${{ format('pages {0} {1} {2} {3}', inputs.mode || 'site', inputs.snapshot || 'none', inputs.manifest_sha256 || 'none', inputs.tag || 'none') }}
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: site, data or unpublish
+        type: choice
+        options: [site, data, unpublish]
+        default: site
+      tag:
+        description: the data-* release (data; for site, the deployed one)
+        type: string
+        default: ''
+      snapshot:
+        description: the dataset's snapshot id (data; for site, the deployed one)
+        type: string
+        default: ''
+      manifest_sha256:
+        description: the dataset's manifest SHA-256 (data; for site, the deployed one)
+        type: string
+        default: ''
+      site_commit:
+        description: data - the site commit to build (main or an ancestor of it)
+        type: string
+        default: ''
+      expected_current:
+        description: data - the deployed dataset as <snapshot>:<sha256>, or none
+        type: string
+        default: ''
+      checker_commit:
+        description: the finance-data commit whose data steps and checker the build uses (default main)
+        type: string
+        default: ''
+      dry_run:
+        description: build and verify, skip the deploy
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  DATA_REPOSITORY: RadMageIRL/finance-data
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      expected: ${{ steps.state.outputs.expected }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.mode == 'data' && inputs.site_commit || 'main' }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The site commit is main or an ancestor of it (22.8)
+        run: git merge-base --is-ancestor HEAD origin/main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RadMageIRL/finance-data
+          ref: ${{ inputs.checker_commit || 'main' }}
+          path: econ-tools
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
+      - name: Inputs (22.8), and for a site run the deployed dataset it must name (I48)
+        id: state
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MODE: ${{ inputs.mode || 'site' }}
+          TAG: ${{ inputs.tag }}
+          SNAPSHOT: ${{ inputs.snapshot }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+          SITE_COMMIT: ${{ inputs.site_commit }}
+          EXPECTED: ${{ inputs.expected_current }}
+        run: |
+          node econ-tools/pipeline/bin/site-data.mjs check-inputs --site-repository "$GITHUB_REPOSITORY" --mode "$MODE" --tag "$TAG" --snapshot "$SNAPSHOT" --manifest-sha256 "$MANIFEST_SHA256" --site-commit "$SITE_COMMIT" --expected-current "$EXPECTED"
+          if [ "$MODE" = "data" ]; then echo "expected=$EXPECTED" >> "$GITHUB_OUTPUT"; else echo "expected=$(node econ-tools/pipeline/bin/site-data.mjs deployed --site-repository "$GITHUB_REPOSITORY" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"; fi
       - run: npm ci
+      # The pipeline is not in this repository: the dashboards' tests read its fixture scenario
+      # from the finance-data checkout (tools/econ-tools.mjs; owner brief V item 3).
       - name: Unit tests
+        env:
+          ECON_TOOLS: econ-tools
         run: npm run test:unit
+      # The release is fetched, checked and placed BEFORE the build (owner brief V item 1): the
+      # pages are built from the placed tree (ECON_DIR, ECON_SOURCE=release) and the tree is copied
+      # to dist/data/econ after the build, which empties dist/.
+      - name: The release, checked and placed outside dist (22.8, safeguard 2)
+        if: inputs.tag != '' && inputs.mode != 'unpublish'
+        env:
+          TAG: ${{ inputs.tag }}
+          SNAPSHOT: ${{ inputs.snapshot }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: |
+          node econ-tools/pipeline/bin/site-data.mjs fetch --release-repository "$DATA_REPOSITORY" --tag "$TAG" --snapshot "$SNAPSHOT" --manifest-sha256 "$MANIFEST_SHA256" --assets "$RUNNER_TEMP/assets" --out "$RUNNER_TEMP/econ" --verified "$RUNNER_TEMP/econ-verified.json"
+          python3 -I econ-tools/tests/datacheck/check_p22.py --release "$RUNNER_TEMP/assets" --expect "$SNAPSHOT:$MANIFEST_SHA256"
+          {
+            echo "ECON_DIR=$RUNNER_TEMP/econ"
+            echo "ECON_SOURCE=release"
+            echo "ECON_VERIFIED=$RUNNER_TEMP/econ-verified.json"
+          } >> "$GITHUB_ENV"
+      # The data pages (rule D5) only with BOTH the owner's approval, the repository variable
+      # DATA_PAGES set to on at P8, AND a release placed by the step above; otherwise the pages and
+      # their links stay held. dist-check rule D6 refuses any other combination (fail closed).
+      - name: The data pages, only when approved and a verified release is placed
+        env:
+          APPROVED: ${{ vars.DATA_PAGES }}
+        run: |
+          if [ "$APPROVED" = "on" ] && [ -n "${ECON_VERIFIED:-}" ]; then
+            echo "DATA_PAGES=on" >> "$GITHUB_ENV"
+            echo "data pages: on (approved, verified release placed)"
+          elif [ "$APPROVED" = "on" ]; then
+            echo "::warning::data pages held: approved, but this run placed no verified release"
+          else
+            echo "data pages: held (DATA_PAGES is not approved)"
+          fi
       - name: Production build
         run: npm run build
-      - name: Built-output checks (links, origins, metadata, sitemap, weight)
+      - name: The verified tree copied to dist/data/econ
+        if: env.ECON_VERIFIED != ''
+        run: |
+          mkdir -p dist/data
+          cp -R "$RUNNER_TEMP/econ" dist/data/econ
+      - name: Built-output checks (links, origins, metadata, sitemap, weight, data/econ, rule D6)
         run: node tools/dist-check.mjs
       # The same commit builds the same files in the same calendar month, so this list can be
       # compared with `node tools/dist-manifest.mjs` run on a local build of the same commit.
       - name: SHA-256 of every deployed file
         run: node tools/dist-manifest.mjs
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.tag != '' && inputs.mode != 'unpublish'
+        with:
+          name: release-assets
+          path: ${{ runner.temp }}/assets
+          retention-days: 7
 
-  deploy:
+  approve-unpublish:
+    if: inputs.mode == 'unpublish'
     needs: build
     runs-on: ubuntu-latest
+    environment: unpublish
+    permissions: {}
+    steps:
+      - run: echo "The owner approved unpublishing the economic data."
+
+  deploy:
+    needs: [build, approve-unpublish]
+    if: always() && needs.build.result == 'success' && !inputs.dry_run && (inputs.mode != 'unpublish' || needs.approve-unpublish.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      actions: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RadMageIRL/finance-data
+          ref: ${{ inputs.checker_commit || 'main' }}
+          path: econ-tools
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: inputs.tag != '' && inputs.mode != 'unpublish'
+        with:
+          name: release-assets
+          path: ${{ runner.temp }}/assets
+      - name: Compare-and-swap and the monotonic rule, immediately before the deploy (22.8, safeguard 1)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MODE: ${{ inputs.mode || 'site' }}
+          EXPECTED: ${{ needs.build.outputs.expected }}
+          SNAPSHOT: ${{ inputs.snapshot }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          assets=()
+          if [ -n "$TAG" ] && [ "$MODE" != "unpublish" ]; then assets=(--assets "$RUNNER_TEMP/assets"); fi
+          node econ-tools/pipeline/bin/site-data.mjs deploy-check --site-repository "$GITHUB_REPOSITORY" --mode "$MODE" --expected-current "$EXPECTED" --snapshot "$SNAPSHOT" "${assets[@]}"
       - id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

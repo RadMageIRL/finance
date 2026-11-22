@@ -1,0 +1,31 @@
+---
+// A data table (design P28 8.4): caption and scope set, numbers right-aligned in tabular
+// numerals with the unit in the header, an empty cell written as "Not available" (never zero).
+// On narrow widths each row stacks into labeled lines, like the calculators' schedule tables,
+// so the table never scrolls sideways; the explicit table roles keep it a table for assistive
+// technology whatever its display.
+import type { TableSpec } from '../../lib/data/ui';
+
+interface Props {
+  spec: TableSpec;
+}
+
+const { spec } = Astro.props;
+const [head, ...rest] = spec.columns;
+---
+<div class="data-table-wrap">
+  <table class="data-table" id={spec.id} role="table">
+    <caption id={`${spec.id}-caption`}>{spec.caption}</caption>
+    <thead role="rowgroup">
+      <tr role="row">{spec.columns.map((c) => <th scope="col" role="columnheader" class={c.numeric ? 'num' : undefined}>{c.label}</th>)}</tr>
+    </thead>
+    <tbody role="rowgroup">
+      {spec.rows.map((r) => (
+        <tr role="row">
+          {head && <th scope="row" role="rowheader" class:list={[{ num: head.numeric, 'is-missing': !r[head.key] }]}>{r[head.key] || 'Not available'}</th>}
+          {rest.map((c) => <td role="cell" data-label={c.label} class:list={[{ num: c.numeric, 'is-missing': !r[c.key] }]}>{r[c.key] || 'Not available'}</td>)}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

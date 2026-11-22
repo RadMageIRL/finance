@@ -1,0 +1,122 @@
+/* The National Debt Tracker page (src/data-pages/public-debt.astro). Layout only: the shared data
+   components carry their own styles (Agent 4); these rules place them on this page and keep
+   every table inside the content column at narrow widths. */
+
+.debt-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.debt-section {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+
+.debt-section > h2 {
+  margin-top: 0;
+  font-size: var(--step-2);
+}
+
+.debt-toc ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.debt-toc li + li {
+  margin-top: 0;
+}
+
+.debt-claim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--step--1);
+}
+
+.debt-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+
+.debt-figures--three {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.debt-figures > * {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow-wrap: break-word;
+}
+
+.debt-note {
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--caution);
+  background: var(--surface);
+}
+
+.debt-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.debt-links li + li {
+  margin-top: 0;
+}
+
+.debt-downloads {
+  margin-block: var(--space-3);
+}
+
+.debt-downloads summary {
+  cursor: pointer;
+}
+
+.debt-page table {
+  width: 100%;
+}
+
+.debt-page caption {
+  text-align: left;
+}
+
+/* Tables: a figure never breaks (it has no spaces), any other cell wraps between words, and a
+   table wider than the column scrolls inside its own focusable region (.debt-scroll) instead of
+   widening the page. Data tables are exempt from reflow (WCAG 1.4.10); on phones the shared
+   DataTable may stack its rows instead. */
+.debt-page thead th,
+.debt-page td.num,
+.debt-page th.num {
+  white-space: normal;
+}
+
+.debt-page caption,
+.debt-page figure {
+  overflow-wrap: break-word;
+}
+
+.debt-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: var(--space-3);
+}
+
+.debt-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

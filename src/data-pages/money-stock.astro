@@ -1,0 +1,533 @@
+---
+// Money Supply Tracker (brief Q, Agent 2): M1 and M2 from the Board's H.6 release, built from
+// the dataset that ECON_DIR names (econ-load.ts verifies every hash) or, without one, the
+// unavailable state. Every number comes from the dataset; every computed number follows the
+// rules of src/lib/data/money.ts and is labeled "Computed by RadMage Finance" with its formula.
+import DataLayout from '../layouts/DataLayout.astro';
+import DatasetStamp from '../components/data/DatasetStamp.astro';
+import SeriesStatus from '../components/data/SeriesStatus.astro';
+import SourceNote from '../components/data/SourceNote.astro';
+import DataChart from '../components/data/DataChart.astro';
+import DataTable from '../components/data/DataTable.astro';
+import HeadlineFigure from '../components/data/HeadlineFigure.astro';
+import ComputedFigure from '../components/data/ComputedFigure.astro';
+import RangeSwitch from '../components/data/RangeSwitch.astro';
+import ClaimLabel from '../components/ClaimLabel.astro';
+import Cite from '../components/learn/Cite.astro';
+import { loadEconDataset } from '../lib/data/econ-load';
+import { parseSegmentCsv, revisionRows, segmentsInOrder, seriesInfo } from '../lib/data/econ';
+import { DETECTED_LABEL, formatDay, formatMonth } from '../lib/data/format';
+import type { ChartLine, ChartSpec, ComputedFigure as Figure, Headline, TableSpec } from '../lib/data/ui';
+import {
+  H6_BREAKS,
+  MONEY_SERIES,
+  MONEY_SOURCES,
+  SOURCES_CHECKED,
+  definitionLines,
+  formatUtc,
+  isMissing,
+  measureView,
+  registryCopy,
+  registryNotes,
+  releasedText,
+  revisionDisplay,
+  sourceNumber,
+  type Adjustment,
+  type ChangeResult,
+  type MeasureView,
+} from '../lib/data/money';
+import { DATA_PAGES_REVIEWED } from '../lib/data/review';
+import { href } from '../lib/url';
+import '../styles/data-money.css';
+
+const dataset = loadEconDataset();
+const n = sourceNumber;
+const ALL_SERIES = [MONEY_SERIES.sa.m1, MONEY_SERIES.sa.m2, MONEY_SERIES.nsa.m1, MONEY_SERIES.nsa.m2];
+const ADJUSTMENTS: { id: Adjustment; label: string; short: string }[] = [
+  { id: 'sa', label: 'Seasonally adjusted', short: 'SA' },
+  { id: 'nsa', label: 'Not seasonally adjusted', short: 'NSA' },
+];
+const UNIT = 'Billions of U.S. dollars, monthly average';
+const M1_BREAK = H6_BREAKS.find((b) => b.measure === 'M1');
+const breakMonth = M1_BREAK ? formatMonth(M1_BREAK.period) : null;
+
+/** The two computed figures (dollars, percent) of one change, with their formulas. */
+function changeFigures(view: MeasureView, change: ChangeResult | null, kind: string): Figure[] {
+  if (!change) return [];
+  const from = formatMonth(change.from);
+  const to = formatMonth(change.to);
+  const label = `${view.measure}, ${kind}: ${from} to ${to}`;
+  const dollars: Figure = {
+    label: `${label}, in dollars`,
+    value: change.ok ? change.dollarsText : 'Not computed',
+    formula: `${view.measure} for ${to} minus ${view.measure} for ${from}, exactly as published (billions of dollars).`,
+    unavailableReason: change.ok ? null : change.reasonText,
+  };
+  const percent: Figure = {
+    label: `${label}, in percent`,
+    value: change.ok && change.percentText ? change.percentText : 'Not computed',
+    formula: `100 times (the ${to} value minus the ${from} value) divided by the ${from} value, rounded to two decimal places; a value exactly halfway is rounded away from zero.`,
+    unavailableReason: change.ok ? change.percentReasonText : change.reasonText,
+  };
+  return [dollars, percent];
+}
+
+/** The direction line of a change: words first, never color alone. */
+function direction(change: ChangeResult | null): { state: string; tag: string; text: string } | null {
+  if (!change) return null;
+  if (!change.ok) return { state: 'none', tag: 'Not computed', text: change.reasonText };
+  return { state: change.direction, tag: change.tag, text: change.sentence };
+}
+
+function headline(view: MeasureView, adjustment: string): Headline {
+  const c = view.current;
+  if (!c) return { label: `${view.measure}, ${adjustment.toLowerCase()}`, value: 'No data published yet', period: 'No months in the dataset', kind: 'observed' };
+  const row = view.rows[view.rows.length - 1];
+  const details = [`Released: ${releasedText(row?.released ?? null, row?.releasedBasis ?? 'not-recorded')}.`];
+  if (view.retrievedAt) details.push(`Retrieved ${formatUtc(view.retrievedAt)}${view.checkedAt ? `; last confirmed unchanged ${formatUtc(view.checkedAt)}` : ''}.`);
+  details.push('Subject to revision: this is one of the latest two months.');
+  if (c.value === null || c.missingCode !== null) details.push('The source publishes no value for this month, so no change ending in it is shown.');
+  return { label: `${view.measure}, ${adjustment.toLowerCase()}`, value: c.text, period: `${formatMonth(c.period)}, monthly average`, kind: 'observed', details };
+}
+
+function rangeText(view: MeasureView): string {
+  const first = view.rows[0];
+  const last = view.rows[view.rows.length - 1];
+  return first && last ? `${view.measure}: ${formatMonth(first.period)} to ${formatMonth(last.period)}` : `${view.measure}: no months`;
+}
+
+const registry = dataset ? registryCopy(dataset) : null;
+const notes = Object.fromEntries(ALL_SERIES.map((id) => [id, registryNotes(registry, id)]));
+const calendar = notes[MONEY_SERIES.sa.m1];
+
+const panels = dataset
+  ? ADJUSTMENTS.map((adj) => {
+      const ids = MONEY_SERIES[adj.id];
+      const views = [measureView(dataset, ids.m1), measureView(dataset, ids.m2)];
+      const lines: ChartLine[] = views.flatMap((v) => definitionLines(v.rows, v.measure, v.breaks).map((l) => ({ key: l.key, label: l.label, shape: 'line' as const, kind: 'observed' as const, points: l.points })));
+      const chart: ChartSpec = {
+        id: `money-chart-${adj.id}`,
+        title: `M1 and M2, ${adj.label.toLowerCase()}`,
+        unitLabel: UNIT,
+        periodKind: 'month',
+        lines,
+        notes: [
+          `Months shown: ${views.map(rangeText).join('; ')}.`,
+          'The latest two months of each measure are subject to revision.',
+          ...(breakMonth ? [`M1 is drawn as two lines because its definition changed in ${breakMonth}: from that month the Board counts savings deposits in M1. The jump in ${breakMonth} is that change of definition. M2 was not affected.`] : []),
+          'A month the source marks as missing is a gap in the line, never a zero.',
+        ],
+        tableId: `money-recent-${adj.id}`,
+      };
+      const recent: TableSpec[] = views.map((v) => ({
+        id: `money-recent-${adj.id}-${v.measure.toLowerCase()}`,
+        caption: `${v.title}: the latest ${v.recent.length} months, newest first`,
+        columns: [
+          { key: 'month', label: 'Month' },
+          { key: 'value', label: 'Billions of dollars', numeric: true },
+          { key: 'change', label: 'Change from the month before, billions of dollars (computed)', numeric: true },
+          { key: 'percent', label: 'Change from the month before, percent (computed)', numeric: true },
+          { key: 'released', label: 'Release' },
+        ],
+        rows: v.recent.map((r) => ({ month: r.month, value: r.value, change: r.change, percent: r.percent, released: r.released })),
+      }));
+      const compare: TableSpec[] = views.flatMap((v) =>
+        v.current
+          ? [
+              {
+                id: `money-compare-${adj.id}-${v.measure.toLowerCase()}`,
+                caption: `${v.title}: ${formatMonth(v.current.period)} compared with earlier years`,
+                columns: [
+                  { key: 'label', label: 'Compared with' },
+                  { key: 'month', label: 'Month' },
+                  { key: 'value', label: 'Billions of dollars', numeric: true },
+                  { key: 'change', label: `Change to ${formatMonth(v.current.period)}, billions of dollars (computed)`, numeric: true },
+                  { key: 'percent', label: `Change to ${formatMonth(v.current.period)}, percent (computed)`, numeric: true },
+                ],
+                rows: v.comparisons.map((c) => ({ label: c.label, month: c.month, value: c.value, change: c.change, percent: c.percent })),
+              },
+            ]
+          : [],
+      );
+      return {
+        ...adj,
+        views,
+        chart,
+        recent,
+        compare,
+        headlines: views.map((v) => headline(v, adj.label)),
+        changes: views.map((v) => ({
+          measure: v.measure,
+          lines: [direction(v.monthOverMonth), direction(v.yearOverYear)].filter((d) => d !== null),
+          figures: [...changeFigures(v, v.monthOverMonth, 'month over month'), ...changeFigures(v, v.yearOverYear, 'year over year')],
+        })),
+      };
+    })
+  : [];
+
+const missingCount = panels.flatMap((p) => p.views).reduce((k, v) => k + v.rows.filter((r) => isMissing(r)).length, 0);
+
+const revisions = dataset
+  ? ALL_SERIES.map((id) => {
+      const rows = revisionDisplay(revisionRows(dataset, id));
+      const table: TableSpec = {
+        id: `money-revisions-${id}`,
+        caption: `${seriesInfo(dataset, id).title}: changes we observed between our collections. Detection dates, and the dates in the basis, are Eastern Time dates; snapshot ids are UTC times.`,
+        columns: [
+          { key: 'detected', label: DETECTED_LABEL },
+          { key: 'month', label: 'Month' },
+          { key: 'field', label: 'Field' },
+          { key: 'before', label: 'Before' },
+          { key: 'after', label: 'After' },
+          { key: 'kind', label: 'Kind' },
+          { key: 'basis', label: 'Basis' },
+          { key: 'releaseDate', label: 'Release' },
+        ],
+        rows: rows.map((r) => ({ ...r })),
+      };
+      return { id, title: seriesInfo(dataset, id).title, count: rows.length, table };
+    })
+  : [];
+
+const yearOf = (path: string) => /\/(\d{4})\//.exec(path)?.[1] ?? '';
+const downloads = dataset
+  ? ALL_SERIES.map((id) => {
+      const s = seriesInfo(dataset, id);
+      const segments = [...segmentsInOrder(s.csvs)].reverse().map((ref) => {
+        const range = parseSegmentCsv(dataset.readText(ref.path)).comments.find((c) => c.startsWith('Segment '));
+        const m = range ? /^Segment \S+: (\d{4}-\d{2}) to (\d{4}-\d{2})\.$/.exec(range) : null;
+        const words = m && m[1] && m[2] ? `${formatMonth(m[1])} to ${formatMonth(m[2])}` : `segment ${ref.segment}`;
+        return { href: href(`data/econ/${ref.path}`), name: `${id}-${ref.segment}.csv`, text: `${s.title}, ${words} (CSV)`, retrieved: ref.retrieved_at };
+      });
+      const logs = [
+        ...[...(s.revision_csvs ?? [])].reverse().map((r) => ({ href: href(`data/econ/${r.path}`), name: `${id}-revisions-${yearOf(r.path)}.csv`, text: `Changes observed in ${yearOf(r.path)} (CSV)` })),
+        ...[...(s.revisions ?? [])].reverse().map((r) => ({ href: href(`data/econ/${r.path}`), name: `${id}-revisions-${yearOf(r.path)}.json`, text: `Changes observed in ${yearOf(r.path)} (JSON)` })),
+      ];
+      return { id, title: s.title, segments, logs };
+    })
+  : [];
+
+const inconsistencies = ALL_SERIES.flatMap((id) => (notes[id]?.inconsistencies ?? []).map((k) => ({ id, ...k })));
+const site = Astro.site ?? new URL('https://radmagelabs.com');
+const firstPeriod = panels[0]?.views[0]?.rows[0]?.period;
+const lastPeriods = panels.flatMap((p) => p.views.map((v) => v.rows[v.rows.length - 1]?.period ?? '')).filter(Boolean).sort();
+const lastPeriod = lastPeriods[lastPeriods.length - 1];
+
+const schema: Record<string, unknown> = {
+  '@type': 'Dataset',
+  name: 'M1 and M2 money stock (Federal Reserve H.6), as shown by RadMage Finance',
+  creator: { '@type': 'Organization', name: 'Board of Governors of the Federal Reserve System', url: 'https://www.federalreserve.gov/' },
+  isBasedOn: 'https://www.federalreserve.gov/releases/h6/',
+  isAccessibleForFree: true,
+  variableMeasured: [
+    { '@type': 'PropertyValue', name: 'M1 money stock', unitText: UNIT },
+    { '@type': 'PropertyValue', name: 'M2 money stock', unitText: UNIT },
+  ],
+  measurementTechnique: 'Monthly averages published by the Federal Reserve Board in its H.6 release, seasonally adjusted and not seasonally adjusted',
+  ...(firstPeriod && lastPeriod ? { temporalCoverage: `${firstPeriod}/${lastPeriod}` } : {}),
+  ...(dataset ? { distribution: downloads.flatMap((d) => d.segments.map((s) => ({ '@type': 'DataDownload', name: s.text, encodingFormat: 'text/csv', contentUrl: new URL(s.href, site).href }))) } : {}),
+};
+---
+<DataLayout
+  title="Money Supply Tracker"
+  description="M1 and M2 from the Federal Reserve's H.6 release since 1959: the latest monthly values, month over month and year over year changes, definition changes, revisions and freshness."
+  current="money-stock"
+  lastReviewed={DATA_PAGES_REVIEWED}
+  schema={schema}
+  lead="How much money people and businesses hold as cash, in bank accounts and in retail money market funds in the United States, as the Federal Reserve Board measures it in its monthly H.6 release: M1 and M2 since January 1959, with changes computed by RadMage Finance."
+>
+  <div class="money-page">
+    <DatasetStamp dataset={dataset} />
+
+    <section class="prose money-section" aria-labelledby="money-what">
+      <h2 id="money-what">What this page shows</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">Definitions from the Federal Reserve Board</span></p>
+      <p>
+        The Federal Reserve Board publishes two main measures of the money stock in its H.6
+        release, Money Stock Measures, once a month.<Cite ids={['h6-about']} number={n} />
+        Both are monthly averages in billions of dollars.
+      </p>
+      <ul>
+        <li>
+          <strong>M1</strong> is currency held outside the U.S. Treasury, the Federal Reserve Banks
+          and the vaults of banks and other depository institutions, plus demand deposits and
+          "other liquid deposits": other checkable deposits and savings deposits.<Cite ids={['h6-release', 'fed-money-supply']} number={n} />
+        </li>
+        <li>
+          <strong>M2</strong> is M1 plus small-denomination time deposits (under $100,000) and
+          balances in retail money market funds, less balances in individual retirement accounts
+          and Keogh accounts.<Cite ids={['h6-release', 'fed-money-supply']} number={n} />
+        </li>
+      </ul>
+      <p>
+        <strong>Seasonally adjusted</strong> figures (SA) remove the pattern that repeats at the
+        same time every year, so one month can be compared with the next. <strong>Not seasonally
+        adjusted</strong> figures (NSA) keep that pattern; compare them with the same month a
+        year earlier. The page shows seasonally adjusted figures first. Each chart shows one
+        adjustment only.
+      </p>
+    </section>
+
+    {dataset === null ? (
+      <section class="prose money-section" aria-labelledby="money-unavailable">
+        <h2 id="money-unavailable">The data are not available in this build</h2>
+        <p>
+          This copy of the page was built without a dataset, so it shows no values, changes or
+          downloads. The explanations below still apply. The data come from the Board of
+          Governors of the Federal Reserve System, H.6 Money Stock Measures.
+        </p>
+      </section>
+    ) : (
+      <section class="money-section" aria-labelledby="money-data">
+        <h2 id="money-data">The latest figures</h2>
+        <div class="money-switch" data-js-only>
+          <RangeSwitch
+            name="money-adjustment"
+            legend="Seasonal adjustment"
+            options={ADJUSTMENTS.map((a) => ({ value: a.id, label: a.label }))}
+            value="sa"
+            controls="money-panels"
+          />
+          <p class="vh" role="status" aria-live="polite" data-money-status></p>
+        </div>
+        <p class="small muted money-nojs">Seasonally adjusted figures come first, then the same figures not seasonally adjusted.</p>
+        <div id="money-panels" class="money-panels">
+          {panels.map((p) => (
+            <section class="money-panel" data-money-panel={p.id} data-money-label={p.label.toLowerCase()} data-inactive={p.id === 'sa' ? undefined : ''} aria-labelledby={`money-panel-${p.id}`}>
+              <h3 id={`money-panel-${p.id}`} class="money-panel__title">{p.label} ({p.short})</h3>
+              <div class="money-status">
+                {p.views.map((v) => <SeriesStatus dataset={dataset} seriesId={v.seriesId} />)}
+              </div>
+              <div class="money-grid">
+                {p.headlines.map((h) => <HeadlineFigure figure={h} />)}
+              </div>
+
+              <h4 class="money-subhead">Growing or shrinking</h4>
+              <p class="small muted">Computed by RadMage Finance from the published values. A change is not computed when either month is missing or when the definition changed between them.</p>
+              {p.id === 'nsa' && <p class="small muted" data-money-nsa-note>Not seasonally adjusted: a change from one month to the next includes the seasonal pattern, so compare with the same month a year earlier, or see the seasonally adjusted figures.</p>}
+              {p.changes.map((c) => (
+                <div class="money-change" data-measure={c.measure}>
+                  <ul class="money-directions">
+                    {c.lines.map((d) => (
+                      <li class="money-direction" data-direction={d.state}><span class="money-direction__tag">{d.tag}</span> <span>{d.text}</span></li>
+                    ))}
+                  </ul>
+                  <div class="money-grid">
+                    {c.figures.map((f) => <ComputedFigure figure={f} />)}
+                  </div>
+                </div>
+              ))}
+
+              <h4 class="money-subhead">History since 1959</h4>
+              <DataChart spec={p.chart} />
+
+              <h4 class="money-subhead">Compared with one, five and ten years earlier</h4>
+              {p.compare.map((t) => (
+                <div class="table-wrap money-table" role="region" tabindex="0" aria-label={t.caption}>
+                  <DataTable spec={t} />
+                </div>
+              ))}
+
+              <h4 class="money-subhead" id={`money-recent-${p.id}`}>The latest 24 months</h4>
+              <p class="small muted">The latest two months of each measure are marked "subject to revision". Every month since 1959 is in the CSV downloads below.</p>
+              {p.recent.map((t) => (
+                <div class="table-wrap money-table" role="region" tabindex="0" aria-label={t.caption}>
+                  <DataTable spec={t} />
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="prose money-section" aria-labelledby="money-inflation">
+      <h2 id="money-inflation">Money supply growth is not inflation</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">What each measure counts</span></p>
+      <p>
+        M1 and M2 count dollars: cash and balances in certain accounts. Inflation is about prices.
+        In the Board's words, inflation "is a general increase in the overall price level of the
+        goods and services in the economy", and Federal Reserve policymakers evaluate changes in
+        inflation "by monitoring several different price indexes."<Cite ids={['fed-faq-inflation']} number={n} />
+        A change in M1 or M2 is not a price index and is not an inflation rate.
+      </p>
+      <p>
+        The Board says: "Over some periods, measures of the money supply have exhibited
+        close relationships with important economic variables such as nominal gross domestic
+        product and the price level." It also says the Federal Open Market Committee reviews
+        money supply data, "but money supply figures are just part of a wide array of financial
+        and economic data that policymakers review."<Cite ids={['fed-money-supply']} number={n} />
+      </p>
+      <p>
+        This page computes no inflation rate and draws no conclusion about prices from these
+        figures. When it says the money stock grew or shrank, it means only that: the amount of
+        money held changed. The jump in the M1 chart in {breakMonth ?? 'May 2020'} is a change of
+        definition: savings deposits that already existed were counted in M1 from then on.
+      </p>
+    </section>
+
+    <section class="prose money-section" aria-labelledby="money-breaks">
+      <h2 id="money-breaks">Definition changes and breaks in the data</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">From the Board's H.6 technical questions and answers</span></p>
+      {H6_BREAKS.map((b) => (
+        <div class="money-break" data-break={b.period}>
+          <h3>{b.measure} from {formatMonth(b.period)}</h3>
+          <p>{b.summary}<Cite ids={['h6-qa']} number={n} /></p>
+          <blockquote class="citation">
+            <p>"{b.quote}"</p>
+            <p><cite>{b.source.publisher}, {b.source.title}</cite>, {b.source.date}; checked {formatDay(b.source.checked)}.</p>
+          </blockquote>
+          <p>
+            <strong>How this page treats it.</strong> The values on both sides of the break are
+            shown exactly as published. The chart draws {b.measure} as one line up to{' '}
+            {formatMonth(b.period)} and a separate line from {formatMonth(b.period)} on. No
+            change is computed across the break: the month over month change for{' '}
+            {formatMonth(b.period)}, the year over year changes ending in {formatMonth(b.period)}{' '}
+            through the following April, and any comparison whose earlier month is before{' '}
+            {formatMonth(b.period)} show "Not computed (definition change)" with the reason.
+          </p>
+        </div>
+      ))}
+      <p>
+        The Board has also revised the data at other times without a break, for example after
+        reviews of seasonal factors. After it changed its netting method for individual retirement
+        account and Keogh balances (questions posted July 28, 2026), "total non-seasonally adjusted M2 remained unchanged,
+        while seasonally adjusted M2 had minor revisions."<Cite ids={['h6-qa']} number={n} />
+        The release became monthly in February 2021. Announcing the change in December 2020, the Board said: "The H.6 statistical release will no
+        longer contain growth rates of the monetary aggregates".<Cite ids={['h6-qa']} number={n} /> Every change on
+        this page is computed by RadMage Finance, not published by the Board.
+      </p>
+      {dataset && (
+        inconsistencies.length > 0 ? (
+          <>
+            <p>Our data registry also records these source notes, kept as published:</p>
+            <ul>
+              {inconsistencies.map((k) => <li>{k.id}, {k.period}: {k.text}</li>)}
+            </ul>
+          </>
+        ) : (
+          <p>Our data registry records no other known inconsistencies for these four series.</p>
+        )
+      )}
+    </section>
+
+    <section class="prose money-section" aria-labelledby="money-method">
+      <h2 id="money-method">How the changes are computed</h2>
+      <p class="small muted">Every change on this page is computed by RadMage Finance from the values the Board publishes.</p>
+      <ul>
+        <li><strong>Month over month</strong> compares a month with the calendar month before it; <strong>year over year</strong> with the same month a year earlier; the comparison tables with the same month one, five and ten years earlier. The page never substitutes the nearest available month.</li>
+        <li><strong>In dollars:</strong> the later value minus the earlier value, exactly as the Board publishes them (one decimal place, billions of dollars).</li>
+        <li><strong>In percent:</strong> 100 times the dollar change divided by the earlier value, computed exactly and then rounded to two decimal places. A value exactly halfway is rounded away from zero: 0.125 percent is shown as 0.13 percent and minus 0.125 percent as minus 0.13 percent.</li>
+        <li><strong>Growing or shrinking</strong> comes from the sign of the exact dollar change: above zero the money stock grew, below zero it shrank, zero it was unchanged. It is always written in words.</li>
+        <li><strong>Not computed</strong> when either month has no observation, when the Board marks either month as missing, or when the definition changed between the two months. The reason is shown instead.</li>
+        <li>The values shown are the ones as currently published, including the Board's later revisions.</li>
+      </ul>
+    </section>
+
+    <section class="prose money-section" aria-labelledby="money-fresh">
+      <h2 id="money-fresh">Publication, freshness and missing values</h2>
+      <p class="claim-line"><ClaimLabel kind="fact" /> <span class="small muted">From the release calendar and our data registry</span></p>
+      <p>
+        The H.6 release is published monthly.<Cite ids={['h6-about']} number={n} />
+        {calendar?.calendarText ? <>Timing, as our registry records it: {calendar.calendarText}</> : <>Each month's figures appear in the release of the following month.</>}
+        {calendar?.calendarValidFrom && <> Release dates are recorded from the first monthly release, on {formatDay(calendar.calendarValidFrom)}; earlier months show "Release date not recorded".</>}
+      </p>
+      <p>
+        The status line above each set of figures says whether a series is up to date as of
+        the snapshot this page was built from and, with JavaScript on, as of your device's
+        clock, and when the next value is expected.
+        {calendar?.graceHours !== null && calendar?.graceHours !== undefined && <> The next value counts as late {calendar.graceHours} hours after its expected release time.</>}
+        {calendar?.staleAfterDays !== null && calendar?.staleAfterDays !== undefined && <> A series counts as out of date {calendar.staleAfterDays} days after that.</>}{' '}
+        The figures on this page never change in your browser: they are the snapshot named at
+        the top of the page.
+        {dataset?.source === 'release' && <> With JavaScript on, the page also checks whether newer data has been published and says so.</>}
+      </p>
+      <p>
+        The latest two months of each series are subject to revision: the Board revises recent
+        months in later releases, and its own tables mark some recent components as estimated.
+        This page marks those two months without claiming which values are estimates.
+      </p>
+      <p>
+        When the Board marks a month as not available (NA), no data (ND) or not calculable
+        (NC), the page shows that term with its code, leaves a gap in the chart and computes no
+        change that needs the month. A missing month is never shown as zero or filled in from
+        its neighbors.
+        {dataset && (missingCount === 0 ? <> No month in this build carries a missing code.</> : <> This build has {missingCount} missing month{missingCount === 1 ? '' : 's'}.</>)}
+      </p>
+    </section>
+
+    {dataset && (
+      <section class="money-section" aria-labelledby="money-revisions">
+        <h2 id="money-revisions">Revision history</h2>
+        <div class="prose">
+          <p>
+            These are the changes we observed between our own collections of the H.6 data: a
+            value the Board revised, or data we withdrew and later restored. It is not the Board's
+            complete revision history, which it does not publish in this form.
+          </p>
+        </div>
+        {revisions.map((r) => (
+          <div class="money-revision" data-series={r.id}>
+            <h3>{r.title}</h3>
+            {r.count === 0 ? (
+              <p>No changes observed between our collections yet.</p>
+            ) : (
+              <div class="table-wrap money-table" role="region" tabindex="0" aria-label={r.table.caption}>
+                <DataTable spec={r.table} />
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
+    )}
+
+    {dataset && (
+      <section class="money-section" aria-labelledby="money-downloads">
+        <h2 id="money-downloads">Downloads</h2>
+        <div class="prose">
+          <p>
+            Each file is the data exactly as RadMage Finance publishes it: comment lines with the
+            title, source and retrieval time, then one row per month. Missing months keep an
+            empty value and their code.
+          </p>
+        </div>
+        <ul class="money-downloads">
+          {downloads.map((d) => (
+            <li>
+              <strong>{d.title}</strong>
+              <ul>
+                {d.segments.map((s) => <li><a href={s.href} download={s.name}>{s.text}</a>, retrieved {formatUtc(s.retrieved)}</li>)}
+                {d.logs.map((l) => <li><a href={l.href} download={l.name}>{l.text}</a></li>)}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {dataset && <SourceNote dataset={dataset} seriesIds={ALL_SERIES} />}
+
+    <section class="prose money-section" aria-labelledby="money-related">
+      <h2 id="money-related">Related</h2>
+      <ul>
+        <li><a href={href('learn/what-is-money/')}>What Is Money?</a>: cash, bank deposits, reserves, stablecoins and gold compared, and where M1 and M2 fit.</li>
+        <li><a href={href('learn/how-banks-create-money/')}>How Banks Create Money</a>: bank deposits make up much of M1 and M2, and this lesson shows a new deposit appearing when a bank lends.</li>
+        <li><a href={href('learn/how-money-flows/')}>How Money Flows</a>: wages, spending, lending, taxes and Treasury borrowing, followed between households, banks, the Treasury and the Federal Reserve.</li>
+      </ul>
+    </section>
+
+    <section class="prose money-section" aria-labelledby="money-sources">
+      <h2 id="money-sources">Sources</h2>
+      <p class="small">Every source was checked on {formatDay(SOURCES_CHECKED)}.</p>
+      <ol class="money-sources small">
+        {MONEY_SOURCES.map((s) => (
+          <li id={`src-${s.id}`}>{s.publisher}, <a href={s.url}>{s.title}</a>, {s.date}.</li>
+        ))}
+      </ol>
+    </section>
+  </div>
+</DataLayout>
+
+<script>
+  import '../scripts/data/money';
+</script>

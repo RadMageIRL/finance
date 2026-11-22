@@ -1,0 +1,40 @@
+---
+// The as-of stamp of a dashboard page (design P28 7.5, 8.6, 8.7): the snapshot the page was
+// built from, the test-data label for the appendix B fixture root, the unavailable state when
+// the build had no dataset, the stale notice (shown only while a series on the page is stale),
+// and the newer-data check. The check runs only in a build from a verified release, where the
+// manifest is part of the same deployment at /finance/data/econ/manifest.json: a build without
+// one never fetches, because a request that fails is logged by the browser itself.
+import DataNotice from './DataNotice.astro';
+import type { EconDataset } from '../../lib/data/econ';
+import { snapshotText } from '../../lib/data/shell-text';
+import { href } from '../../lib/url';
+
+interface Props {
+  dataset: EconDataset | null;
+}
+
+const { dataset } = Astro.props;
+const snapshot = dataset?.manifest.snapshot.id ?? null;
+const check = dataset?.source === 'release' ? 'release' : 'off';
+---
+{dataset === null || snapshot === null ? (
+  <section class="data-stamp" aria-label="About this data" data-econ-stamp data-state="unavailable" data-check="off">
+    <DataNotice state="unavailable" />
+  </section>
+) : (
+  <section class="data-stamp" aria-label="About this data" data-econ-stamp data-state={dataset.source === 'fixture' ? 'fixture' : 'current'} data-snapshot={snapshot} data-check={check} data-manifest-url={href('data/econ/manifest.json')}>
+    {dataset.source === 'fixture' && <DataNotice state="fixture" />}
+    <DataNotice state="stale" whenStale />
+    <p class="data-stamp__asof">
+      As of the snapshot of <time datetime={dataset.manifest.generated_at}>{snapshotText(snapshot)}</time> (<code>{snapshot}</code>).
+    </p>
+    <p class="data-stamp__clock small muted" data-stamp-clock>
+      {check === 'release'
+        ? "Each status is as of that snapshot. With JavaScript on, this page also checks each status against your device's clock and looks for newer data."
+        : "Each status is as of that snapshot. With JavaScript on, this page also checks each status against your device's clock."}
+    </p>
+    {check === 'release' && <DataNotice state="loading" hidden />}
+    <p class="data-stamp__live small" role="status" aria-live="polite" data-refresh-status></p>
+  </section>
+)}

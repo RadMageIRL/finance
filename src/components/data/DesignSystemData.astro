@@ -1,0 +1,116 @@
+---
+// The economic data components of the design-system review page (brief Q, agent 4), in one
+// component so that their styles and script reach the page only when the data pages are built
+// (DATA_PAGES=on; owner brief R, option (b); rule D5 of src/lib/data/shell-dist.ts).
+import '../../styles/data.css';
+import ComputedFigureView from './ComputedFigure.astro';
+import DashboardNav from './DashboardNav.astro';
+import DataChart from './DataChart.astro';
+import DataNotice from './DataNotice.astro';
+import DataTable from './DataTable.astro';
+import DatasetStamp from './DatasetStamp.astro';
+import HeadlineFigure from './HeadlineFigure.astro';
+import IndicatorCard from './IndicatorCard.astro';
+import RangeSwitch from './RangeSwitch.astro';
+import SeriesStatus from './SeriesStatus.astro';
+import SourceNote from './SourceNote.astro';
+import { loadEconDataset } from '../../lib/data/econ-load';
+import { seriesInfo } from '../../lib/data/econ';
+import { effrWithTarget, recentTable, seriesLines } from '../../lib/data/shell-demo';
+import { periodText, rangeText, valueText } from '../../lib/data/shell-text';
+
+// The economic data components (brief Q), shown with the build's dataset: the appendix B
+// fixture root in local builds (test data, never a publication), or nothing.
+const econ = loadEconDataset();
+const effr = econ ? seriesInfo(econ, 'effr') : null;
+const target = econ ? seriesInfo(econ, 'fomc-target') : null;
+const targetRange = target?.last_range as { lower: string; upper: string } | null | undefined;
+const rateChart = econ ? effrWithTarget(econ, '2024-01-02', 'ds-chart-rates') : null;
+const moneyChart = econ ? seriesLines(econ, ['m1-sa', 'm2-sa'], '1990-01', 'ds-chart-money', 'M1 and M2, seasonally adjusted') : null;
+const debtChart = econ ? seriesLines(econ, ['debt-held-public', 'debt-intragov'], '1997-01-01', 'ds-chart-debt', 'Debt held by the public and intragovernmental holdings') : null;
+if (debtChart) {
+  for (const l of debtChart.lines) l.points = l.points.filter((pt) => pt.x <= '2006-12-31');
+  debtChart.notes = ['Before 2005-03-31 the parts were published only at fiscal year ends, then month ends: those values are drawn as separate markers, never joined.'];
+  delete debtChart.tableId;
+}
+if (moneyChart) delete moneyChart.tableId;
+const rateTable = econ ? recentTable(econ, 'effr', 10, 'ds-chart-rates-table') : null;
+const shortTable = econ ? recentTable(econ, 'effr', 5, 'ds-table-short') : null;
+---
+<section class="section" aria-labelledby="ds-data">
+  <h2 id="ds-data">Economic data components</h2>
+  <p class="muted">
+    The shared pieces of the dashboards under /finance/data/. In local builds the examples use
+    the appendix B fixture dataset, which is test data and never a publication; a build
+    without a dataset shows only the states that need none.
+  </p>
+
+  <h3>Dashboard navigation</h3>
+  <DashboardNav current="overview" />
+
+  <h3>Notices</h3>
+  <DataNotice state="unavailable" />
+  <DataNotice state="fixture" />
+  <DataNotice state="stale" />
+  <DataNotice state="loading" />
+  <DataNotice state="newer" />
+  <DataNotice state="failed" />
+
+  <h3>As-of stamp</h3>
+  <DatasetStamp dataset={econ} />
+
+  {econ && effr && target && targetRange && rateChart && moneyChart && debtChart && rateTable && shortTable ? (
+    <>
+      <h3>Series status</h3>
+      <SeriesStatus dataset={econ} seriesId="effr" />
+      <SeriesStatus dataset={econ} seriesId="m1-sa" />
+      <SeriesStatus dataset={econ} seriesId="debt-intragov" />
+
+      <h3>Headline and computed figures</h3>
+      <div class="data-indicators ds-figures">
+        <HeadlineFigure figure={{ label: effr.title, value: valueText(effr.last_value ?? '0', effr.unit_label), period: periodText(effr.frequency, effr.last_period ?? ''), kind: 'observed', details: ['Market rate'] }} />
+        <HeadlineFigure figure={{ label: 'FOMC target range', value: rangeText(targetRange.lower, targetRange.upper, target.unit_label), period: periodText(target.frequency, target.last_period ?? ''), kind: 'derived' }} />
+        <ComputedFigureView figure={{ label: 'Change from a year earlier', value: '', formula: 'latest value minus the value of the same period a year earlier', unavailableReason: 'there is no observation a year earlier in this example' }} />
+      </div>
+
+      <h3>Indicator cards</h3>
+      <ul class="data-indicators">
+        <li><IndicatorCard dataset={econ} seriesId="effr" label="Effective federal funds rate" kind="observed" note="A market rate" dashboard={{ path: 'data/federal-funds-rate/', label: 'Interest rates dashboard' }} /></li>
+        <li><IndicatorCard dataset={econ} seriesId="fomc-target" label="Federal funds target range" kind="derived" note="Derived by RadMage Finance" dashboard={{ path: 'data/federal-funds-rate/', label: 'Interest rates dashboard' }} /></li>
+      </ul>
+
+      <h3>Line charts</h3>
+      <DataChart spec={rateChart} />
+      <DataTable spec={rateTable} />
+      <DataChart spec={moneyChart} />
+      <DataChart spec={debtChart} annotations={[{ x: '2005-03-31', label: 'from this record date on, both parts are published every business day.' }]} />
+
+      <h3>Range switch</h3>
+      <RangeSwitch name="ds-range" legend="Rows shown" options={[{ value: 'short', label: 'Latest 5' }, { value: 'long', label: 'Latest 10' }]} value="short" controls="ds-switch-panels" />
+      <div id="ds-switch-panels">
+        <div data-switch-panel="short"><DataTable spec={shortTable} /></div>
+        <div data-switch-panel="long" hidden><DataTable spec={{ ...rateTable, id: 'ds-table-long' }} /></div>
+      </div>
+
+      <SourceNote dataset={econ} seriesIds={['effr', 'fomc-target']} />
+    </>
+  ) : (
+    <>
+      <h3>Range switch</h3>
+      <RangeSwitch name="ds-range" legend="Range" options={[{ value: '1y', label: '1Y' }, { value: '5y', label: '5Y' }]} value="5y" controls="ds-data" />
+      <h3>Computed figure</h3>
+      <ComputedFigureView figure={{ label: 'Change from a year earlier', value: '', formula: 'latest value minus the value of the same period a year earlier', unavailableReason: 'this build has no data' }} />
+      <p class="small muted">The status, figure, chart, table and source examples need a build with a dataset (ECON_DIR).</p>
+    </>
+  )}
+</section>
+
+<script>
+  import '../../scripts/data/shared/page';
+</script>
+
+<style>
+  .ds-figures {
+    margin-bottom: var(--space-5);
+  }
+</style>

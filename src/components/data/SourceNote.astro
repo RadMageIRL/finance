@@ -1,0 +1,60 @@
+---
+// The source of one or more series (design P28 6.2; DATA_CONVENTIONS 16 and 22.9): the
+// attribution and notice exactly as the manifest gives them, the terms link from the CSV
+// comments, the derivation text of a derived series (the FOMC target), and a link to the
+// notice file the manifest names, which carries every provider's license sentence and the
+// statement on RadMage Finance's own contributions. Series of one source with the same
+// attribution, notice and terms share one entry, so nothing is repeated.
+import type { EconDataset } from '../../lib/data/econ';
+import { segmentComments, seriesInfo } from '../../lib/data/econ';
+import { href } from '../../lib/url';
+
+interface Props {
+  dataset: EconDataset;
+  seriesIds: string[];
+}
+
+const { dataset, seriesIds } = Astro.props;
+interface Entry {
+  key: string;
+  titles: string[];
+  attribution: string | null;
+  notice: string | null;
+  terms: string | null;
+  derived: { title: string; text: string }[];
+}
+const entries: Entry[] = [];
+for (const id of seriesIds) {
+  const s = seriesInfo(dataset, id);
+  const comments = segmentComments(dataset, id);
+  const terms = comments.find((c) => c.startsWith('Terms: '))?.slice('Terms: '.length) ?? null;
+  const derived = comments.find((c) => c.startsWith('Derived by RadMage Finance')) ?? null;
+  const key = JSON.stringify([s.attribution, s.notice, terms]);
+  let entry = entries.find((e) => e.key === key);
+  if (!entry) {
+    entry = { key, titles: [], attribution: s.attribution, notice: s.notice, terms, derived: [] };
+    entries.push(entry);
+  }
+  entry.titles.push(s.title);
+  if (derived) entry.derived.push({ title: s.title, text: derived });
+}
+const notice = dataset.manifest.rules?.notice?.path ?? null;
+const headingId = `data-source-${seriesIds.join('-')}`;
+---
+<section class="data-source" aria-labelledby={headingId}>
+  <h2 id={headingId}>Sources and terms</h2>
+  {entries.map((e) => (
+    <div class="data-source__item">
+      <h3>{e.titles.join('; ')}</h3>
+      {e.attribution && <p>{e.attribution}</p>}
+      {e.notice && <p>{e.notice}</p>}
+      {e.derived.map((d) => <p><strong>{d.title}:</strong> {d.text}</p>)}
+      {e.terms && <p class="small"><a href={e.terms}>The provider's terms of use</a></p>}
+    </div>
+  ))}
+  {notice && (
+    <p class="small muted">
+      Every provider's attribution, notice and license terms for this data, with the statement on RadMage Finance's own contributions, are in the <a href={href(`data/econ/${notice}`)}>notice file</a>.
+    </p>
+  )}
+</section>
