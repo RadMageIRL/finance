@@ -50,7 +50,7 @@ The economic data comes from the separate repository `RadMageIRL/finance-data`: 
 
 Rollback: run the workflow again from the previous release tag. For the data, `finance-data`'s publication workflow redeploys an earlier verified pair (mode `redeploy`), and this workflow's mode `unpublish` removes `data/econ/`.
 
-The news is read at build time: `tools/news/collect.mjs` reads the feeds in `tools/news/sources.json` in mode `site` (a `data` or `unpublish` run carries the deployed news forward) and the previously deployed `news/news.json`, so a failed feed keeps its earlier stories and never fails the build. `.github/workflows/news.yml` starts a `site` build every two hours, naming the deployed dataset, unless a site build or a data publication is running. If the problem is in the RadMage Labs routing, revert that change in the Labs repository.
+The news is read at build time: `tools/news/collect.mjs` reads the feeds in `tools/news/sources.json` in mode `site` (a `data` or `unpublish` run carries the deployed news forward) and the previously deployed `news/news.json`, so a failed feed keeps its earlier stories and never fails the build. `.github/workflows/news.yml` starts a `site` build naming the deployed dataset, unless a site build or a data publication is running. The Cloudflare Worker `finance-collect-timer`, the timer of the data collection, dispatches it every two hours (cron `41 */2 * * *`, UTC; `pipeline/timer/worker.mjs` in finance-data); it has no GitHub schedule of its own and can also be started by hand (`gh workflow run news.yml`). If the problem is in the RadMage Labs routing, revert that change in the Labs repository.
 
 ## License
 

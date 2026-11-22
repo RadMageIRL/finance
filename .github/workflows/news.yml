@@ -1,16 +1,18 @@
 name: news
 run-name: news refresh
 
-# Financial News (v0.3.0): every two hours, a site build of pages.yml, which reads the news feeds
+# Financial News (v0.3.0): a site build of pages.yml, which reads the news feeds
 # (tools/news/collect.mjs) and keeps the deployed economic dataset (its inputs name it, 22.8 and
 # I48). News collection is independent of the data publication: nothing here touches finance-data,
 # and the refresh is skipped while a site build or a data publication is running, so it never
-# displaces one in the pages concurrency group. GitHub runs scheduled workflows on a best-effort
-# basis; a late or missed refresh only delays the news.
+# displaces one in the pages concurrency group.
+#
+# The trigger (owner decision P112): the Cloudflare Worker finance-collect-timer dispatches this
+# workflow every two hours (its cron 41 */2 * * *, UTC; pipeline/timer/worker.mjs of finance-data,
+# with the secret NEWS_DISPATCH_TOKEN). There is no GitHub schedule: GitHub's own cron did not fire
+# reliably. It can also be started by hand. The concurrency group news runs one refresh at a time.
 
 on:
-  schedule:
-    - cron: '41 */2 * * *'
   workflow_dispatch:
 
 permissions:
