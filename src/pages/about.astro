@@ -3,6 +3,7 @@ import ReferenceLayout from '../layouts/ReferenceLayout.astro';
 import { SITE } from '../lib/site';
 import { href } from '../lib/url';
 import { newsIndexing } from '../lib/news-index';
+import SupportLinks from '../components/SupportLinks.astro';
 
 const newsLive = newsIndexing().any;
 ---
@@ -60,4 +61,11 @@ const newsLive = newsIndexing().any;
     free to use, needs no account, and does not track you.
     Found an error? See <a href={href('corrections/')}>Corrections</a>.
   </p>
+
+  <h2>Share and support</h2>
+  <p>
+    If RadMage Finance is useful to you, share it, tell me what to fix or add on GitHub, or buy me a
+    coffee. The site stays free, with no ads, accounts or tracking either way.
+  </p>
+  <SupportLinks />
 </ReferenceLayout>

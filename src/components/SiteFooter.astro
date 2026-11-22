@@ -1,6 +1,7 @@
 ---
 import { FOOTER_GROUPS, SITE } from '../lib/site';
 import { newsIndexing } from '../lib/news-index';
+import SupportLinks from './SupportLinks.astro';
 import { href } from '../lib/url';
 
 const newsLive = newsIndexing().any;
@@ -14,6 +15,7 @@ const newsLive = newsIndexing().any;
       </a>
       <p>Free lessons and calculators that show how money, banking and interest work. Sources linked, formulas shown, calculations done in your browser. {newsLive ? 'Financial news from official sources, linked to the publishers.' : 'Financial news is in development.'}</p>
       <p>Educational information, not financial advice. <a href={href('disclaimer/')}>Read the disclaimer</a>.</p>
+      <SupportLinks />
     </div>
     {FOOTER_GROUPS.map((group, index) => (
       <nav aria-labelledby={`footer-group-${index}`}>

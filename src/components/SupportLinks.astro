@@ -1,0 +1,47 @@
+---
+// Share, feedback and Buy Me a Coffee, as FFXI Timer has them (v1.0.2). Share hands this page's
+// canonical address to the device's share sheet, or copies it and says so; it is hidden until its
+// script runs, since it cannot work without JavaScript. Feedback opens the repository's issues, and
+// the coffee link the owner's Buy Me a Coffee page. Plain links: nothing is loaded from those
+// sites unless a reader follows one.
+const COFFEE_URL = 'https://buymeacoffee.com/radmageirl';
+const ISSUES_URL = 'https://github.com/RadMageIRL/finance/issues';
+---
+<p class="support-links">
+  <span data-share-wrap hidden><button class="support-links__share" type="button" data-share>Share this page</button> <span aria-hidden="true">&middot;</span> </span>
+  <a href={ISSUES_URL} target="_blank" rel="noopener" title="Report a problem or suggest something on GitHub">Feedback</a>
+  <span aria-hidden="true">&middot;</span>
+  <a href={COFFEE_URL} target="_blank" rel="noopener">Buy me a coffee</a>
+  <span class="support-links__status small" data-share-status role="status" aria-live="polite"></span>
+</p>
+
+<script>
+  // The canonical address wherever the page was opened (radmagelabs.com, not github.io), with the
+  // page's title. The device's share sheet when there is one; otherwise, or if it fails, the link
+  // is copied. Closing the sheet does nothing.
+  for (const wrap of document.querySelectorAll<HTMLElement>('[data-share-wrap]')) {
+    const button = wrap.querySelector<HTMLButtonElement>('[data-share]');
+    const status = wrap.parentElement?.querySelector<HTMLElement>('[data-share-status]');
+    if (!button) continue;
+    wrap.hidden = false;
+    button.addEventListener('click', async () => {
+      const url = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href ?? location.href.split('#')[0]!;
+      const title = document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content ?? document.title;
+      const data = { title, url };
+      if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+        try {
+          await navigator.share(data);
+          return;
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        if (status) status.textContent = `Link copied: ${url}`;
+      } catch {
+        if (status) status.textContent = `Copy this link: ${url}`;
+      }
+    });
+  }
+</script>

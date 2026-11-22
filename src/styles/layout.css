@@ -598,6 +598,45 @@
   max-width: 44ch;
 }
 
+/* Share, feedback and Buy Me a Coffee (SupportLinks.astro): the Share button reads as a link. */
+.support-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+}
+
+.support-links [data-share-wrap]:not([hidden]) {
+  display: contents;
+}
+
+.support-links__share {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.support-links__share:hover {
+  color: var(--accent-strong);
+  text-decoration-thickness: 2px;
+}
+
+.support-links__status {
+  flex-basis: 100%;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.support-links__status:empty {
+  display: none;
+}
+
 .footer-title {
   margin: 0 0 var(--space-3);
   color: var(--text);
