@@ -16,7 +16,8 @@ const bad = (msg) => { failures++; console.log('FAIL ' + msg); };
 
 const sitemap = readFileSync(new URL('../dist/sitemap-0.xml', import.meta.url), 'utf8');
 const pages = [...sitemap.matchAll(/<loc>https:\/\/radmagelabs\.com(\/finance\/[^<]*)<\/loc>/g)].map((m) => m[1]);
-pages.push('/finance/news/');
+const inSitemap = new Set(pages);
+if (!inSitemap.has('/finance/news/')) pages.push('/finance/news/');
 
 async function get(path, opts = {}) {
   return fetch(ORIGIN + path, { redirect: 'manual', headers: UA, ...opts });
@@ -29,7 +30,9 @@ for (const p of pages) {
   const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
   if (canonical !== CANON + p) bad(`${p} canonical ${canonical}`);
   if (!/http-equiv="content-security-policy"/i.test(html)) bad(`${p} has no CSP meta`);
-  if (p === '/finance/news/' && !/<meta name="robots" content="noindex/.test(html)) bad('news is not noindex');
+  // A page the sitemap lists is indexable; a News page without stories is noindex and out of it (v0.3.0).
+  const noindex = /<meta name="robots" content="noindex/.test(html);
+  if (inSitemap.has(p) === noindex) bad(`${p} ${noindex ? 'is noindex but in the sitemap' : 'is not in the sitemap but indexable'}`);
   if (!ORIGIN_ONLY) {
     for (const h of ['content-security-policy', 'x-content-type-options', 'referrer-policy']) if (!r.headers.get(h)) bad(`${p} missing header ${h}`);
     if (r.headers.get('content-security-policy') && !/frame-ancestors 'none'/.test(r.headers.get('content-security-policy'))) bad(`${p} header CSP lacks frame-ancestors`);
@@ -80,4 +83,5 @@ if (!ORIGIN_ONLY) {
 }
 
 console.log(failures ? `\n${failures} failure(s)` : '\nall checks passed');
-process.exitCode = failures ? 1 : 0;
+// Exit at once: responses whose bodies were not read can keep the process alive.
+process.exit(failures ? 1 : 0);

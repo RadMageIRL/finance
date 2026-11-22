@@ -2,6 +2,27 @@
 
 All notable changes to RadMage Finance are recorded here.
 
+## 0.3.0 (2026-11-22)
+
+Financial News: official releases from US financial agencies, newest first, by topic, each headline linked to its publisher. Calculations, lessons and the economic data are unchanged from 0.2.0.
+
+### Added
+
+- Financial News at `/finance/news/`, and a page for each topic: Markets, Economy, Federal Reserve, Banking, Crypto and Regulation. The stories are official releases of the Federal Reserve Board, the SEC (press releases and statements), the OCC, the CFPB and the CFTC (press and enforcement releases). Each shows the publisher, the publication time, the headline as published linked to the original and, where the source offers one, the source's own short summary. A release that several agencies publish together is listed once, with the others under Also published by. Nothing is rewritten or summarized by RadMage Finance.
+- A search within the stories of a page (with JavaScript); the topic pages work without it.
+- Each News page shows when the feeds were last read successfully and names any feed whose latest read failed. A failed feed keeps its earlier stories, and no feed can stop the site from building.
+- Related news on the federal funds rate, money supply and national debt dashboards: the latest official releases on each topic.
+- The feeds are read every two hours by a scheduled site build that keeps the deployed economic data as it is. Stories are kept for 45 days.
+
+### Changed
+
+- National Debt Tracker, Recent records: the Notes column and the other cells no longer break inside a word or a figure. A table wider than the screen scrolls within its frame, and phones still show each record as a list.
+- The homepage, About page and footer describe the live News section.
+
+### Sources
+
+- Not included yet: Treasury and FDIC press releases (their feeds are served from a host whose robots.txt disallows them) and the New York Fed (no feed). Commercial news feeds are not included: their terms allow personal use only or forbid republishing.
+
 ## 0.2.0 (2026-11-22)
 
 Economic Conditions: official US economic data with its sources, release dates and freshness. Calculations, lessons and calculators are unchanged from 0.1.1.
