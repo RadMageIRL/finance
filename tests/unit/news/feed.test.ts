@@ -10,7 +10,7 @@ import * as collector from '../../../tools/news/collect.mjs';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = Record<string, any>;
 const { canonicalUrl, categorize, clip, decodeEntities, decodeFeed, LIMITS, mergeNews, normalizeHeadline, parseDate, parseFeed, plainText, previousDoc, safeUrl } = feed as unknown as Loose;
-const { collect } = collector as unknown as Loose;
+const { collect, UA, userAgentFor } = collector as unknown as Loose;
 
 const RSS = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>Press releases</title>
@@ -206,6 +206,25 @@ describe('one collection on fixtures (the command line)', () => {
     expect(r.status).toBe(0);
     expect(JSON.parse(readFileSync(out, 'utf8')).items).toEqual([]);
   });
+  it('sends the contact User-Agent only to the sources that ask for one (the SEC); every other feed gets the generic one', async () => {
+    const registry = JSON.parse(readFileSync('tools/news/sources.json', 'utf8')) as { sources: Loose[] };
+    const seen = new Map<string, string>();
+    const fetchImpl = async (url: string, init: Loose) => {
+      seen.set(url, init.headers['User-Agent']);
+      return new Response(RSS, { status: 200, headers: { 'content-type': 'application/rss+xml' } });
+    };
+    const { log } = await collect({ sources: registry.sources, previous: null, fetchFeeds: true, now: '2026-11-22T18:00:00Z', fetchImpl });
+    expect(log.every((l: string) => !l.includes('FAILED'))).toBe(true);
+    for (const s of registry.sources) {
+      const want = s.id.startsWith('sec-') ? 'RadMage Finance news radmageirl@radmagelabs.com' : 'RadMage Finance news';
+      expect([s.id, seen.get(s.feed)]).toEqual([s.id, want]);
+    }
+    expect(registry.sources.filter((s) => 'user_agent' in s).map((s) => s.id)).toEqual(['sec-press', 'sec-statements']);
+    expect(userAgentFor({ user_agent: 'bad\nvalue' })).toBe(UA);
+    expect(userAgentFor({ user_agent: 'x'.repeat(201) })).toBe(UA);
+    expect(userAgentFor({})).toBe(UA);
+  });
+
   it('collect() runs the merge without the network when told not to fetch', async () => {
     const { doc, log } = await collect({ sources: SRC, previous: null, fetchFeeds: false, now: '2026-11-22T18:00:00Z' });
     expect(log).toEqual([]);

@@ -16,13 +16,20 @@ import { fileURLToPath } from 'node:url';
 import { decodeFeed, LIMITS, mergeNews, parseFeed, previousDoc } from './feed.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const UA = 'RadMage Finance news';
+export const UA = 'RadMage Finance news';
 
-async function fetchText(url, { timeoutMs = 20_000, maxBytes = LIMITS.feedBytes } = {}) {
+/**
+ * The User-Agent for a source: its own `user_agent` where the publisher asks automated clients to
+ * identify themselves with a contact (the SEC), else the generic one. Only printable ASCII, at
+ * most 200 characters; anything else falls back to the generic one.
+ */
+export const userAgentFor = (source) => (typeof source?.user_agent === 'string' && /^[\x20-\x7e]{1,200}$/.test(source.user_agent) ? source.user_agent : UA);
+
+async function fetchText(url, { timeoutMs = 20_000, maxBytes = LIMITS.feedBytes, userAgent = UA, fetchImpl = fetch } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch(url, { signal: ctrl.signal, redirect: 'follow', headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1' } });
+    const r = await fetchImpl(url, { signal: ctrl.signal, redirect: 'follow', headers: { 'User-Agent': userAgent, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1' } });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const len = Number(r.headers.get('content-length') ?? 0);
     if (len > maxBytes) throw new Error(`${len} bytes, over the ${maxBytes} byte limit`);
@@ -49,13 +56,13 @@ async function readPrevious(where) {
 }
 
 /** One collection: { doc, log }. Never throws for a feed. */
-export async function collect({ sources, previous, fetchFeeds, now, fixtures = null }) {
+export async function collect({ sources, previous, fetchFeeds, now, fixtures = null, fetchImpl = fetch }) {
   const results = {};
   const log = [];
   if (fetchFeeds) {
     await Promise.all(sources.map(async (s) => {
       try {
-        const xml = fixtures ? decodeFeed(readFileSync(join(fixtures, `${s.id}.xml`))) : await fetchText(s.feed);
+        const xml = fixtures ? decodeFeed(readFileSync(join(fixtures, `${s.id}.xml`))) : await fetchText(s.feed, { userAgent: userAgentFor(s), fetchImpl });
         const entries = parseFeed(xml, s.feed);
         results[s.id] = { ok: true, entries };
         log.push(`${s.id}: ${entries.length} entries`);
