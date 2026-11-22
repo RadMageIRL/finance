@@ -1,0 +1,25 @@
+---
+// Recent official news related to a dashboard (v0.3.0): the newest stories whose headline or
+// excerpt matches the dashboard's topic, linked to the publisher, with a link to all news.
+// Nothing is rendered when there is no news file or no match.
+import NewsList from './NewsList.astro';
+import { loadNews, relatedStories } from '../../lib/news';
+import { href } from '../../lib/url';
+
+interface Props {
+  id: string;
+  pattern: RegExp;
+  category: string;
+}
+
+const { id, pattern, category } = Astro.props;
+const stories = relatedStories(loadNews(), pattern, 4);
+---
+{stories.length > 0 && (
+  <section class="related-news" aria-labelledby={`${id}-heading`}>
+    <h2 id={`${id}-heading`}>Related news</h2>
+    <p class="small muted">The latest official releases on this topic, linked to their publishers. Collected by RadMage Finance; headlines as published.</p>
+    <NewsList stories={stories} compact />
+    <p class="small"><a href={href(`news/${category}/`)}>More news</a></p>
+  </section>
+)}

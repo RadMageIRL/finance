@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Test Securities Agency (test data)</title>
+<item><title>Test: Statement on stablecoin disclosures</title><link>https://securities.example.gov/news/stablecoin?utm_source=rss</link><pubDate>Sat, 21 Nov 2026 21:15:00 GMT</pubDate><description><![CDATA[<p>Test data. Staff statement on <b>crypto asset</b> disclosures.</p>]]></description></item>
+<item><title>Test: Agency charges firm with market manipulation</title><link>https://securities.example.gov/news/charges</link><pubDate>Fri, 20 Nov 2026 14:00:00 GMT</pubDate><description>Test data. An enforcement action in the securities markets.</description></item>
+<item><title>Test: Release without a publication time</title><link>https://securities.example.gov/news/undated</link><description>Test data.</description></item>
+</channel></rss>

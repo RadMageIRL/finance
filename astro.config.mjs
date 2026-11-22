@@ -5,24 +5,32 @@ import sitemap from '@astrojs/sitemap';
 import { HEAD_SCRIPT } from './src/lib/theme/head-script.mjs';
 import { dataPagesIndexed, dataPagesOn, isDataPage } from './src/lib/data/shell-dist.ts';
 import { DATA_PAGES_REVIEWED } from './src/lib/data/review.ts';
+import { newsIndexing, newsPageIndexed } from './src/lib/news-index.ts';
 
 // The theme bootstrap is the only inline script. Its hash goes into script-src so the page
 // can run it under a strict Content-Security-Policy.
 const headScriptHash = `sha256-${createHash('sha256').update(HEAD_SCRIPT).digest('base64')}`;
 
-// Pages that must not be indexed: review and error pages, and News while it is a preview
-// (NEWS_LIVE in src/lib/site.ts; remove 'news' here when feeds go live).
+// Pages that must not be indexed: review and error pages. News pages are indexed when they show
+// stories (src/lib/news-index.ts, the same rule as their robots meta); their lastmod is the date
+// of the last successful collection.
 const LAST_REVIEWED = '2026-11-16';
 // The sitemap's lastmod is each page's last reviewed date (SEO_STRATEGY 5; owner brief T). The data
 // pages, and the reference pages whose economic data sections are built with them, were reviewed
 // on DATA_PAGES_REVIEWED (src/lib/data/review.ts); a held build lists neither, so it is unchanged.
 const DATA_SECTION_PAGES = /\/finance\/(sources|methodology|privacy|corrections)\/$/;
-const lastmodOf = (url) => (dataPagesOn(process.env) && (isDataPage(url) || DATA_SECTION_PAGES.test(url)) ? DATA_PAGES_REVIEWED : LAST_REVIEWED);
+const NEWS = newsIndexing(process.env);
+const NEWS_PAGE = /\/finance\/(news\/(?:[a-z-]+\/)?)$/;
+const lastmodOf = (url) => (NEWS_PAGE.test(url) && NEWS.lastmod ? NEWS.lastmod : dataPagesOn(process.env) && (isDataPage(url) || DATA_SECTION_PAGES.test(url)) ? DATA_PAGES_REVIEWED : LAST_REVIEWED);
 
-const BASE_NOT_IN_SITEMAP = /\/finance\/(design-system|404|news)\/$/;
+const BASE_NOT_IN_SITEMAP = /\/finance\/(design-system|404)\/$/;
 // The economic data pages stay out of the sitemap unless the build is from a verified release
 // (they carry noindex then too; DataLayout.astro, src/lib/data/shell-dist.ts).
-const NOT_IN_SITEMAP = { test: (page) => BASE_NOT_IN_SITEMAP.test(page) || (!dataPagesIndexed(process.env) && isDataPage(page)) };
+const notIndexedNews = (page) => {
+  const m = NEWS_PAGE.exec(page);
+  return Boolean(m && !newsPageIndexed(m[1], NEWS));
+};
+const NOT_IN_SITEMAP = { test: (page) => BASE_NOT_IN_SITEMAP.test(page) || notIndexedNews(page) || (!dataPagesIndexed(process.env) && isDataPage(page)) };
 
 // The economic data pages live outside src/pages and are added as routes only when the build has
 // DATA_PAGES=on (owner brief R, option (b); rule D5 of src/lib/data/shell-dist.ts). Without it the

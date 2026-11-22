@@ -43,11 +43,14 @@ process.on('exit', () => rmSync(LOCK, { force: true }));
 //   approved, the tree copied to dist/data/econ, and the built-output checks run as on GitHub
 //   Actions, so the production rule D6 applies. Test data from the fixtures; nothing is published.
 // Only RELEASE sets ECON_SOURCE and ECON_VERIFIED.
-const HELD = { DATA_PAGES: '', ECON_DIR: '', ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'held' };
-const NO_DATA = { DATA_PAGES: 'on', ECON_DIR: '', ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'none' };
-const FIXTURE = { DATA_PAGES: 'on', ECON_DIR: join('local', 'econ-fixture', 'live'), ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'fixture' };
+// News (v0.3.0): the held and no-data builds have no news file (the News pages' empty state,
+// NEWS_BUILD=none); the fixture and release builds read tests/fixtures/news/news.json.
+const NEWS_FIXTURE = join('tests', 'fixtures', 'news', 'news.json');
+const HELD = { DATA_PAGES: '', ECON_DIR: '', ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'held', NEWS_FILE: '', NEWS_BUILD: 'none' };
+const NO_DATA = { DATA_PAGES: 'on', ECON_DIR: '', ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'none', NEWS_FILE: '', NEWS_BUILD: 'none' };
+const FIXTURE = { DATA_PAGES: 'on', ECON_DIR: join('local', 'econ-fixture', 'live'), ECON_SOURCE: '', ECON_VERIFIED: '', ECON_BUILD: 'fixture', NEWS_FILE: NEWS_FIXTURE, NEWS_BUILD: 'fixture' };
 const RELEASE_ROOT = join('local', 'econ-release');
-const RELEASE = { DATA_PAGES: 'on', ECON_DIR: join(RELEASE_ROOT, 'econ'), ECON_SOURCE: 'release', ECON_VERIFIED: join(RELEASE_ROOT, 'verified.json'), ECON_BUILD: 'release' };
+const RELEASE = { DATA_PAGES: 'on', ECON_DIR: join(RELEASE_ROOT, 'econ'), ECON_SOURCE: 'release', ECON_VERIFIED: join(RELEASE_ROOT, 'verified.json'), ECON_BUILD: 'release', NEWS_FILE: NEWS_FIXTURE, NEWS_BUILD: 'fixture' };
 const AS_PRODUCTION = { ...RELEASE, GITHUB_ACTIONS: 'true' };
 
 // The pipeline belongs to finance-data (owner brief V item 3): its own independent check runs where

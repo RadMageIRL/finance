@@ -1,0 +1,102 @@
+---
+// The News index and each category page (v0.3.0): official releases from the sources in
+// tools/news/sources.json, newest first, with the refresh status, category links, a search within
+// the page and the sources with their terms. The headline is the publisher's, linked to the
+// original; nothing is summarized or rewritten.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import NewsList from './NewsList.astro';
+import NewsSearch from './NewsSearch.astro';
+import NewsStatus from './NewsStatus.astro';
+import { loadNews, newsTime, storiesIn } from '../../lib/news';
+import { newsIndexing, newsPageIndexed } from '../../lib/news-index';
+import { NEWS_CATEGORIES } from '../../lib/site';
+import { href } from '../../lib/url';
+
+interface Props {
+  category: string | null;
+}
+
+const { category } = Astro.props;
+const doc = loadNews();
+const current = category ? NEWS_CATEGORIES.find((c) => c.id === category)! : null;
+const stories = storiesIn(doc, category, 150);
+const indexed = newsPageIndexed(category ? `news/${category}/` : 'news/', newsIndexing());
+const title = current ? `${current.label} News` : 'Financial News';
+const description = current
+  ? `${current.label} news from official US sources, newest first, each headline linked to the publisher: ${current.scope}`
+  : 'Financial news from official US sources (the Federal Reserve Board, the SEC, the OCC, the CFPB and the CFTC), newest first, by topic, each headline linked to the publisher.';
+const crumbs = current ? [{ label: 'Home', path: '' }, { label: 'News', path: 'news/' }, { label: current.label }] : [{ label: 'Home', path: '' }, { label: 'News' }];
+---
+<BaseLayout title={title} description={description} noindex={!indexed} schemaType="CollectionPage">
+  <div class="page-head">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <h1>{title}</h1>
+      <p class="lead">
+        {current ? current.scope : 'Official releases from the Federal Reserve Board, the SEC, the OCC, the CFPB and the CFTC, newest first.'}
+        {' '}Each headline is the publisher's own and links to the original.
+      </p>
+      <NewsStatus doc={doc} shown={stories.length} />
+    </div>
+  </div>
+
+  <nav class="chip-nav" aria-label="News categories">
+    <div class="wrap">
+      <ul>
+        <li><a class="chip" href={href('news/')} aria-current={current ? undefined : 'page'}>All</a></li>
+        {NEWS_CATEGORIES.map((c) => (
+          <li><a class="chip" href={href(`news/${c.id}/`)} aria-current={c.id === category ? 'page' : undefined}>{c.label}</a></li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+
+  <div class="wrap page-body">
+    {stories.length > 0 ? (
+      <section class="news-block" aria-labelledby="stories-title">
+        <h2 id="stories-title" class="vh">Stories, newest first</h2>
+        <NewsSearch count={stories.length} />
+        <NewsList stories={stories} />
+      </section>
+    ) : (
+      <section class="news-block" aria-labelledby="stories-title">
+        <h2 id="stories-title">No stories yet</h2>
+        <p>{doc ? `No story in ${current ? current.label : 'the news'} has been collected in the last 45 days.` : 'No stories have been collected yet. This page lists them once the feeds have been read.'}</p>
+      </section>
+    )}
+
+    <section class="news-block" aria-labelledby="about-title">
+      <h2 id="about-title">How this page works</h2>
+      <div class="prose">
+        <ul>
+          <li>Stories come from the public feeds of the sources below, read several times a day. Each agency publishes this information for reuse, credited to it, and each story names its publisher.</li>
+          <li>The headline, the publication time and, where a source offers one, its own short summary are shown as published. The full text stays with the publisher; follow the headline to read it.</li>
+          <li>The same release from several agencies is listed once, with the others under Also published by. Topics are assigned from each source's role and the words of the headline, and a story can have several.</li>
+          <li>Stories are listed newest first, not ranked by popularity, and kept for 45 days.</li>
+          <li>This is information, not financial advice. How sources are chosen and cited: <a href={href('methodology/')}>Methodology</a> and <a href={href('sources/')}>Sources</a>. Errors: <a href={href('corrections/')}>Corrections</a>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="news-block" aria-labelledby="sources-title">
+      <h2 id="sources-title">Sources</h2>
+      {doc && doc.sources.length > 0 ? (
+        <ul class="news-sources">
+          {doc.sources.map((s) => (
+            <li>
+              <a href={s.home} rel="noopener">{s.name}</a>
+              <span class="small muted">
+                {s.last_success ? <> Last read {newsTime(s.last_success)}.</> : ' Not read yet.'}
+                {s.last_error && <> The latest attempt failed.</>}
+                {' '}<a href={s.terms} rel="noopener">Terms</a>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No source has been read yet.</p>
+      )}
+    </section>
+  </div>
+</BaseLayout>

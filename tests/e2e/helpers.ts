@@ -11,6 +11,8 @@ export const BASE = '/finance/';
  * fixture dataset.
  */
 export const ECON_BUILD = process.env.ECON_BUILD ?? 'fixture';
+/** The news file of the build (v0.3.0): `fixture` (tests/fixtures/news/news.json) or `none` (no news collected). */
+export const NEWS_BUILD = process.env.NEWS_BUILD ?? 'fixture';
 export const HELD = ECON_BUILD === 'held';
 
 /** The economic data overview and the three dashboards (brief Q; design P28 8.10). */

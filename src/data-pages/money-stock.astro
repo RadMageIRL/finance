@@ -38,6 +38,7 @@ import {
 } from '../lib/data/money';
 import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
+import RelatedNews from '../components/news/RelatedNews.astro';
 import '../styles/data-money.css';
 
 const dataset = loadEconDataset();
@@ -505,6 +506,7 @@ const schema: Record<string, unknown> = {
       </section>
     )}
 
+    <RelatedNews id="money-news" category="federal-reserve" pattern={/\b(money stock|money supply|monetary aggregates?|m1|m2|h\.6|reserve balances|monetary policy|balance sheet)\b/i} />
     {dataset && <SourceNote dataset={dataset} seriesIds={ALL_SERIES} />}
 
     <section class="prose money-section" aria-labelledby="money-related">

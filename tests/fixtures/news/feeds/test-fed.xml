@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Test Federal Agency press releases (test data)</title>
+<item><title>Test: FOMC statement on monetary policy</title><link>https://example.gov/news/fomc-statement.htm</link><pubDate>Sat, 21 Nov 2026 19:00:00 GMT</pubDate><description>Test data. The Committee decided to maintain the target range for the federal funds rate.</description></item>
+<item><title>Test: Agencies issue joint statement on bank capital</title><link>https://example.gov/news/joint-capital.htm</link><pubDate>Fri, 20 Nov 2026 16:00:00 GMT</pubDate><description>Test data. A joint statement of three agencies.</description></item>
+<item><title>Test: Money stock measures release schedule</title><link>https://example.gov/news/h6-schedule.htm</link><pubDate>Thu, 19 Nov 2026 17:30:00 GMT</pubDate><description>Test data. The H.6 money stock release schedule for 2027.</description></item>
+</channel></rss>

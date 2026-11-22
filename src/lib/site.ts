@@ -7,7 +7,7 @@ export const SITE = {
   origin: 'https://radmagelabs.com',
   contactEmail: 'radmageirl@radmagelabs.com',
   description:
-    'Interactive lessons and calculators that show how money, banking and interest work, with every fact sourced. Source-linked financial news is in development.',
+    'Interactive lessons and calculators that show how money, banking and interest work, with every fact sourced, and financial news linked to its publishers.',
 } as const;
 
 export interface NavItem {
@@ -90,12 +90,6 @@ export const FOOTER_GROUPS: readonly { title: string; items: readonly NavItem[] 
     ],
   },
 ];
-
-/**
- * News is a core section. Until feeds are collected (a later phase) the News page is a
- * layout preview: it shows no stories, carries noindex, and stays out of the sitemap.
- */
-export const NEWS_LIVE = false;
 
 export interface NewsCategory {
   id: string;

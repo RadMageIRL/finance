@@ -99,47 +99,4 @@ test.describe('in-development items', () => {
   }
 });
 
-test.describe('News preview', () => {
-  test('is clearly marked as a preview with true status values and is not indexed', async ({ page }) => {
-    await page.goto(url('news/'));
-    await expect(page.locator('h1')).toHaveText('Financial News');
-    await expect(page.locator('.preview-banner')).toContainText('News is not live yet');
-    await expect(page.locator('.feed-status dd')).toHaveText(['Not live', '0', 'None yet']);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, follow');
-  });
-
-  test('has a section for each category, reachable from the category links', async ({ page }) => {
-    await page.goto(url('news/'));
-    const categories = ['Markets', 'Economy', 'Federal Reserve', 'Banking', 'Crypto', 'Regulation'];
-    await expect(page.locator('.chip-nav a')).toHaveText(categories);
-    await expect(page.locator('.news-category h2')).toHaveText(categories);
-    for (const chip of await page.locator('.chip-nav a').all()) {
-      const target = (await chip.getAttribute('href'))!;
-      await expect(page.locator(target)).toHaveCount(1);
-    }
-  });
-
-  test('invents nothing: no times, no outside links, skeletons hidden from assistive technology', async ({ page }) => {
-    await page.goto(url('news/'));
-    const main = page.locator('main');
-    await expect(main.locator('time')).toHaveCount(0);
-    await expect(main.locator('a[href^="http"]')).toHaveCount(0);
-    const skeletons = main.locator('.story-grid, .cluster, .story--anatomy');
-    expect(await skeletons.count()).toBeGreaterThan(0);
-    for (const block of await skeletons.all()) {
-      await expect(block).toHaveAttribute('aria-hidden', 'true');
-      await expect(block.locator('a, button, input, [tabindex]')).toHaveCount(0);
-    }
-  });
-
-  test('the homepage features News with links into each category', async ({ page }) => {
-    await page.goto(url(''));
-    const panel = page.locator('.news-home');
-    await expect(panel.locator('h2')).toHaveText('Financial News');
-    await expect(panel.locator('.badge--preview')).toBeVisible();
-    await expect(panel.locator('.topic-tile')).toHaveCount(6);
-    await panel.locator('.topic-tile', { hasText: 'Federal Reserve' }).click();
-    await expect(page).toHaveURL(/\/finance\/news\/#federal-reserve$/);
-    await expect(page.locator('#federal-reserve')).toBeInViewport();
-  });
-});
+// The News pages are tested in tests/e2e/news.spec.ts (v0.3.0: live news replaced the preview).

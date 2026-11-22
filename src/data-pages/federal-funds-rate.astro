@@ -50,6 +50,7 @@ import { BANK_SOURCES, numberer } from '../lib/learn/lesson-sources';
 import type { Source } from '../lib/learn/money';
 import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
+import RelatedNews from '../components/news/RelatedNews.astro';
 import '../styles/data-rates.css';
 
 const TITLE = 'Federal Funds Rate Tracker';
@@ -407,6 +408,7 @@ const schema: Record<string, unknown> = {
       </section>
     )}
 
+    <RelatedNews id="rates-news" category="federal-reserve" pattern={/\b(federal funds|fomc|federal open market|monetary policy|policy rate|discount rate|interest on reserve)/i} />
     {ds && <SourceNote dataset={ds} seriesIds={['effr', 'fomc-target']} />}
 
     <section class="prose rates-section" aria-labelledby="rates-what-effr">

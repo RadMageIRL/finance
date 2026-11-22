@@ -1,0 +1,39 @@
+---
+// Search within the stories on the page (v0.3.0). Hidden until its script runs; without
+// JavaScript every story stays listed and the category pages still filter.
+interface Props {
+  count: number;
+}
+
+const { count } = Astro.props;
+---
+<div class="news-search" data-news-search hidden>
+  <label for="news-query">Search these headlines</label>
+  <input id="news-query" type="search" autocomplete="off" spellcheck="false" placeholder="For example: stablecoin, FOMC, enforcement" />
+  <p class="news-search__count small muted" aria-live="polite" data-news-count>{count} {count === 1 ? 'story' : 'stories'}</p>
+</div>
+
+<script>
+  // Every word typed must appear in a story (its headline, publisher, excerpt or categories),
+  // ignoring case and accents.
+  const norm = (s: string) => s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  for (const box of document.querySelectorAll<HTMLElement>('[data-news-search]')) {
+    const input = box.querySelector<HTMLInputElement>('input');
+    const count = box.querySelector<HTMLElement>('[data-news-count]');
+    const items = [...document.querySelectorAll<HTMLElement>('[data-news-list] [data-news-item]')];
+    if (!input || !count) continue;
+    const texts = items.map((li) => norm(li.textContent ?? ''));
+    box.hidden = false;
+    const apply = () => {
+      const words = norm(input.value).split(/\s+/).filter(Boolean);
+      let shown = 0;
+      items.forEach((li, i) => {
+        const hit = words.every((w) => texts[i]!.includes(w));
+        li.hidden = !hit;
+        if (hit) shown += 1;
+      });
+      count.textContent = words.length ? `${shown} of ${items.length} ${items.length === 1 ? 'story' : 'stories'} match` : `${items.length} ${items.length === 1 ? 'story' : 'stories'}`;
+    };
+    input.addEventListener('input', apply);
+  }
+</script>

@@ -1,6 +1,9 @@
 ---
 import { FOOTER_GROUPS, SITE } from '../lib/site';
+import { newsIndexing } from '../lib/news-index';
 import { href } from '../lib/url';
+
+const newsLive = newsIndexing().any;
 ---
 <footer class="site-footer">
   <div class="wrap footer-grid">
@@ -9,7 +12,7 @@ import { href } from '../lib/url';
         <img src={href('favicon.svg')} width="28" height="28" alt="" />
         <span>RadMage <span class="brand__accent">Finance</span></span>
       </a>
-      <p>Free lessons and calculators that show how money, banking and interest work. Sources linked, formulas shown, calculations done in your browser. Financial news is in development.</p>
+      <p>Free lessons and calculators that show how money, banking and interest work. Sources linked, formulas shown, calculations done in your browser. {newsLive ? 'Financial news from official sources, linked to the publishers.' : 'Financial news is in development.'}</p>
       <p>Educational information, not financial advice. <a href={href('disclaimer/')}>Read the disclaimer</a>.</p>
     </div>
     {FOOTER_GROUPS.map((group, index) => (

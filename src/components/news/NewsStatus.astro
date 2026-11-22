@@ -1,0 +1,36 @@
+---
+// The refresh status of the News pages (v0.3.0): when the feeds were last read successfully, how
+// many sources and stories, and which feeds failed at the latest attempt (their earlier stories
+// stay listed).
+import type { NewsDoc } from '../../lib/news';
+import { failedSources, newsTime } from '../../lib/news';
+
+interface Props {
+  doc: NewsDoc | null;
+  shown: number;
+}
+
+const { doc, shown } = Astro.props;
+const failed = failedSources(doc);
+---
+<dl class="feed-status" aria-label="Feed status">
+  <div>
+    <dt>Last successful update</dt>
+    <dd>{doc?.last_success ? <time datetime={doc.last_success}>{newsTime(doc.last_success)}</time> : 'None yet'}</dd>
+  </div>
+  <div>
+    <dt>Sources</dt>
+    <dd>{doc ? doc.sources.length : 0}</dd>
+  </div>
+  <div>
+    <dt>Stories on this page</dt>
+    <dd>{shown}</dd>
+  </div>
+</dl>
+{failed.length > 0 && (
+  <p class="news-warning" role="note">
+    {failed.length === 1 ? 'One feed' : `${failed.length} feeds`} could not be read at the latest attempt:
+    {' '}{failed.map((s, i) => <>{i > 0 && '; '}{s.publisher} (last read {s.last_success ? newsTime(s.last_success) : 'never'})</>)}.
+    {' '}Stories collected from {failed.length === 1 ? 'it' : 'them'} before are still listed.
+  </p>
+)}

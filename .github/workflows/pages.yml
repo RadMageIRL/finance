@@ -142,6 +142,15 @@ jobs:
           else
             echo "data pages: held (DATA_PAGES is not approved)"
           fi
+      - name: News (v0.3.0), independent of the economic data; a failed feed or read never fails the build
+        env:
+          MODE: ${{ inputs.mode || 'site' }}
+        run: |
+          # A site run reads the feeds; a data or unpublish run carries the deployed news forward.
+          fetch=""
+          if [ "$MODE" != "site" ]; then fetch="--no-fetch"; fi
+          node tools/news/collect.mjs $fetch --previous https://radmageirl.github.io/finance/news/news.json --out "$RUNNER_TEMP/news.json" || echo "::warning::news collection failed; the site builds without new stories"
+          if [ -s "$RUNNER_TEMP/news.json" ]; then echo "NEWS_FILE=$RUNNER_TEMP/news.json" >> "$GITHUB_ENV"; fi
       - name: Production build
         run: npm run build
       - name: The verified tree copied to dist/data/econ

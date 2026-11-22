@@ -110,6 +110,20 @@
   overflow-wrap: break-word;
 }
 
+/* The shared table lets a cell break anywhere (overflow-wrap: anywhere), so a squeezed column broke
+   inside words ("Not/es", "Non/e", "Novem/ber") and figures. Here a cell breaks between words only,
+   a figure never breaks, and the notes keep a readable width; a table wider than the column scrolls
+   in .debt-scroll. */
+.debt-page .data-table td,
+.debt-page .data-table th {
+  overflow-wrap: normal;
+}
+
+.debt-page #debt-recent td:last-child,
+.debt-page #debt-recent th:last-child {
+  min-width: 12rem;
+}
+
 .debt-scroll {
   max-width: 100%;
   overflow-x: auto;

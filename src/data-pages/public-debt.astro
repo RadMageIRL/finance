@@ -18,6 +18,7 @@ import { DEBT_SERIES, buildDebtPage } from '../lib/data/debt';
 import { formatDay } from '../lib/data/format';
 import { DATA_PAGES_REVIEWED } from '../lib/data/review';
 import { href } from '../lib/url';
+import RelatedNews from '../components/news/RelatedNews.astro';
 import '../styles/data-debt.css';
 
 const DATASET_PAGE = 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/';
@@ -233,6 +234,7 @@ const toc = page
       {page && <p class="small muted">Records from {formatDay(page.coverage.first)} to {formatDay(page.coverage.last)} in this build.</p>}
     </section>
 
+    <RelatedNews id="debt-news" category="economy" pattern={/\b(public debt|federal debt|debt limit|debt ceiling|borrowing|refunding|treasury (auctions?|securities|bills|notes|bonds)|deficit|debt to the penny)/i} />
     {dataset && <SourceNote dataset={dataset} seriesIds={[...DEBT_SERIES]} />}
   </div>
 </DataLayout>

@@ -1,0 +1,66 @@
+name: news
+run-name: news refresh
+
+# Financial News (v0.3.0): every two hours, a site build of pages.yml, which reads the news feeds
+# (tools/news/collect.mjs) and keeps the deployed economic dataset (its inputs name it, 22.8 and
+# I48). News collection is independent of the data publication: nothing here touches finance-data,
+# and the refresh is skipped while a site build or a data publication is running, so it never
+# displaces one in the pages concurrency group. GitHub runs scheduled workflows on a best-effort
+# basis; a late or missed refresh only delays the news.
+
+on:
+  schedule:
+    - cron: '41 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+env:
+  DATA_REPOSITORY: RadMageIRL/finance-data
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RadMageIRL/finance-data
+          path: econ-tools
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Skip while a site build or a data publication is running
+        id: busy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          site=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/pages.yml/runs?per_page=20" --jq '[.workflow_runs[] | select(.status != "completed")] | length')
+          pub=$(gh api "repos/${DATA_REPOSITORY}/actions/workflows/publish.yml/runs?per_page=10" --jq '[.workflow_runs[] | select(.status != "completed")] | length')
+          echo "site builds not completed: $site; publications not completed: $pub"
+          if [ "$site" = "0" ] && [ "$pub" = "0" ]; then echo "busy=false" >> "$GITHUB_OUTPUT"; else echo "busy=true" >> "$GITHUB_OUTPUT"; fi
+      - name: A site build with fresh news, naming the deployed dataset
+        if: steps.busy.outputs.busy == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -- $(node econ-tools/pipeline/bin/site-data.mjs deployed --site-repository "$GITHUB_REPOSITORY")
+          current="${1:-none}"
+          release="${2:-none}"
+          if [ "$current" = "none" ]; then
+            gh workflow run pages.yml -R "$GITHUB_REPOSITORY" -f mode=site
+          elif [[ "$current" =~ ^[0-9]{8}T[0-9]{6}Z:[0-9a-f]{64}$ ]] && [[ "$release" =~ ^data-[0-9]{8}T[0-9]{6}Z-[0-9]+-[0-9]+$ ]]; then
+            gh workflow run pages.yml -R "$GITHUB_REPOSITORY" -f mode=site -f tag="$release" -f snapshot="${current%%:*}" -f manifest_sha256="${current##*:}"
+          else
+            echo "::error::the deployed state '$current $release' is not a dataset and release"
+            exit 1
+          fi
+          echo "pages.yml site build dispatched (deployed: $current $release)"

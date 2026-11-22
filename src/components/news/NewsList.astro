@@ -1,0 +1,40 @@
+---
+// A list of stories (v0.3.0): publisher, time, the headline as published linked to the original,
+// the publisher's own short excerpt where its terms allow, the categories, and the other
+// publishers of the same release. Every value is rendered as text; links are the publishers'.
+import type { NewsStory } from '../../lib/news';
+import { categoryLabel, newsTime, storyTime } from '../../lib/news';
+import { href } from '../../lib/url';
+
+interface Props {
+  stories: NewsStory[];
+  headingLevel?: 2 | 3;
+  compact?: boolean;
+}
+
+const { stories, headingLevel = 3, compact = false } = Astro.props;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
+---
+<ol class:list={['news-list', { 'news-list--compact': compact }]} data-news-list>
+  {stories.map((s) => (
+    <li class="news-item" data-news-item>
+      <article>
+        <p class="news-item__meta">
+          <span class="news-item__publisher">{s.publisher}</span>
+          <time datetime={storyTime(s)}>{newsTime(storyTime(s))}</time>
+          {!s.published && <span class="news-item__note">(no publication time given; collected then)</span>}
+        </p>
+        <Heading class="news-item__title"><a href={s.url} rel="noopener">{s.title}</a></Heading>
+        {!compact && s.excerpt && <p class="news-item__excerpt">{s.excerpt}</p>}
+        {!compact && s.also.length > 0 && (
+          <p class="news-item__also">Also published by {s.also.map((a, i) => <>{i > 0 && ', '}<a href={a.url} rel="noopener">{a.publisher}</a></>)}</p>
+        )}
+        {!compact && (
+          <p class="news-item__tags">
+            {s.categories.map((c) => <a class="news-tag" href={href(`news/${c}/`)}>{categoryLabel(c)}</a>)}
+          </p>
+        )}
+      </article>
+    </li>
+  ))}
+</ol>

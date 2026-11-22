@@ -4,10 +4,12 @@ import CatalogCard from '../components/CatalogCard.astro';
 import ClaimLabel from '../components/ClaimLabel.astro';
 import { CALCULATORS, DATA_NAV, DATA_PAGES, MODULES, NEWS_CATEGORIES, SITE } from '../lib/site';
 import { dataPagesOn } from '../lib/data/shell-dist';
+import { newsIndexing } from '../lib/news-index';
 import { href } from '../lib/url';
 
 // The economic data section, held until DATA_PAGES=on (owner brief R, option (b); rule D5).
 const dataOn = dataPagesOn(process.env);
+const newsLive = newsIndexing().any;
 ---
 <BaseLayout
   title="RadMage Finance: How Money Works, Shown Step by Step"
@@ -21,8 +23,7 @@ const dataOn = dataPagesOn(process.env);
       <p class="lead">
         Interactive lessons and calculators that show their math, for savers, borrowers,
         homeowners and anyone curious about the financial system. Every fact links to its
-        source, and every calculation runs in your browser. Source-linked financial news is
-        in development.
+        source, and every calculation runs in your browser. {newsLive ? 'Financial news comes from official sources, each headline linked to its publisher.' : 'Source-linked financial news is in development.'}
       </p>
       <div class="button-row">
         <a class="button" href={href('learn/')}>Start learning</a>
@@ -36,19 +37,28 @@ const dataOn = dataPagesOn(process.env);
       <div class="news-panel__intro">
         <div class="news-panel__heading">
           <h2 id="news-title">Financial News</h2>
-          <span class="badge badge--preview">Preview</span>
+          {!newsLive && <span class="badge badge--preview">Preview</span>}
         </div>
-        <p>
-          In development: headlines from named publishers, grouped by topic and linked to the
-          original reporting, with publication times and refresh status shown on every page.
-        </p>
-        <p class="small muted">News is in development. Feeds are not live yet, so no stories are shown.</p>
-        <a class="button button--secondary" href={href('news/')}>Preview the News section</a>
+        {newsLive ? (
+          <p>
+            Official releases from the Federal Reserve Board, the SEC, the OCC, the CFPB and the
+            CFTC, newest first, by topic, each headline linked to the publisher.
+          </p>
+        ) : (
+          <>
+            <p>
+              In development: headlines from named publishers, grouped by topic and linked to the
+              original reporting, with publication times and refresh status shown on every page.
+            </p>
+            <p class="small muted">News is in development. Feeds are not live yet, so no stories are shown.</p>
+          </>
+        )}
+        <a class="button button--secondary" href={href('news/')}>{newsLive ? 'Read the latest news' : 'Preview the News section'}</a>
       </div>
       <ul class="topic-grid">
         {NEWS_CATEGORIES.map((category) => (
           <li>
-            <a class="topic-tile" href={href(`news/#${category.id}`)}>
+            <a class="topic-tile" href={href(`news/${category.id}/`)}>
               <span class="topic-tile__label">{category.label}</span>
               <span class="topic-tile__scope">{category.scope}</span>
             </a>

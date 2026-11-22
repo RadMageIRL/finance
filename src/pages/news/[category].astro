@@ -1,0 +1,12 @@
+---
+// One News category (v0.3.0): /finance/news/<category>/ for each category of src/lib/site.ts.
+import NewsPage from '../../components/news/NewsPage.astro';
+import { NEWS_CATEGORIES } from '../../lib/site';
+
+export function getStaticPaths() {
+  return NEWS_CATEGORIES.map((c) => ({ params: { category: c.id } }));
+}
+
+const { category } = Astro.params;
+---
+<NewsPage category={category} />

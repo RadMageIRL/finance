@@ -1,0 +1,9 @@
+{
+  "note": "Test sources for the news fixture (tests/fixtures/news): synthetic feeds under feeds/, never fetched. The production registry is tools/news/sources.json.",
+  "sources": [
+    { "id": "test-fed", "name": "Test Federal Agency (press releases)", "publisher": "Test Federal Agency", "home": "https://example.gov/", "feed": "https://example.gov/feeds/press.xml", "terms": "https://example.gov/terms", "categories": ["federal-reserve"], "excerpt": true },
+    { "id": "test-sec", "name": "Test Securities Agency (press releases)", "publisher": "Test Securities Agency", "home": "https://securities.example.gov/", "feed": "https://securities.example.gov/news.rss", "terms": "https://securities.example.gov/privacy", "categories": ["regulation", "markets"], "excerpt": true },
+    { "id": "test-bank", "name": "Test Bank Regulator (news)", "publisher": "Test Bank Regulator", "home": "https://bank.example.gov/", "feed": "https://bank.example.gov/atom.xml", "terms": "https://bank.example.gov/terms", "categories": ["banking"], "excerpt": false },
+    { "id": "test-down", "name": "Test Treasury (press releases)", "publisher": "Test Treasury", "home": "https://treasury.example.gov/", "feed": "https://treasury.example.gov/rss.xml", "terms": "https://treasury.example.gov/terms", "categories": ["economy"], "excerpt": true }
+  ]
+}

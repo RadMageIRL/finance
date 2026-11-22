@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Test Bank Regulator (test data)</title>
+<entry><title>Test: Agencies Issue Joint Statement on Bank Capital</title><link href="https://bank.example.gov/news/joint-capital"/><published>2026-11-20T16:05:00Z</published><summary>Not shown: this source allows headlines only.</summary></entry>
+<entry><title>Test: Deposit insurance fund quarterly report</title><link href="https://bank.example.gov/news/dif-report"/><published>2026-11-18T15:00:00Z</published></entry>
+</feed>
