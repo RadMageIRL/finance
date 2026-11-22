@@ -113,7 +113,11 @@ jobs:
           MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
         run: |
           node econ-tools/pipeline/bin/site-data.mjs fetch --release-repository "$DATA_REPOSITORY" --tag "$TAG" --snapshot "$SNAPSHOT" --manifest-sha256 "$MANIFEST_SHA256" --assets "$RUNNER_TEMP/assets" --out "$RUNNER_TEMP/econ" --verified "$RUNNER_TEMP/econ-verified.json"
-          python3 -I econ-tools/tests/datacheck/check_p22.py --release "$RUNNER_TEMP/assets" --expect "$SNAPSHOT:$MANIFEST_SHA256"
+          # The checker's release mode reads the tag from the release folder's name (RL1, RL3): check a
+          # copy named by the tag (validated against its pattern by check-inputs before any use).
+          mkdir -p "$RUNNER_TEMP/release"
+          cp -R "$RUNNER_TEMP/assets" "$RUNNER_TEMP/release/$TAG"
+          python3 -I econ-tools/tests/datacheck/check_p22.py --release "$RUNNER_TEMP/release/$TAG" --expect "$SNAPSHOT:$MANIFEST_SHA256"
           # Data conventions v0.8 amendment 1 (22.8): for the one manifest/3 dataset the site accepts,
           # the manifest/4 fields its pages read, outside dist and never deployed; nothing for a manifest/4.
           ECON_TOOLS=econ-tools node tools/econ-compat.mjs "$RUNNER_TEMP/econ" "$RUNNER_TEMP/econ-compat.json"
