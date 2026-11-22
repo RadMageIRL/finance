@@ -2,7 +2,7 @@
 
 A free financial education and research site from RadMage Labs at `https://radmagelabs.com/finance/`.
 
-**Version 0.1.1 (2026-11-18).** Phase 1: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
+**Version 0.2.0 (2026-11-22).** Economic Conditions: three data dashboards (the federal funds rate, the money supply and the national debt) built from verified public releases of official data from the Federal Reserve and the Treasury. Phase 1, from 0.1.x: five calculators (compound interest, APR and APY, high-yield savings, loan amortization, mortgage payoff) with reports, CSV, printing and share links, and three interactive lessons (What Is Money?, How Banks Create Money, How Money Flows).
 
 ## What it will be
 
@@ -41,12 +41,14 @@ node tools/dist-manifest.mjs > SHA256SUMS.txt   # checksums of the build in dist
 
 The site is published to GitHub Pages by `.github/workflows/pages.yml`, which runs only by hand, and the RadMage Labs site serves it at `https://radmagelabs.com/finance/` through a rewrite to `https://radmageirl.github.io/finance/`. The repository name matches the `/finance/` base path, so both addresses work.
 
+The economic data comes from the separate repository `RadMageIRL/finance-data`: each publication there is an immutable `data-*` release, and its publication workflow starts this workflow in mode `data`, which downloads the release, checks it with the independent checker and places it at `dist/data/econ/`. The data pages are built only when the repository variable `DATA_PAGES` is `on` and a verified release is placed. The workflow has three modes: `site` (a site release; its inputs `tag`, `snapshot` and `manifest_sha256` must name the deployed dataset, so the site keeps it), `data` (started by the publication workflow) and `unpublish` (the owner's approval required).
+
 1. Recheck every dated fact the pages cite, bump the review dates, and run `npm run check`; every step must pass.
-2. Commit, tag the release (`vX.Y.Z`), push, and run the workflow (`gh workflow run pages.yml`).
-3. Compare the SHA-256 list in the workflow log with `node tools/dist-manifest.mjs` from a local build of the same commit. Builds of one commit match within a calendar month: the loan calculators' default first payment is the month after the build.
+2. Commit, tag the release (`vX.Y.Z`), push, and run the workflow in mode `site` naming the deployed dataset (`gh workflow run pages.yml -f mode=site -f tag=<data-* tag> -f snapshot=<id> -f manifest_sha256=<sha256>`), with `dry_run=true` first.
+3. Compare the SHA-256 list in the workflow log with `node tools/dist-manifest.mjs` from a local build of the same commit. For a build with data, place the same release first (`ECON_TOOLS=<finance-data checkout>`; see `tools/econ-release.mjs`); the list then covers `data/econ/` too. Builds of one commit match within a calendar month: the loan calculators' default first payment is the month after the build.
 4. Verify the deployment: `node tools/verify-prod.mjs https://radmageirl.github.io --origin-only` for GitHub Pages, and `node tools/verify-prod.mjs` for `radmagelabs.com` (pages, canonicals, security headers, the 404 page, trailing-slash redirects, sitemap, `robots.txt`, and the other RadMage Labs apps).
 
-Rollback: run the workflow again from the previous release tag. If the problem is in the RadMage Labs routing, revert that change in the Labs repository.
+Rollback: run the workflow again from the previous release tag. For the data, `finance-data`'s publication workflow redeploys an earlier verified pair (mode `redeploy`), and this workflow's mode `unpublish` removes `data/econ/`. If the problem is in the RadMage Labs routing, revert that change in the Labs repository.
 
 ## License
 

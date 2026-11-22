@@ -2,6 +2,27 @@
 
 All notable changes to RadMage Finance are recorded here.
 
+## 0.2.0 (2026-11-22)
+
+Economic Conditions: official US economic data with its sources, release dates and freshness. Calculations, lessons and calculators are unchanged from 0.1.1.
+
+### Added
+
+- Economic Conditions at `/finance/data/`: an overview with the latest values and three dashboards, linked from the header and the homepage.
+- Federal Funds Rate Tracker at `/finance/data/federal-funds-rate/`: the effective federal funds rate (EFFR) for each business day from the Federal Reserve Bank of New York, and the FOMC target, derived by RadMage Finance from the New York Fed's records and labeled so (a single rate before December 16, 2008, a range from then on); rate changes in basis points, the history with a historical comparison, the last 30 business days and every change of the target.
+- Money Supply Tracker at `/finance/data/money-stock/`: M1 and M2, seasonally adjusted and not, from the Federal Reserve Board's H.6 release, with how each change is computed, the definition changes and breaks in the data, and a note that money supply growth is not inflation.
+- National Debt Tracker at `/finance/data/public-debt/`: total public debt outstanding, debt held by the public and intragovernmental holdings from the Treasury's Debt to the Penny, with the changes in the total, the recent records, and the missing and anomalous records explained.
+- Every value is labeled as published by its source or computed by RadMage Finance, and every computed figure shows its formula. Each series says when it was retrieved and when its next value is expected; a page reached after that time says the update is pending, and later that the value may be out of date. Each page names its sources, their attribution and notices, and links their terms; the data files can be downloaded as CSV.
+- The data is published from verified, immutable releases of `RadMageIRL/finance-data` and served with the site at `/finance/data/econ/`. Collection and publication are separate, each checked by an independent checker, and the site build checks the release again before it places it.
+
+### Changed
+
+- Sources, Methodology, Privacy, Corrections, the design system and the three lessons describe and link the data pages.
+
+### Data notes
+
+- The first published dataset is snapshot `20261121T001752Z` (data through November 19, 2026 for the daily series and September 2026 for M1 and M2), published as its collector wrote it, under a one-time compatibility exception: it has no notice file and no revision CSVs, and its New York Fed CSV files carry the provider's earlier terms address, which now leads to an error page. The pages link the current address. The next dataset brings the notice file.
+
 ## 0.1.1 (2026-11-18)
 
 A patch release for the schedule tables. Calculations are unchanged: the engines, the calculation conventions (v1.7), the independent oracle and its fixtures are the same as in 0.1.0.
