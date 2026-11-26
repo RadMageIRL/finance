@@ -298,6 +298,14 @@ const MUTANTS = [
   ['pipeline-v08-report-automatic-closes', 'pipeline/bin/publish.mjs', 'if (result.person) want.delete(\'publication-verify-failed\');', 'want.delete(\'publication-verify-failed\');'],
   ['pipeline-v08-site-input-any', 'pipeline/bin/site-data.mjs', 'return want === got ? null :', 'return true ? null :'],
   ['pipeline-v08-window-future-snapshots', 'pipeline/lib/publish-store.mjs', '.filter(([, s]) => s.created_at <= asOf)', '.filter(() => true)'],
+  // v0.8 amendment 2 (P114): the record numbers keep the gaps of unanswered requests, and V3
+  // retries a transient file fetch failure a bounded number of times, never a mismatch.
+  ['pipeline-a2-transport-records-late-answer', 'pipeline/collectors/live-transport.mjs', 'if (done) return; // ended already', 'if (false) return; // ended already'],
+  ['pipeline-a2-v3-no-retry', 'pipeline/bin/publish.mjs', 'while (v3Transient(r) && retries < retryWaits.length) {', 'while (false) {'],
+  ['pipeline-a2-v3-retry-unbounded', 'pipeline/bin/publish.mjs', 'while (v3Transient(r) && retries < retryWaits.length) {', 'while (v3Transient(r) && retries <= retryWaits.length) {'],
+  ['pipeline-a2-v3-retry-any-4xx', 'pipeline/bin/publish.mjs', 'r.status === 408 || r.status === 429 ||', 'r.status >= 400 ||'],
+  ['pipeline-a2-v3-retry-mismatch', 'pipeline/bin/publish.mjs', "export const v3Transient = (r) => !r.ok && (", 'export const v3Transient = (r) => r.ok || ('],
+  ['pipeline-a2-v3get-status-lost', 'pipeline/bin/publish.mjs', 'return { ok: false, status: r.status };', 'return { ok: false };'],
 ];
 
 // The dashboard mutants (brief Q): each tools/audit/mutants/*.mjs exports MUTANTS in the same
@@ -328,7 +336,7 @@ if (!HAS_PIPELINE) {
 const VITEST = resolve('node_modules', 'vitest', 'vitest.mjs');
 const WORK = resolve('local', 'mutation-work');
 // Everything the unit tests read, copied into the work tree.
-const COPY = ['src/lib', 'src/pages/learn', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'tools/econ-tools.mjs', 'vitest.config.ts', ...(HAS_PIPELINE ? ['pipeline'] : [])];
+const COPY = ['src/lib', 'src/pages/learn', 'src/styles/report.css', 'public/favicon.svg', 'tests/unit', 'tests/support', 'tests/oracle/fixtures', 'tools/text-scan.mjs', 'tools/econ-tools.mjs', 'vitest.config.ts', ...(HAS_PIPELINE ? ['pipeline', 'tests/datacheck'] : [])];
 
 function hashTree(dir) {
   const out = {};
