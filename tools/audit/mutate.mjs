@@ -306,6 +306,18 @@ const MUTANTS = [
   ['pipeline-a2-v3-retry-any-4xx', 'pipeline/bin/publish.mjs', 'r.status === 408 || r.status === 429 ||', 'r.status >= 400 ||'],
   ['pipeline-a2-v3-retry-mismatch', 'pipeline/bin/publish.mjs', "export const v3Transient = (r) => !r.ok && (", 'export const v3Transient = (r) => r.ok || ('],
   ['pipeline-a2-v3get-status-lost', 'pipeline/bin/publish.mjs', 'return { ok: false, status: r.status };', 'return { ok: false };'],
+  // v0.8 amendment 3 (P115): the newest release by published_at, then numeric id (never the
+  // tagged commit's created_at); its log ends with its own entry; the watcher reads the same
+  // newest release; a dataset the site already deploys is never released again.
+  ['pipeline-a3-order-no-id-tiebreak', 'pipeline/lib/publication.mjs', 'return ta - tb || ia - ib;', 'return ta - tb;'],
+  ['pipeline-a3-order-id-as-text', 'pipeline/lib/publication.mjs', 'return ta - tb || ia - ib;', 'return ta - tb || String(ia).localeCompare(String(ib));'],
+  ['pipeline-a3-newest-is-oldest', 'pipeline/lib/publication.mjs', 'return list.length ? list.sort(compareReleases)[list.length - 1] : null;', 'return list.length ? list.sort(compareReleases)[0] : null;'],
+  ['pipeline-a3-published-at-unchecked', 'pipeline/lib/publication.mjs', 'if (!Number.isFinite(t)) throw', 'if (false) throw'],
+  ['pipeline-a3-id-unchecked', 'pipeline/lib/publication.mjs', 'if (!Number.isSafeInteger(r.id) || r.id <= 0) throw', 'if (false) throw'],
+  ['pipeline-a3-facts-own-log-ignored', 'pipeline/bin/publication-facts.mjs', 'if (own) throw new Error(own);', 'if (false) throw new Error(own);'],
+  ['pipeline-a3-watch-longest-log', 'pipeline/bin/watch.mjs', 'const top = releases.find((r) => r.rel === newestRel);', 'const top = [...releases].sort((a, b) => a.log.deployments.length - b.log.deployments.length).pop();'],
+  ['pipeline-a3-assemble-deployed-released', 'pipeline/bin/publish.mjs', "if ((o.mode === 'manual' || o.mode === 'timer') && sameDataset(o.deployed, accepted)) {", 'if (false) {'],
+  ['pipeline-a3-report-refused-deployed-silent', 'pipeline/bin/publish.mjs', "outcome.outcome === 'no-op' || outcome.outcome === 'refused-gate';", "outcome.outcome === 'no-op' || outcome.outcome === 'refused-gate' || outcome.outcome === 'refused-deployed';"],
 ];
 
 // The dashboard mutants (brief Q): each tools/audit/mutants/*.mjs exports MUTANTS in the same
